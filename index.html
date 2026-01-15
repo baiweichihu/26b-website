@@ -23,10 +23,10 @@
                 <div class="col-md-2 text-center">
                     <div class="d-flex justify-content-center">
                         <div class="icon-circle me-2">
-                            <img src="bjbz_icon.webp" alt="北京八中校徽" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="bjbz_icon.webp" alt="北京八中校徽">
                         </div>
                         <div class="icon-circle ms-2">
-                            <img src="shao26b_icon.jpg" alt="少26B班徽" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="shao26b_icon.jpg" alt="少26B班徽">
                         </div>
                     </div>
                 </div>
@@ -52,7 +52,13 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
+            <div class="ms-3">
+    		<button id="themeToggle" class="btn btn-outline-secondary btn-sm">
+        		<i id="themeIcon" class="fas fa-circle-half-stroke"></i>
+    		</button>
+	    </div>
+
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -254,6 +260,52 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+
+    const root = document.documentElement;
+    const toggleBtn = document.getElementById('themeToggle');
+    const icon = document.getElementById('themeIcon');
+
+    const THEMES = ['light', 'dark', 'system'];
+
+    /* 应用主题 */
+    function applyTheme(theme) {
+        if (theme === 'system') {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        } else {
+            root.setAttribute('data-theme', theme);
+        }
+        updateIcon(theme);
+    }
+
+    /* 更新图标 */
+    function updateIcon(theme) {
+        icon.className = 'fas ' + (
+            theme === 'light' ? 'fa-sun' :
+            theme === 'dark' ? 'fa-moon' :
+            'fa-circle-half-stroke'
+        );
+    }
+
+    /* 初始化 */
+    let currentTheme = localStorage.getItem('theme') || 'system';
+    applyTheme(currentTheme);
+
+    /* 点击切换 */
+    toggleBtn.addEventListener('click', () => {
+        const index = THEMES.indexOf(currentTheme);
+        currentTheme = THEMES[(index + 1) % THEMES.length];
+        localStorage.setItem('theme', currentTheme);
+        applyTheme(currentTheme);
+    });
+
+    /* 监听系统主题变化（仅 system 模式） */
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (currentTheme === 'system') {
+            applyTheme('system');
+        }
+    });
+
         // Supabase配置常量（可以先定义）
         const SUPABASE_URL = 'https://frvlwqxbnpzwkvrawewe.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k5rFSf8btQn8u6WLNAUgDQ_APxRcQFi';
