@@ -16,6 +16,19 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- Intro / Loading Screen -->
+<div id="intro-screen">
+    <div class="intro-icon">
+        <div class="icon-morph">
+            <img src="bjbz_icon.webp" class="icon icon-school" alt="校徽">
+            <img src="shao26b_icon.jpg" class="icon icon-class" alt="班徽">
+        </div>
+        <p class="intro-hint">点击进入班级主页</p>
+    </div>
+</div>
+
+
     <!-- 页面标题部分 - 与原网站完全一致 -->
     <header class="page-header">
         <div class="container">
@@ -23,18 +36,24 @@
                 <div class="col-md-2 text-center">
                     <div class="d-flex justify-content-center">
                         <div class="icon-circle me-2">
-                            <img src="bjbz_icon.webp" alt="北京八中校徽" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="bjbz_icon.webp" alt="北京八中校徽">
                         </div>
                         <div class="icon-circle ms-2">
-                            <img src="shao26b_icon.jpg" alt="少26B班徽" class="img-fluid rounded-circle" style="width: 100%; height: 100%; object-fit: cover;">
+                            <img src="shao26b_icon.jpg" alt="少26B班徽">
                         </div>
                     </div>
                 </div>
                 <div class="col-md-8">
                     <h1 class="display-4 mb-2">
-                        <span class="school-name">北京八中</span>
+                        <a href="https://www.no8ms.bj.cn/cms/home/"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="school-link">
+                            <span class="school-name">北京八中</span>
+                        </a>
                         <span class="class-name">少26B班</span>
                     </h1>
+
                 </div>
                 <div class="col-md-2 text-end">
                     <a href="#" class="contact-btn" onclick="switchPage('contact')">
@@ -52,7 +71,13 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
+            <div class="ms-3">
+    		<button id="themeToggle" class="btn btn-outline-secondary btn-sm">
+        		<i id="themeIcon" class="fas fa-circle-half-stroke"></i>
+    		</button>
+	    </div>
+
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -254,6 +279,94 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+
+(function () {
+    const intro = document.getElementById('intro-screen');
+    const schoolIcon = document.querySelector('#intro-screen .icon-school');
+    const classIcon = document.querySelector('#intro-screen .icon-class');
+
+    if (!intro || !schoolIcon || !classIcon) return;
+
+    // 锁定页面滚动
+    document.body.style.overflow = 'hidden';
+
+    // 鼠标横向渐变
+    intro.addEventListener('mousemove', (e) => {
+        const width = window.innerWidth;
+        const progress = Math.min(Math.max(e.clientX / width, 0), 1);
+        schoolIcon.style.opacity = 1 - progress;
+        classIcon.style.opacity = progress;
+    });
+
+    let entered = false;
+
+    function enterSite() {
+        if (entered) return;
+        entered = true;
+
+        intro.classList.add('fade-out');
+
+        // 恢复页面滚动
+        document.body.style.overflow = '';
+
+        // 完全移除 intro
+        setTimeout(() => {
+            intro.remove();
+        }, 600);
+    }
+
+    // 任意键 / 点击 / 触摸进入
+    window.addEventListener('keydown', enterSite, { once: true });
+    intro.addEventListener('click', enterSite, { once: true });
+    intro.addEventListener('touchstart', enterSite, { once: true });
+})();
+
+
+    const root = document.documentElement;
+    const toggleBtn = document.getElementById('themeToggle');
+    const icon = document.getElementById('themeIcon');
+
+    const THEMES = ['light', 'dark', 'system'];
+
+    /* 应用主题 */
+    function applyTheme(theme) {
+        if (theme === 'system') {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            root.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        } else {
+            root.setAttribute('data-theme', theme);
+        }
+        updateIcon(theme);
+    }
+
+    /* 更新图标 */
+    function updateIcon(theme) {
+        icon.className = 'fas ' + (
+            theme === 'light' ? 'fa-sun' :
+            theme === 'dark' ? 'fa-moon' :
+            'fa-circle-half-stroke'
+        );
+    }
+
+    /* 初始化 */
+    let currentTheme = localStorage.getItem('theme') || 'system';
+    applyTheme(currentTheme);
+
+    /* 点击切换 */
+    toggleBtn.addEventListener('click', () => {
+        const index = THEMES.indexOf(currentTheme);
+        currentTheme = THEMES[(index + 1) % THEMES.length];
+        localStorage.setItem('theme', currentTheme);
+        applyTheme(currentTheme);
+    });
+
+    /* 监听系统主题变化（仅 system 模式） */
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (currentTheme === 'system') {
+            applyTheme('system');
+        }
+    });
+
         // Supabase配置常量（可以先定义）
         const SUPABASE_URL = 'https://frvlwqxbnpzwkvrawewe.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_k5rFSf8btQn8u6WLNAUgDQ_APxRcQFi';
