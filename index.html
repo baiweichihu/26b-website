@@ -16,6 +16,19 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- Intro / Loading Screen -->
+<div id="intro-screen">
+    <div class="intro-icon">
+        <div class="icon-morph">
+            <img src="bjbz_icon.webp" class="icon icon-school" alt="校徽">
+            <img src="shao26b_icon.jpg" class="icon icon-class" alt="班徽">
+        </div>
+        <p class="intro-hint">点击进入班级主页</p>
+    </div>
+</div>
+
+
     <!-- 页面标题部分 - 与原网站完全一致 -->
     <header class="page-header">
         <div class="container">
@@ -32,9 +45,15 @@
                 </div>
                 <div class="col-md-8">
                     <h1 class="display-4 mb-2">
-                        <span class="school-name">北京八中</span>
+                        <a href="https://www.no8ms.bj.cn/cms/home/"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="school-link">
+                            <span class="school-name">北京八中</span>
+                        </a>
                         <span class="class-name">少26B班</span>
                     </h1>
+
                 </div>
                 <div class="col-md-2 text-end">
                     <a href="#" class="contact-btn" onclick="switchPage('contact')">
