@@ -1,43 +1,166 @@
+/* =========================
+   Theme Variables (Light)
+   ========================= */
+
+:root {
+    /* 背景 */
+    --bg-page: #ffffff;
+    --bg-header: #f8f9fa;
+    --bg-navbar: #ffc107;
+    --bg-card: #ffffff;
+    --bg-footer: #212529;
+    --bg-muted: #f8f9fa;
+
+    /* 文字 */
+    --text-main: #212529;
+    --text-muted: #6c757d;
+    --text-inverse: #ffffff;
+
+    /* 品牌色 */
+    --color-primary: #1a56a8;
+    --color-secondary: #fdad1a;
+    --color-danger: #dc3545;
+
+    /* 边框 / 阴影 */
+    --border-main: #dee2e6;
+    --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================
+   Dark Theme Variables
+   ========================= */
+
+[data-theme="dark"] {
+    --bg-page: #121212;
+    --bg-header: #1e1e1e;
+    --bg-navbar: #2a2a2a;
+    --bg-card: #1f1f1f;
+    --bg-footer: #000000;
+    --bg-muted: #1a1a1a;
+
+    --text-main: #e5e5e5;
+    --text-muted: #9aa0a6;
+    --text-inverse: #ffffff;
+
+    --border-main: #333333;
+    --shadow-soft: 0 6px 14px rgba(0, 0, 0, 0.6);
+}
+
+/* Intro 全屏覆盖层 */
+#intro-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+
+/* 淡出状态 */
+#intro-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* 中心内容 */
+.intro-icon {
+    text-align: center;
+}
+
+/* 提示文字 */
+.intro-hint {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: #666;
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+}
+
+/* 复用之前的 icon-morph */
+.icon-morph {
+    width: 160px;
+    height: 160px;
+    position: relative;
+}
+
+.icon-morph .icon {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    transition: opacity 0.15s linear;
+    pointer-events: none;
+}
+
+
 /* 自定义样式 - 与原网站完全一致 */
 .page-header {
-    background-color: #f8f9fa;
     padding: 0.5rem 0;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #dee2e6;
+    background-color: var(--bg-header);
+    border-bottom: 1px solid var(--border-main);
 }
 
 .school-name {
-    color: #1a56a8;
     font-weight: bold;
     font-family: '华文行楷', cursive;
+    color: var(--color-primary);
 }
 
 .class-name {
-    color: #fdad1a;
+    color: var(--color-secondary);
     font-weight: bold;
     font-family: '华文行楷', cursive;
     font-weight: 700;
 }
 
+.school-link {
+    text-decoration: none;
+}
+
+.school-link:hover .school-name {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.school-link,
+.school-link:hover,
+.school-link:focus,
+.school-link:active,
+.school-link:visited {
+    text-decoration: none;
+    color: inherit;
+}
+
+
 .icon-circle {
-    background-color: #1a56a8;
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
+    overflow: hidden;
+    flex-shrink: 0;           /* 防止被 flex 压扁 */
+}
+
+.icon-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0 !important;
 }
 
 .custom-navbar {
-    background-color: #ffc107 !important;
+    background-color: var(--bg-navbar) !important;
     padding: 0.5rem 0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .nav-custom-btn {
-    color: #212529 !important;
+    color: var(--text-main) !important;
     font-weight: 500;
     padding: 0.75rem 1.5rem !important;
     margin: 0 0.25rem;
@@ -51,7 +174,7 @@
 }
 
 .nav-custom-btn.active {
-    background-color: rgba(255, 255, 255, 0.4) !important;
+    background-color: rgba(255, 255, 255, 0.25) !important;
     font-weight: 600;
 }
 
@@ -108,6 +231,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    background-color: var(--bg-page);
+    color: var(--text-main);
 }
 
 main {
@@ -115,7 +240,8 @@ main {
 }
 
 footer {
-    background-color: #212529 !important;
+    background-color: var(--bg-footer) !important;
+    color: var(--text-inverse);
 }
 
 /* 新增：页面内容切换样式 */
@@ -137,6 +263,9 @@ footer {
 .post-card {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     height: 100%;
+    background-color: var(--bg-card);
+    border: 2px solid var(--color-primary);
+    box-shadow: var(--shadow-soft);
 }
 
 .post-card:hover {
@@ -202,7 +331,8 @@ footer {
 /* 空状态样式 */
 .empty-state {
     padding: 3rem 1rem;
-    background-color: #f8f9fa;
+    background-color: var(--bg-muted);
+    border-color: var(--border-main);
     border-radius: 10px;
     border: 2px dashed #dee2e6;
 }
@@ -293,4 +423,38 @@ footer {
     .post-author-name {
         font-size: 1rem;
     }
+}
+
+
+/* 故障模式容器 */
+.glitch-mode {
+    position: relative;
+}
+
+/* 文字、卡片、图片 RGB 偏移 + 闪烁 */
+.glitch-mode .post-card,
+.glitch-mode h1,
+.glitch-mode h2,
+.glitch-mode img {
+    position: relative;
+    animation: glitchText 0.3s infinite;
+}
+
+@keyframes glitchText {
+    0% { transform: translate(0,0); clip-path: inset(0 0 0 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    10% { transform: translate(-1px,0); clip-path: inset(2% 0 5% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    20% { transform: translate(2px,-1px); clip-path: inset(5% 0 2% 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    30% { transform: translate(-2px,1px); clip-path: inset(1% 0 3% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    40% { transform: translate(1px,-1px); clip-path: inset(0 0 2% 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    50% { transform: translate(-1px,0); clip-path: inset(3% 0 1% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    60% { transform: translate(2px,1px); clip-path: inset(1% 0 5% 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    70% { transform: translate(-2px,-1px); clip-path: inset(5% 0 2% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    80% { transform: translate(1px,1px); clip-path: inset(2% 0 3% 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    90% { transform: translate(-1px,-1px); clip-path: inset(1% 0 4% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    100% { transform: translate(0,0); clip-path: inset(0 0 0 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+}
+
+@keyframes noise {
+    0%,100% { opacity: 0.05; }
+    50% { opacity: 0.15; }
 }
