@@ -68,25 +68,6 @@
     font-weight: 700;
 }
 
-.school-link {
-    text-decoration: none;
-}
-
-.school-link:hover .school-name {
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.school-link,
-.school-link:hover,
-.school-link:focus,
-.school-link:active,
-.school-link:visited {
-    text-decoration: none;
-    color: inherit;
-}
-
-
 .icon-circle {
     width: 80px;
     height: 80px;
