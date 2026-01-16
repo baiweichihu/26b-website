@@ -181,7 +181,7 @@
 .contact-btn {
     display: inline-flex;
     align-items: center;
-    background-color: #212529;
+    background-color: #004488;
     color: white;
     text-decoration: none;
     padding: 0.6rem 1.2rem;
@@ -193,7 +193,7 @@
 }
 
 .contact-btn:hover {
-    background-color: #343a40;
+    background-color: #0048e4;
     color: white;
     text-decoration: none;
     transform: translateY(-2px);
