@@ -1,0 +1,45 @@
+node_modules/
+
+
+dist/
+build/
+out/
+public/build/
+
+
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+.env.*.local
+.envrc
+
+
+.vscode/
+.idea/
+.DS_Store（Mac 系统自带隐藏文件）
+*.sublime-project
+*.sublime-workspace
+*.vsix
+
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+.cache/
+.tmp/
+temp/
+
+
+*.tgz
+package.tgz
+
+
+coverage/（测试覆盖率报告目录）
+*.min.js（手动压缩的 js 文件，若项目自动压缩则忽略）
+*.min.css（手动压缩的 css 文件，若项目自动压缩则忽略）
+
+._*
