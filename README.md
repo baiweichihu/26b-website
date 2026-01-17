@@ -1,5 +1,5 @@
-# Branch: Refactor-React 
-这个分支添加了react作为前端框架，把所有内容都进行了组建化处理，运行（开发测试）方式如下：
+# Branch:Main
+使用react作为前端框架，运行（开发测试）方式如下：
 
 ```bash
 npm install
