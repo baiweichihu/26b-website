@@ -1,0 +1,32 @@
+/* Navbar 组件样式 */
+.customNavbar {
+    background-color: #ffc107 !important;
+    padding: 0.5rem 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navCustomBtn {
+    color: #212529 !important;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem !important;
+    margin: 0 0.25rem;
+    border-radius: 8px !important;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.navCustomBtn:hover {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-2px);
+    color: #212529 !important;
+}
+
+.navCustomBtn.active {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    font-weight: 600;
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .customNavbar {
+    background-color: #d4940f !important;
+}

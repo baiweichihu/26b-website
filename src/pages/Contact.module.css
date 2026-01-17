@@ -1,0 +1,21 @@
+/* Contact 页面样式 */
+.pageContent {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.contactEmail {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .contactEmail {
+    background-color: #2a2a2a !important;
+}
