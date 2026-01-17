@@ -239,6 +239,71 @@ main {
     flex: 1;
 }
 
+#music-player {
+    position: fixed;
+    bottom: 30px;
+    right: 60px;
+    width: 220px;
+    z-index: 1000;
+}
+
+#music-player .music-panel {
+    background: rgba(255,255,255,0.9);
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    display: none; /* 默认隐藏 */
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: auto; /* 可点击 */
+    transition: opacity 0.3s;
+    opacity: 0;
+}
+
+[data-theme="dark"] #music-player .music-panel {
+    position: relative;   /* 容器内相对定位 */
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+#music-player.show .music-panel {
+    display: flex;
+    opacity: 1;
+}
+
+
+#music-player .music-toggle {
+    position: fixed;  /* 改成 fixed，不受父容器高度影响 */
+    bottom: 90px;     /* 固定在屏幕底部 */
+    right: 40px;      /* 固定在屏幕右边 */
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffeb3b;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 1001;
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] #music-player .music-panel {
+    background: rgba(20, 20, 20, 0.95);
+    color: #f0f0f0;
+}
+[data-theme="dark"] #music-player .music-toggle {
+    background: #444;
+    color: #ffeb3b;
+}
+[data-theme="dark"] #music-player .music-toggle:hover {
+    background: #666;
+}
+
+
 footer {
     background-color: var(--bg-footer) !important;
     color: var(--text-inverse);
