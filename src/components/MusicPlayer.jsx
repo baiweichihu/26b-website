@@ -2,8 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import styles from "./MusicPlayer.module.css";
 
 const tracks = [
-  { title: "校歌", src: "public/audio/school-song.wav" },
-  { title: "班歌", src: "public/audio/class-song.wav" },
+  { title: "校歌", src: `${import.meta.env.BASE_URL}audio/school-song.wav` },
+  { title: "班歌", src: `${import.meta.env.BASE_URL}audio/class-song.wav` },
 ];
 
 export default function MusicPlayer() {

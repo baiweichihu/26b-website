@@ -11,10 +11,10 @@ const Header = () => {
                     <div className="col-md-2 text-center">
                         <div className="d-flex justify-content-center">
                             <div className={`${styles.iconCircle} me-2`}>
-                                <img src="/bjbz_icon.webp" alt="北京八中校徽" />
+                                <img src={`${import.meta.env.BASE_URL}bjbz_icon.webp`} alt="北京八中校徽" />
                             </div>
                             <div className={`${styles.iconCircle} ms-2`}>
-                                <img src="/shao26b_icon.jpg" alt="少26B班徽" />
+                                <img src={`${import.meta.env.BASE_URL}shao26b_icon.jpg`} alt="少26B班徽" />
                             </div>
                         </div>
                     </div>

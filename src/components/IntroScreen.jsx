@@ -6,6 +6,14 @@ const IntroScreen = ({ onEnter }) => {
     const [classOpacity, setClassOpacity] = useState(0);
     const [exiting, setExiting] = useState(false);
 
+    const triggerExit = React.useCallback(() => {
+        if (exiting) return;
+        setExiting(true);
+
+        // 等动画结束再进入主页
+        setTimeout(onEnter, 600);
+    }, [exiting, onEnter]);
+
     useEffect(() => {
         document.body.style.overflow = 'hidden';
 
@@ -16,15 +24,7 @@ const IntroScreen = ({ onEnter }) => {
             document.body.style.overflow = '';
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, []);
-
-    const triggerExit = () => {
-        if (exiting) return;
-        setExiting(true);
-
-        // 等动画结束再进入主页
-        setTimeout(onEnter, 600);
-    };
+    }, [triggerExit]);
 
     const handleMouseMove = (e) => {
         if (exiting) return;
@@ -44,13 +44,13 @@ const IntroScreen = ({ onEnter }) => {
             <div className={styles.introIcon}>
                 <div className={styles.iconMorph}>
                     <img
-                        src="/bjbz_icon.webp"
+                        src={`${import.meta.env.BASE_URL}bjbz_icon.webp`}
                         className={styles.icon}
                         alt="校徽"
                         style={{ opacity: schoolOpacity }}
                     />
                     <img
-                        src="/shao26b_icon.jpg"
+                        src={`${import.meta.env.BASE_URL}shao26b_icon.jpg`}
                         className={styles.icon}
                         alt="班徽"
                         style={{ opacity: classOpacity }}
