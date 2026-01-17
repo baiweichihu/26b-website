@@ -7,7 +7,7 @@ const Journal = () => {
             <div className="text-center">            
                 <div className="alert alert-info mt-4">
                     <i className="fas fa-info-circle me-2"></i>
-                    网站正在建设中，敬请期待。
+                    光阴似箭，日月如梭，我们不觉离别。
                 </div>
             </div>
         </div>

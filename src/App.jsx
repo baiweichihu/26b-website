@@ -10,12 +10,13 @@ import Activities from './pages/Activities';
 import Journal from './pages/Journal';
 import Wall from './pages/Wall';
 import Contact from './pages/Contact';
+import MusicPlayer from './components/MusicPlayer';
+import EasterEgg from './components/EasterEgg'; // already imported
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
 
   const handleEnter = () => {
-    // Add fade-out class and hide after animation
     setTimeout(() => setShowIntro(false), 600);
   };
 
@@ -26,18 +27,24 @@ function App() {
         <Header />
         <Navbar />
         <main className="container my-5">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/introduction" element={<Introduction />} />
-          <Route path="/activities" element={<Activities />} />
-          <Route path="/journal" element={<Journal />} />
-          <Route path="/wall" element={<Wall />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-      <Footer />
-    </Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/introduction" element={<Introduction />} />
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/wall" element={<Wall />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        <Footer />
+
+        {/* Floating Music Player */}
+        <MusicPlayer />
+
+        {/* Easter Egg glitch functionality */}
+        <EasterEgg />
+      </Router>
     </>
   );
 }

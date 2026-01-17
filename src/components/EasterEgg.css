@@ -1,0 +1,33 @@
+
+/* 故障模式容器 */
+.glitch-mode {
+    position: relative;
+}
+
+/* 文字、卡片、图片 RGB 偏移 + 闪烁 */
+.glitch-mode .post-card,
+.glitch-mode h1,
+.glitch-mode h2,
+.glitch-mode img {
+    position: relative;
+    animation: glitchText 0.3s infinite;
+}
+
+@keyframes glitchText {
+    0% { transform: translate(0,0); clip-path: inset(0 0 0 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    10% { transform: translate(-1px,0); clip-path: inset(2% 0 5% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    20% { transform: translate(2px,-1px); clip-path: inset(5% 0 2% 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    30% { transform: translate(-2px,1px); clip-path: inset(1% 0 3% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    40% { transform: translate(1px,-1px); clip-path: inset(0 0 2% 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    50% { transform: translate(-1px,0); clip-path: inset(3% 0 1% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    60% { transform: translate(2px,1px); clip-path: inset(1% 0 5% 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    70% { transform: translate(-2px,-1px); clip-path: inset(5% 0 2% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    80% { transform: translate(1px,1px); clip-path: inset(2% 0 3% 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+    90% { transform: translate(-1px,-1px); clip-path: inset(1% 0 4% 0); filter: drop-shadow(3px 0 red) drop-shadow(-3px 0 cyan); }
+    100% { transform: translate(0,0); clip-path: inset(0 0 0 0); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 cyan); }
+}
+
+@keyframes noise {
+    0%,100% { opacity: 0.05; }
+    50% { opacity: 0.15; }
+}

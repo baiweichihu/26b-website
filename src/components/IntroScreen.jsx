@@ -4,52 +4,61 @@ import styles from './IntroScreen.module.css';
 const IntroScreen = ({ onEnter }) => {
     const [schoolOpacity, setSchoolOpacity] = useState(1);
     const [classOpacity, setClassOpacity] = useState(0);
+    const [exiting, setExiting] = useState(false);
 
     useEffect(() => {
-        // 锁定页面滚动
         document.body.style.overflow = 'hidden';
 
-        // 任意键进入
-        const handleKeydown = () => onEnter();
+        const handleKeydown = () => triggerExit();
         window.addEventListener('keydown', handleKeydown, { once: true });
 
         return () => {
-            // 清理：恢复滚动
             document.body.style.overflow = '';
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, [onEnter]);
+    }, []);
+
+    const triggerExit = () => {
+        if (exiting) return;
+        setExiting(true);
+
+        // 等动画结束再进入主页
+        setTimeout(onEnter, 600);
+    };
 
     const handleMouseMove = (e) => {
-        const width = window.innerWidth;
-        const progress = Math.min(Math.max(e.clientX / width, 0), 1);
+        if (exiting) return;
+
+        const progress = Math.min(Math.max(e.clientX / window.innerWidth, 0), 1);
         setSchoolOpacity(1 - progress);
         setClassOpacity(progress);
     };
 
     return (
-        <div 
-            className={styles.introScreen}
+        <div
+            className={`${styles.introScreen} ${exiting ? styles.fadeOut : ''}`}
             onMouseMove={handleMouseMove}
-            onClick={onEnter}
-            onTouchStart={onEnter}
+            onClick={triggerExit}
+            onTouchStart={triggerExit}
         >
             <div className={styles.introIcon}>
                 <div className={styles.iconMorph}>
-                    <img 
-                        src="/bjbz_icon.webp" 
+                    <img
+                        src="/bjbz_icon.webp"
                         className={styles.icon}
                         alt="校徽"
                         style={{ opacity: schoolOpacity }}
                     />
-                    <img 
-                        src="/shao26b_icon.jpg" 
+                    <img
+                        src="/shao26b_icon.jpg"
                         className={styles.icon}
                         alt="班徽"
                         style={{ opacity: classOpacity }}
                     />
                 </div>
-                <p className={styles.introHint}>点击进入班级主页</p>
+                <p className={styles.introHint}>
+                    按任意键进入班级主页
+                </p>
             </div>
         </div>
     );
