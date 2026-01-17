@@ -10,6 +10,7 @@ import Activities from './pages/Activities';
 import Journal from './pages/Journal';
 import Wall from './pages/Wall';
 import Contact from './pages/Contact';
+import MusicPlayer from './components/MusicPlayer'; // <-- Import MusicPlayer
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -26,18 +27,21 @@ function App() {
         <Header />
         <Navbar />
         <main className="container my-5">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/introduction" element={<Introduction />} />
-          <Route path="/activities" element={<Activities />} />
-          <Route path="/journal" element={<Journal />} />
-          <Route path="/wall" element={<Wall />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-      <Footer />
-    </Router>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/introduction" element={<Introduction />} />
+            <Route path="/activities" element={<Activities />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/wall" element={<Wall />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        <Footer />
+
+        {/* Render the Music Player here */}
+        <MusicPlayer /> 
+      </Router>
     </>
   );
 }

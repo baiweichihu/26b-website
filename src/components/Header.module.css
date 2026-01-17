@@ -21,21 +21,33 @@
 
 .iconCircle {
     background-color: #1a56a8;
+
     width: 80px;
     height: 80px;
+    min-width: 80px;
+    min-height: 80px;
+
     border-radius: 50%;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
+    flex-shrink: 0;          
+    aspect-ratio: 1 / 1;     
+
     margin: 0 auto 1rem;
 }
+
 
 .iconCircle img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
+    display: block;
 }
+
 
 .contactBtn {
     display: inline-flex;

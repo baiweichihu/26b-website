@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shao 26B</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Hero fade-in animation */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeUp 1s forwards;
+    }
+    .fade-up-delay {
+      animation-delay: 0.3s;
+    }
+    .fade-up-delay-2 {
+      animation-delay: 0.6s;
+    }
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Card hover animation */
+    .card-hover:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 15px 25px rgba(0,0,0,0.15);
+    }
+
+    /* Floating icon animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    .float {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    /* Scroll fade-in */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .scroll-reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* CTA button hover */
+    .cta-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-800 font-sans">
+
+  <!-- Hero Section -->
+  <section class="relative h-screen flex flex-col justify-center items-center text-center bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 text-white overflow-hidden">
+    <h1 class="text-5xl md:text-6xl font-bold fade-up">Welcome to Class 26B</h1>
+    <p class="mt-4 text-xl md:text-2xl fade-up fade-up-delay">Where Creativity Meets Community</p>
+    <div class="mt-8 flex gap-6 fade-up fade-up-delay-2">
+      <a href="#about" class="cta-btn bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold transition-transform duration-300">Explore</a>
+      <a href="#forum" class="cta-btn bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-transform duration-300">Join Forum</a>
+    </div>
+    <div class="absolute bottom-10 float text-4xl animate-bounce">🎵</div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-20 bg-gray-50">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-center mb-12">About Us</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-xl shadow-md card-hover scroll-reveal">
+          <div class="text-5xl mb-4">👩‍🏫</div>
+          <h3 class="text-xl font-semibold mb-2">Our Teachers</h3>
+          <p>Meet the amazing team guiding Class 26B. Passionate, supportive, and fun!</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md card-hover scroll-reveal">
+          <div class="text-5xl mb-4">🎨</div>
+          <h3 class="text-xl font-semibold mb-2">Creative Activities</h3>
+          <p>Art, projects, and hands-on experiences that make learning exciting and memorable.</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md card-hover scroll-reveal">
+          <div class="text-5xl mb-4">💬</div>
+          <h3 class="text-xl font-semibold mb-2">Community Forum</h3>
+          <p>Students share ideas, ask questions, and celebrate achievements together.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Highlights Section -->
+  <section id="highlights" class="py-20 bg-white">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-center mb-12">Class Highlights</h2>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-blue-50 p-4 rounded-xl shadow-md card-hover scroll-reveal">Event 1</div>
+        <div class="bg-yellow-50 p-4 rounded-xl shadow-md card-hover scroll-reveal">Event 2</div>
+        <div class="bg-pink-50 p-4 rounded-xl shadow-md card-hover scroll-reveal">Event 3</div>
+        <div class="bg-green-50 p-4 rounded-xl shadow-md card-hover scroll-reveal">Event 4</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Forum Preview Section -->
+  <section id="forum" class="py-20 bg-gray-50">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-center mb-12">Latest Posts</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-xl shadow-md card-hover scroll-reveal">
+          <h4 class="font-semibold mb-2">Post Title 1</h4>
+          <p class="text-gray-700">A short preview of the post content...</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md card-hover scroll-reveal">
+          <h4 class="font-semibold mb-2">Post Title 2</h4>
+          <p class="text-gray-700">Another post snippet goes here...</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md card-hover scroll-reveal">
+          <h4 class="font-semibold mb-2">Post Title 3</h4>
+          <p class="text-gray-700">More highlights from our forum...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-10 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-white text-center">
+    <p>© 2026 Class 26B. All rights reserved.</p>
+    <div class="flex justify-center gap-6 mt-4">
+      <a href="#" class="hover:text-yellow-300 transition-colors">Twitter</a>
+      <a href="#" class="hover:text-yellow-300 transition-colors">Instagram</a>
+      <a href="#" class="hover:text-yellow-300 transition-colors">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll reveal for elements
+    const reveals = document.querySelectorAll('.scroll-reveal');
+    window.addEventListener('scroll', () => {
+      const windowBottom = window.innerHeight + window.scrollY;
+      reveals.forEach(el => {
+        if (el.offsetTop < windowBottom - 100) {
+          el.classList.add('visible');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

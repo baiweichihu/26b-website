@@ -1,0 +1,112 @@
+.musicPlayer {
+  position: fixed;
+  bottom: 20px;
+  right: 60px;
+  z-index: 1000;
+  font-family: sans-serif;
+}
+
+.musicPanel {
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(50%);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none; /* hide when not active */
+}
+
+.showPanel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto; /* allow interaction */
+}
+
+.musicTitle {
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.musicControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.musicControls button {
+  background-color: #222;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.musicControls button:hover {
+  background-color: #444;
+}
+
+.musicControls input[type="range"] {
+  flex: 1;
+}
+
+.musicMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.musicMeta input[type="range"] {
+  width: 100px;
+}
+
+/* Floating music toggle icon */
+.musicToggle {
+  position: fixed;     /* always visible */
+  bottom: 90px;
+  right: 40px;
+  width: 60px;
+  height: 60px;
+  font-size: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffeb3b;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1001;
+  transition: background 0.2s;
+}
+
+.musicToggle:hover {
+  background-color: #444;
+  color: #ffeb3b;
+}
+
+/* Dark theme */
+[data-theme="dark"] .musicPanel {
+  background: rgba(20, 20, 20, 0.95);
+  color: #f0f0f0;
+}
+[data-theme="dark"] .musicToggle {
+  background: #444;
+  color: #ffeb3b;
+}
+[data-theme="dark"] .musicToggle:hover {
+  background: #666;
+}
