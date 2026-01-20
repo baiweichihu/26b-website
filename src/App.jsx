@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import IntroScreen from './components/IntroScreen';
-import Header from './components/Header';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import IntroScreen from './components/landing/IntroScreen';
+import Header from './components/layout/Header';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
 import Home from './pages/Home';
 import Introduction from './pages/Introduction';
 import Activities from './pages/Activities';
 import Journal from './pages/Journal';
 import Wall from './pages/Wall';
 import Contact from './pages/Contact';
-import MusicPlayer from './components/MusicPlayer';
-import EasterEgg from './components/EasterEgg'; // already imported
+import MusicPlayer from './components/features/media/MusicPlayer';
+import EasterEgg from './components/features/media/EasterEgg'; // already imported
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);

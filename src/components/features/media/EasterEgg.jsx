@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import "./EasterEgg.css"; // Use plain CSS for global body class
+import "./EasterEgg.module.css"; // Use plain CSS for global body class
 
 const LONG_PRESS_TIME = 2000;
 

@@ -1,4 +1,4 @@
-/* Wall 页面和帖子卡片样式 */
+/* Wall 页面样式 */
 .pageContent {
     animation: fadeIn 0.3s ease;
 }
@@ -8,69 +8,6 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-.postCard {
-    background: transparent;
-    border: 2px solid #1a56a8;
-    border-radius: 16px;
-    padding: 1.5rem;
-    height: 100%;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(26, 86, 168, 0.1);
-}
-
-.postCard:hover {
-    box-shadow: 0 8px 15px rgba(26, 86, 168, 0.15);
-    transform: translateY(-2px);
-}
-
-.avatarCircle {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background-color: #1a56a8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.postAuthorName {
-    color: #333;
-    font-weight: 600;
-    font-family: '华文行楷', cursive;
-    font-size: 1.1rem;
-}
-
-.postDate {
-    font-size: 0.85rem;
-    color: #666;
-}
-
-.postTitle {
-    color: #333;
-    margin-bottom: 1rem;
-    line-height: 1.4;
-}
-
-.postContent {
-    color: #444;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
-}
-
-.postLikes {
-    color: #dc3545;
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.postLikes i {
-    color: #dc3545;
-}
-
 .emptyState {
     padding: 3rem 1rem;
     background-color: #f8f9fa;
@@ -78,43 +15,7 @@
     border: 2px dashed #dee2e6;
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-    .postCard {
-        padding: 1.25rem;
-        border-radius: 12px;
-    }
-    
-    .avatarCircle {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
-    
-    .postAuthorName {
-        font-size: 1rem;
-    }
-}
-
 /* 暗色主题 */
-[data-theme="dark"] .postCard {
-    background-color: #2a2a2a;
-    border-color: #1a56a8;
-}
-
-[data-theme="dark"] .postAuthorName,
-[data-theme="dark"] .postTitle {
-    color: #e0e0e0;
-}
-
-[data-theme="dark"] .postContent {
-    color: #cccccc;
-}
-
-[data-theme="dark"] .postDate {
-    color: #999999;
-}
-
 [data-theme="dark"] .emptyState {
     background-color: #2a2a2a;
     border-color: #444444;
