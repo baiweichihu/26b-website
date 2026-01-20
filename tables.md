@@ -1,6 +1,6 @@
 
-初步设置5个service：
-**UserService**、**PostService**、**AlbumService**、**TagService**和**AdminService**。
+初步设置6s个service：
+**UserService**、**PostService**、**AlbumService**、**TagService**、**AdminService**和**InboxService**。
 
 ---
 
@@ -180,4 +180,23 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
     *   `admin_note`: 管理员处理备注
 
 ---
+
+### 6. **InboxService** 
+#### **`notifications`**
+用户接收的所有系统通知，包括：审核结果、举报反馈、互动消息（点赞评论）。
+*   **主键 (PK):** `id` (UUID)
+*   **外键 (FK):** `recipient_id` (接收通知的用户，关联 `profiles.id`)
+*   **索引:** `(recipient_id, created_at)` 复合索引，用于快速拉取"我的通知列表"
+*   **重要字段:**
+    *   `type`: 枚举。取值建议：
+        *   `system_announcement` (系统公告)
+        *   `audit_result` (审核结果)
+        *   `report_feedback` (举报反馈)
+        *   `interaction` (社交互动: 有人点赞/评论了帖子/相册)
+    *   `title`: 标题
+    *   `content`: 通知详情文本 
+    *   `related_resource_type`: 字符串 (如 `admin_request`, `profile`, `post`)
+    *   `related_resource_id`: UUID (点击通知后跳转的目标业务ID)
+    *   `is_read`: 布尔值。默认为 `false`
+    *   `created_at`: 通知生成时间
 
