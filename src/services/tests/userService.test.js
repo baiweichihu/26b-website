@@ -205,7 +205,7 @@ describe('login-register-reset', () => {
       expect(supabase.auth.verifyOtp).toHaveBeenCalledWith({
         email,
         token: otp,
-        type: 'signup',
+        type: 'email',
       });
       expect(supabase.auth.updateUser).toHaveBeenCalledWith({
         password: password,

@@ -119,7 +119,7 @@ export const signUpVerifyAndSetInfo = async ({ email, otp, password, nickname })
     const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
       email,
       token: otp,
-      type: 'signup',
+      type: 'email',
     });
     if (verifyError) throw verifyError;
 
