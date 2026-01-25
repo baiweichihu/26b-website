@@ -149,6 +149,7 @@ export const signUpVerifyAndSetInfo = async ({ email, otp, password, nickname })
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
+  return { success: true };
 };
 // ================== END OF User Registration / Login / Password Reset / Logout ===========================
 
