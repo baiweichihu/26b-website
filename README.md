@@ -1,18 +1,33 @@
 # 26b-website
 
+## 开发者须知
+
+在开发前，**请务必认真阅读README文件夹中的所有内容**：
+
+- `GITHUB_DEVELOP.md`：包含了如何使用GitHub进行代码管理的详细步骤。
+- `CODE_OF_CONDUCT.md`：包含了代码准则和PR审查准则。
+- `jest.md`: 包含了如何编写和运行测试的说明。
+- `funcs.md`: 包含了各个服务模块的功能说明。
+- `tables.md`: 数据库建表协议。
+
 ## 运行
+
 运行（开发测试）方式如下：
+
 ```bash
 npm install
 npm run dev
 ```
+
 如果要部署到白尾赤狐的github网页，请使用
+
 ```bash
 npm run build
 npm run deploy
 ```
 
 ## 文件结构
+
 ```
 src/
 ├── App.jsx                    # 应用主组件
@@ -60,13 +75,15 @@ src/
 │   └── Contact.module.css
 │
 ├── services/                  # API 层
-│   ├── postService.js         # 帖子服务 
-│   ├── albumService.js        # 相册服务 
-│   ├── userService.js         # 用户服务 
+|   ├── tests/                # 各服务的测试脚本
+│   ├── docs/                 # 各服务的功能说明文档
+│   ├── postService.js         # 帖子服务
+│   ├── albumService.js        # 相册服务
+│   ├── userService.js         # 用户服务
 │   ├── adminService.js        # 管理服务
 │   ├── tagService.js          # 标签服务
 │   └── inboxService.js        # 通知服务
 │
-└── lib/                       
+└── lib/
     └── supabase.js            # Supabase 客户端初始化
 ```
