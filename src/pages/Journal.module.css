@@ -1,0 +1,751 @@
+/* Journal.module.css */
+
+/* ===== 主容器 ===== */
+.journalContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* ===== 头部 ===== */
+.journalHeader {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid #4a6fa5;
+}
+
+.journalHeader h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  color: #2c3e50;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.journalHeader p {
+  margin: 10px 0 0;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+/* ===== 控制栏 ===== */
+.controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding: 15px 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.fontControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.controlLabel {
+  font-weight: 600;
+  color: #34495e;
+}
+
+.controlButton {
+  padding: 8px 15px;
+  border: 2px solid #e0e6ed;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  min-width: 40px;
+}
+
+.controlButton:hover {
+  background: #f8f9fa;
+  border-color: #4a6fa5;
+  color: #4a6fa5;
+}
+
+.controlButton:active {
+  transform: scale(0.95);
+}
+
+.fontSizeDisplay {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.pdfInfo {
+  font-weight: 600;
+  color: #4a6fa5;
+  padding: 5px 15px;
+  background: #f0f4f8;
+  border-radius: 20px;
+  font-size: 0.95rem;
+}
+
+/* 主内容区设置固定高度 */
+.mainContent {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 250px); /* 视口高度减去头部和页脚 */
+  min-height: 600px;
+  max-height: 800px;
+}
+
+/* ===== 侧边栏（目录） ===== */
+.sidebar {
+  flex: 0 0 250px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  padding: 0;
+  overflow: hidden;
+  height: auto;
+  max-height: calc(100vh - 200px);
+  position: sticky;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 确保双栏布局占满高度 */
+.layoutContainer {
+  flex: 1;
+  display: flex;
+  height: 100%;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* 每个列占满高度 */
+.column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.divider {
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, #e0e6ed, transparent);
+  margin: 20px 0;
+}
+
+/* PDF 区域独立滚动 */
+.pdfSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* MD 区域独立滚动 */
+.mdSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.sectionHeader {
+  padding: 15px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e0e6ed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdfControls,
+.mdStats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pageButton {
+  padding: 6px 12px;
+  background: white;
+  border: 1px solid #d1d9e6;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #4a6fa5;
+  color: white;
+  border-color: #4a6fa5;
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageInput input {
+  width: 50px;
+  padding: 4px 8px;
+  border: 1px solid #d1d9e6;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* PDF 查看器容器 */
+.pdfViewerContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100% !important;
+  max-height: 70vh !important;
+  aspect-ratio: 210 / 297 !important;
+  max-width: 600px !important;
+  margin: 0 auto !important;
+}
+
+.pdfToolbar {
+  padding: 10px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e0e6ed;
+  display: flex;
+  justify-content: center;
+}
+
+.zoomControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1px solid #e0e6ed;
+}
+
+.toolbarButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e0e6ed;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.toolbarButton:hover {
+  background: #4a6fa5;
+  color: white;
+  border-color: #4a6fa5;
+}
+
+.zoomDisplay {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.pdfContent {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background: #f5f5f5;
+  height: 100% !important;
+  aspect-ratio: 210 / 297 !important;
+}
+
+/* 修改PDF页面容器 */
+.pdfPage {
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  overflow: hidden !important;
+  margin: 0 auto;
+  max-height: 100% !important;
+  aspect-ratio: 210 / 297 !important;
+}
+
+/* ===== Markdown 查看器 ===== */
+.mdViewerContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+}
+
+/* MD 内容区域 - 这才是应该滚动的地方 */
+.mdContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 25px;
+  line-height: 1.6;
+  color: #2c3e50;
+  background: white;
+}
+
+.mdContent h1 {
+  color: #2c3e50;
+  border-bottom: 2px solid #4a6fa5;
+  padding-bottom: 10px;
+  margin-top: 1.5em;
+  margin-bottom: 1em;
+}
+
+.mdContent h2 {
+  color: #34495e;
+  margin-top: 1.5em;
+  margin-bottom: 0.8em;
+  padding-left: 10px;
+  border-left: 3px solid #4a6fa5;
+}
+
+.mdContent h3 {
+  color: #4a6fa5;
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+}
+
+.mdContent p {
+  margin-bottom: 1em;
+}
+
+.mdContent ul,
+.mdContent ol {
+  margin-left: 20px;
+  margin-bottom: 1em;
+}
+
+.mdContent code:not(pre code) {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  color: #e74c3c;
+}
+
+.mdContent pre {
+  background: #2c3e50;
+  border-radius: 8px;
+  padding: 15px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.mdImageContainer {
+  margin: 1.5em 0;
+  text-align: center;
+}
+
+.mdImage {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.imageCaption {
+  font-size: 0.9em;
+  color: #7f8c8d;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.mdStats {
+  padding: 10px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #e0e6ed;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ===== 目录样式 ===== */
+.tocContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tocTitle {
+  margin: 0;
+  padding: 20px;
+  background: #4a6fa5;
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.tocContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 15px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tocList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tocItem {
+  margin: 0;
+  padding: 0;
+}
+
+.tocLink {
+  width: 100%;
+  text-align: left;
+  padding: 10px 15px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.tocLink:hover {
+  background: #f0f4f8;
+  color: #4a6fa5;
+  transform: translateX(5px);
+}
+
+.tocItemActive .tocLink {
+  background: #e8f0fe;
+  color: #4a6fa5;
+  font-weight: 600;
+  border-left: 3px solid #4a6fa5;
+}
+
+.tocText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tocEmpty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #7f8c8d;
+}
+
+.tocFooter {
+  padding: 15px;
+  border-top: 1px solid #e0e6ed;
+  background: #f8fafc;
+}
+
+.tocStats {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #4a6fa5;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ===== 加载和错误状态 ===== */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e0e6ed;
+  border-top: 3px solid #4a6fa5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.pdfLoading,
+.tocEmpty p {
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.errorMessage {
+  padding: 20px;
+  background: #ffeaea;
+  border-radius: 8px;
+  border-left: 4px solid #e74c3c;
+  margin: 20px;
+}
+
+.errorMessage p {
+  margin: 5px 0;
+  color: #c0392b;
+}
+
+.pdfError {
+  padding: 0 20px 20px;
+}
+
+/* ===== 页脚 ===== */
+.journalFooter {
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.footerInfo {
+  text-align: center;
+}
+
+.footerInfo p {
+  margin: 0 0 15px;
+  color: #7f8c8d;
+  font-size: 0.95rem;
+}
+
+.downloadLinks {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.downloadButton {
+  padding: 10px 20px;
+  background: #4a6fa5;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.downloadButton:hover {
+  background: #3a5a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.3);
+}
+
+/* ===== 响应式设计 ===== */
+@media (max-width: 1200px) {
+  .mainContent {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    flex: none;
+    width: 100%;
+    max-height: 300px;
+    position: static;
+  }
+
+  .layoutContainer {
+    flex-direction: column;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    margin: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .journalContainer {
+    padding: 10px;
+  }
+
+  .journalHeader h1 {
+    font-size: 2rem;
+  }
+
+  .controls {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .pdfControls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .downloadLinks {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .downloadButton {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+}
+
+/* ===== 滚动条美化 ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.tocContent::-webkit-scrollbar,
+.pdfContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* 美化滚动条 */
+.mdContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mdContent::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.mdContent::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.mdContent::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* 确保PDF页面正确居中且保持比例 */
+.react-pdf__Page {
+  display: block !important;
+  margin: 0 auto !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* 确保PDF画布正确显示 */
+.react-pdf__Page__canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* ===== 打印优化 ===== */
+@media print {
+  .journalContainer {
+    background: white;
+    padding: 0;
+  }
+
+  .controls,
+  .sidebar,
+  .journalFooter,
+  .pdfToolbar,
+  .sectionHeader {
+    display: none;
+  }
+
+  .mainContent {
+    display: block;
+  }
+
+  .layoutContainer {
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .pdfSection,
+  .mdSection {
+    page-break-inside: avoid;
+  }
+}
