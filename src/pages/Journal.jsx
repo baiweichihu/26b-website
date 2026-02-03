@@ -20,8 +20,9 @@ const Journal = () => {
   const mdContentRef = useRef(null);
 
   // 获取文件的引用
-  const pdfFile = '/26b-website/journals/journal1.pdf';
-  const mdFile = '/26b-website/journals/journal1.md';
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const pdfFile = `${baseUrl}journals/journal1.pdf`;
+  const mdFile = `${baseUrl}journals/journal1.md`;
 
   // 字体调整函数
   const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 1, 24));
