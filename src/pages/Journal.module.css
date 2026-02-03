@@ -660,6 +660,7 @@
   /* 移动设备上确保 PDF 和 MD 窗口有合理高度 */
   .pdfViewerContainer {
     min-height: 500px !important;
+    aspect-ratio: auto !important;
   }
 
   .mdViewerContainer {
@@ -668,6 +669,7 @@
 
   .pdfContent {
     min-height: 500px !important;
+    aspect-ratio: auto !important;
   }
 
   .mdContent {
