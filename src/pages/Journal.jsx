@@ -23,9 +23,6 @@ const Journal = () => {
   const pdfFile = '/26b-website/journals/journal1.pdf';
   const mdFile = '/26b-website/journals/journal1.md';
 
-  console.log('当前URL:', window.location.href);
-  console.log('PDF路径:', pdfFile);
-
   // 字体调整函数
   const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 1, 24));
   const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 1, 12));
