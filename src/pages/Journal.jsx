@@ -116,7 +116,15 @@ const Journal = () => {
                     value={currentPage}
                     min="1"
                     max={totalPages}
-                    onChange={(e) => handlePageChange(Number(e.target.value))}
+                    onChange={(e) => {
+                      const rawValue = Number(e.target.value);
+                      if (Number.isNaN(rawValue)) {
+                        return;
+                      }
+                      const upperBound = totalPages > 0 ? totalPages : 1;
+                      const clampedValue = Math.min(Math.max(rawValue, 1), upperBound);
+                      handlePageChange(clampedValue);
+                    }}
                   />{' '}
                   / {totalPages}
                 </span>
