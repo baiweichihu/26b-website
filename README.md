@@ -51,18 +51,25 @@ src/
 │   │   └── admin/             # 管理相关 (对应 AdminService)
 │   │
 │   ├── layout/                # 布局组件
-│   │   ├── Header.jsx
+|   |   ├── BackgroundParticles.jsx  # 背景粒子特效(满足一些神秘条件才能看得到哦)
+│   │   ├── Header.jsx         # 网页头
 │   │   ├── Header.module.css
-│   │   ├── Navbar.jsx
+│   │   ├── Navbar.jsx         # 导航栏
 │   │   ├── Navbar.module.css
-│   │   └── Footer.jsx
+│   │   ├──Footer.jsx         # 网页脚
+│   │   ├── Footer.module.css
+|   |   ├── CornerNav.jsx      # 侧边导航栏
+│   |   └── CornerNav.module.css
 │   │
 │   ├── landing/               # 着陆页组件
 │   │   ├── IntroScreen.jsx
 │   │   └── IntroScreen.module.css
 │   │
 │   └── ui/                    # 通用 UI 组件
-│       └── ThemeToggle.jsx
+│       ├── ThemeToggle.jsx    # 切换亮暗模式
+│       ├── IrisTransition.jsx  # 转场
+│       └── IrisTransition.module.css
+
 │
 ├── pages/                     # 路由页面
 │   ├── Home.jsx               # 首页

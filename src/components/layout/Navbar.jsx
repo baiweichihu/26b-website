@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import ThemeToggle from '../ui/ThemeToggle';
-import { useIrisTransition } from './IrisTransition';
+import { useIrisTransition } from '../ui/IrisTransition';
 import styles from './Navbar.module.css';
 
 const NAV_ITEMS = [

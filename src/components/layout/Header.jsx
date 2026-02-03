@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Header.module.css';
-import { useIrisTransition } from './IrisTransition';
+import { useIrisTransition } from '../ui/IrisTransition';
 
 const Header = () => {
   const headerRef = useRef(null);

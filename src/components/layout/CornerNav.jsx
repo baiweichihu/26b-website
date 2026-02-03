@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import ThemeToggle from '../ui/ThemeToggle';
-import { useIrisTransition } from './IrisTransition';
+import { useIrisTransition } from '../ui/IrisTransition';
 import styles from './CornerNav.module.css';
 
 const NAV_LINKS = [

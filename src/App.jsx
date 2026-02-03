@@ -11,7 +11,7 @@ import IntroScreen from './components/landing/IntroScreen';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import CornerNav from './components/layout/CornerNav';
-import IrisTransition from './components/layout/IrisTransition';
+import IrisTransition from './components/ui/IrisTransition';
 import Lobby from './pages/Lobby';
 import Home from './pages/Home';
 import Introduction from './pages/Introduction';
