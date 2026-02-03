@@ -3,6 +3,10 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+// rehype-raw allows rendering of raw HTML in markdown (e.g., <u>, <kbd>, <sub>, <sup>)
+// Security note: This plugin allows arbitrary HTML rendering. Only use with trusted markdown sources.
+// All markdown files in this project are stored in the repository and are trusted content.
+import rehypeRaw from 'rehype-raw';
 import styles from '../../../pages/Journal.module.css';
 
 const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
@@ -220,7 +224,11 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
       )}
 
       <div ref={ref} className={styles.mdContent} style={{ fontSize: `${fontSize}px` }}>
-        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown
+          components={components}
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw]}
+        >
           {content}
         </ReactMarkdown>
       </div>
