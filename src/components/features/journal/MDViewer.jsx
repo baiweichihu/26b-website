@@ -3,6 +3,9 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+// rehype-raw allows rendering of raw HTML in markdown (e.g., <u>, <kbd>, <sub>, <sup>)
+// Security note: This plugin allows arbitrary HTML rendering. Only use with trusted markdown sources.
+// All markdown files in this project are stored in the repository and are trusted content.
 import rehypeRaw from 'rehype-raw';
 import styles from '../../../pages/Journal.module.css';
 
