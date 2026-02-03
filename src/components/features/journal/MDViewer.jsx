@@ -91,7 +91,7 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
         const response = await fetch(file);
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP 错误：状态码 ${response.status}`);
         }
 
         let text = await response.text();
@@ -177,7 +177,7 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
             } catch (error) {
               // Fallback to simple concatenation if URL parsing fails
               // This should rarely happen, but ensures graceful degradation
-              console.warn('Failed to resolve relative image path:', src, error);
+              console.warn('无法解析相对图片路径：', src, error);
               normalizedPath = fileDirectory + src;
             }
           } else {

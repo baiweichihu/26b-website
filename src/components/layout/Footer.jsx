@@ -1,23 +1,21 @@
-
 import React from 'react';
+import styles from './Footer.module.css';
 
 const Footer = () => {
-    return (
-        <footer className="bg-dark text-white py-4 mt-5">
-            <div className="container">
-                <div className="row">
-                    <div className="col-md-6">
-                        <h5>北京八中少26B班</h5>
-                        <p>2019-2024</p>
-                    </div>
-                    <div className="col-md-6 text-md-end">
-                        <p>&copy; 2026 北京八中少26B班 版权所有</p>
-                        <p>网站维护：李林峰</p>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    );
+  return (
+    <footer className={styles.footer}>
+      <div className={styles.inner}>
+        <div>
+          <h5 className={styles.title}>少26B班</h5>
+          <p className={styles.subtitle}>2019-2024</p>
+        </div>
+        <div className={styles.meta}>
+          <p>(c) 2026 北京八中少26B班 All Rights Reserved</p>
+          <p>维护者：白尾赤狐和TA的朋友们</p>
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;

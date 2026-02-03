@@ -3,7 +3,7 @@
   bottom: 20px;
   right: 60px;
   z-index: 1000;
-  font-family: sans-serif;
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
 }
 
 .musicPanel {
@@ -18,7 +18,9 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   opacity: 0;
   transform: translateY(50%);
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
   pointer-events: none; /* hide when not active */
 }
 
@@ -59,7 +61,7 @@
   background-color: #444;
 }
 
-.musicControls input[type="range"] {
+.musicControls input[type='range'] {
   flex: 1;
 }
 
@@ -70,13 +72,13 @@
   font-size: 12px;
 }
 
-.musicMeta input[type="range"] {
+.musicMeta input[type='range'] {
   width: 100px;
 }
 
 /* Floating music toggle icon */
 .musicToggle {
-  position: fixed;     /* always visible */
+  position: fixed; /* always visible */
   bottom: 90px;
   right: 40px;
   width: 60px;
@@ -88,7 +90,7 @@
   background: #ffeb3b;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   z-index: 1001;
   transition: background 0.2s;
 }
@@ -99,14 +101,14 @@
 }
 
 /* Dark theme */
-[data-theme="dark"] .musicPanel {
+[data-theme='dark'] .musicPanel {
   background: rgba(20, 20, 20, 0.95);
   color: #f0f0f0;
 }
-[data-theme="dark"] .musicToggle {
+[data-theme='dark'] .musicToggle {
   background: #444;
   color: #ffeb3b;
 }
-[data-theme="dark"] .musicToggle:hover {
+[data-theme='dark'] .musicToggle:hover {
   background: #666;
 }
