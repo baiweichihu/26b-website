@@ -10,6 +10,10 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Get the base URL and markdown file directory for image resolution
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const fileDirectory = file.substring(0, file.lastIndexOf('/') + 1);
+
   // 生成稳定的ID (slug)
   const generateSlug = (text) => {
     return text
@@ -140,7 +144,21 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
     // 图片处理
     img: ({ src, alt, ...props }) => {
       // 处理相对路径图片
-      const imageSrc = src.startsWith('http') ? src : `${window.location.origin}${src}`;
+      let imageSrc = src;
+
+      if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
+        // Normalize the path: ensure it starts with a slash
+        let normalizedPath = src.startsWith('/') ? src : `/${src}`;
+
+        // If the path is relative (doesn't start with /), resolve it relative to the markdown file
+        if (!src.startsWith('/')) {
+          normalizedPath = fileDirectory + src;
+        }
+
+        // Prefix with the base URL
+        imageSrc = baseUrl + normalizedPath.replace(/^\/+/, '');
+      }
+
       return (
         <div className={styles.mdImageContainer}>
           <img src={imageSrc} alt={alt} className={styles.mdImage} {...props} />
