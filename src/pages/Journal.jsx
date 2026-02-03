@@ -158,7 +158,6 @@ const Journal = () => {
               file={mdFile}
               fontSize={fontSize}
               onTocGenerated={setToc}
-              currentSection={currentSection}
             />
           </div>
         </JournalLayout>
