@@ -169,8 +169,10 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
               const basePathUrl = new URL(fileDirectory, window.location.origin);
               const resolvedUrl = new URL(src, basePathUrl);
               normalizedPath = resolvedUrl.pathname;
-            } catch {
+            } catch (error) {
               // Fallback to simple concatenation if URL parsing fails
+              // This should rarely happen, but ensures graceful degradation
+              console.warn('Failed to resolve relative image path:', src, error);
               normalizedPath = fileDirectory + src;
             }
           } else {
@@ -180,8 +182,9 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
         }
 
         // Prefix with the base URL, ensuring proper path joining
-        // Remove single leading slash from normalizedPath since baseUrl is guaranteed to end with a slash
-        const cleanPath = normalizedPath.replace(/^\//, '');
+        // Remove leading slash from normalizedPath since baseUrl is guaranteed to end with a slash
+        // This handles both single and multiple leading slashes
+        const cleanPath = normalizedPath.replace(/^\/+/, '');
         imageSrc = baseUrl + cleanPath;
       }
 
