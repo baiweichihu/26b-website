@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import styles from '../../../pages/Journal.module.css';
 
 const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
@@ -220,7 +221,11 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
       )}
 
       <div ref={ref} className={styles.mdContent} style={{ fontSize: `${fontSize}px` }}>
-        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown
+          components={components}
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw]}
+        >
           {content}
         </ReactMarkdown>
       </div>
