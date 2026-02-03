@@ -10,6 +10,19 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Get the base URL and markdown file directory for image resolution
+  // Memoize these values to avoid recalculation on every render
+  const baseUrl = React.useMemo(() => {
+    const base = import.meta.env.BASE_URL || '/';
+    // Ensure baseUrl ends with a slash for proper path joining
+    return base.endsWith('/') ? base : `${base}/`;
+  }, []);
+
+  const fileDirectory = React.useMemo(() => {
+    // Returns the directory path with trailing slash (e.g., '/journals/')
+    return file.substring(0, file.lastIndexOf('/') + 1);
+  }, [file]);
+
   // 生成稳定的ID (slug)
   const generateSlug = (text) => {
     return text
@@ -140,7 +153,48 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
     // 图片处理
     img: ({ src, alt, ...props }) => {
       // 处理相对路径图片
-      const imageSrc = src.startsWith('http') ? src : `${window.location.origin}${src}`;
+      let imageSrc = src;
+
+      if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
+        // If the path is relative (doesn't start with /), resolve it relative to the markdown file
+        let normalizedPath;
+        if (src.startsWith('/')) {
+          // Absolute path from root
+          normalizedPath = src;
+        } else {
+          // Relative path - resolve relative to markdown file directory
+          // Handle ./ and ../ prefixes by using URL resolution
+          if (src.startsWith('./') || src.startsWith('../')) {
+            // Use URL API for proper path resolution
+            try {
+              const basePathUrl = new URL(fileDirectory, window.location.origin);
+              const resolvedUrl = new URL(src, basePathUrl);
+              normalizedPath = resolvedUrl.pathname;
+            } catch (error) {
+              // Fallback to simple concatenation if URL parsing fails
+              // This should rarely happen, but ensures graceful degradation
+              console.warn('Failed to resolve relative image path:', src, error);
+              normalizedPath = fileDirectory + src;
+            }
+          } else {
+            // Simple relative path like 'img/file.png'
+            // Safe to concatenate because fileDirectory always ends with '/'
+            normalizedPath = fileDirectory + src;
+          }
+        }
+
+        // Check if normalizedPath already starts with baseUrl to avoid duplication
+        if (normalizedPath.startsWith(baseUrl)) {
+          imageSrc = normalizedPath;
+        } else {
+          // Prefix with the base URL, ensuring proper path joining
+          // Remove leading slash from normalizedPath since baseUrl is guaranteed to end with a slash
+          // This handles both single and multiple leading slashes
+          const cleanPath = normalizedPath.replace(/^\/+/, '');
+          imageSrc = baseUrl + cleanPath;
+        }
+      }
+
       return (
         <div className={styles.mdImageContainer}>
           <img src={imageSrc} alt={alt} className={styles.mdImage} {...props} />
