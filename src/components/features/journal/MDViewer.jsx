@@ -145,11 +145,12 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
         // 如果是相对路径，需要相对于 Markdown 文件的目录解析
         if (src.startsWith('/')) {
           // 绝对路径 - 需要加上 base URL
-          const base = import.meta.env.BASE_URL || '/';
-          imageSrc = `${window.location.origin}${base !== '/' ? base.replace(/\/$/, '') : ''}${src}`;
+          const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+          imageSrc = `${window.location.origin}${base}${src}`;
         } else {
           // 相对路径 - 相对于 Markdown 文件目录
-          const fileDir = file.substring(0, file.lastIndexOf('/') + 1);
+          const lastSlashIndex = file.lastIndexOf('/');
+          const fileDir = lastSlashIndex !== -1 ? file.substring(0, lastSlashIndex + 1) : '/';
           imageSrc = `${window.location.origin}${fileDir}${src}`;
         }
       }
