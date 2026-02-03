@@ -183,11 +183,16 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
           }
         }
 
-        // Prefix with the base URL, ensuring proper path joining
-        // Remove leading slash from normalizedPath since baseUrl is guaranteed to end with a slash
-        // This handles both single and multiple leading slashes
-        const cleanPath = normalizedPath.replace(/^\/+/, '');
-        imageSrc = baseUrl + cleanPath;
+        // Check if normalizedPath already starts with baseUrl to avoid duplication
+        if (normalizedPath.startsWith(baseUrl)) {
+          imageSrc = normalizedPath;
+        } else {
+          // Prefix with the base URL, ensuring proper path joining
+          // Remove leading slash from normalizedPath since baseUrl is guaranteed to end with a slash
+          // This handles both single and multiple leading slashes
+          const cleanPath = normalizedPath.replace(/^\/+/, '');
+          imageSrc = baseUrl + cleanPath;
+        }
       }
 
       return (
