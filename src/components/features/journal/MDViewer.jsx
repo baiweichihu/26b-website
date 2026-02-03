@@ -11,8 +11,16 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
   const [error, setError] = useState(null);
 
   // Get the base URL and markdown file directory for image resolution
-  const baseUrl = import.meta.env.BASE_URL || '/';
-  const fileDirectory = file.substring(0, file.lastIndexOf('/') + 1);
+  // Memoize these values to avoid recalculation on every render
+  const baseUrl = React.useMemo(() => {
+    const base = import.meta.env.BASE_URL || '/';
+    // Ensure baseUrl ends with a slash for proper path joining
+    return base.endsWith('/') ? base : `${base}/`;
+  }, []);
+
+  const fileDirectory = React.useMemo(() => {
+    return file.substring(0, file.lastIndexOf('/') + 1);
+  }, [file]);
 
   // 生成稳定的ID (slug)
   const generateSlug = (text) => {
@@ -158,7 +166,7 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
         }
 
         // Prefix with the base URL, ensuring proper path joining
-        // Remove leading slashes from normalizedPath since baseUrl includes the trailing slash
+        // Remove leading slashes from normalizedPath since baseUrl is guaranteed to end with a slash
         const cleanPath = normalizedPath.replace(/^\/+/, '');
         imageSrc = baseUrl + cleanPath;
       }
