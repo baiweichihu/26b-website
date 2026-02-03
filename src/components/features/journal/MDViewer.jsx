@@ -147,16 +147,20 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
       let imageSrc = src;
 
       if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
-        // Normalize the path: ensure it starts with a slash
-        let normalizedPath = src.startsWith('/') ? src : `/${src}`;
-
         // If the path is relative (doesn't start with /), resolve it relative to the markdown file
-        if (!src.startsWith('/')) {
+        let normalizedPath;
+        if (src.startsWith('/')) {
+          // Absolute path from root
+          normalizedPath = src;
+        } else {
+          // Relative path - resolve relative to markdown file directory
           normalizedPath = fileDirectory + src;
         }
 
-        // Prefix with the base URL
-        imageSrc = baseUrl + normalizedPath.replace(/^\/+/, '');
+        // Prefix with the base URL, ensuring proper path joining
+        // Remove leading slashes from normalizedPath since baseUrl includes the trailing slash
+        const cleanPath = normalizedPath.replace(/^\/+/, '');
+        imageSrc = baseUrl + cleanPath;
       }
 
       return (
