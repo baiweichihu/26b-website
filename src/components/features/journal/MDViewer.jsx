@@ -19,6 +19,7 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
   }, []);
 
   const fileDirectory = React.useMemo(() => {
+    // Returns the directory path with trailing slash (e.g., '/journals/')
     return file.substring(0, file.lastIndexOf('/') + 1);
   }, [file]);
 
@@ -177,6 +178,7 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
             }
           } else {
             // Simple relative path like 'img/file.png'
+            // Safe to concatenate because fileDirectory always ends with '/'
             normalizedPath = fileDirectory + src;
           }
         }
