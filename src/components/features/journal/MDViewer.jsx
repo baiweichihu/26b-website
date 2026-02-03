@@ -162,12 +162,26 @@ const MDViewer = React.forwardRef(({ file, fontSize, onTocGenerated }, ref) => {
           normalizedPath = src;
         } else {
           // Relative path - resolve relative to markdown file directory
-          normalizedPath = fileDirectory + src;
+          // Handle ./ and ../ prefixes by using URL resolution
+          if (src.startsWith('./') || src.startsWith('../')) {
+            // Use URL API for proper path resolution
+            try {
+              const basePathUrl = new URL(fileDirectory, window.location.origin);
+              const resolvedUrl = new URL(src, basePathUrl);
+              normalizedPath = resolvedUrl.pathname;
+            } catch {
+              // Fallback to simple concatenation if URL parsing fails
+              normalizedPath = fileDirectory + src;
+            }
+          } else {
+            // Simple relative path like 'img/file.png'
+            normalizedPath = fileDirectory + src;
+          }
         }
 
         // Prefix with the base URL, ensuring proper path joining
-        // Remove leading slashes from normalizedPath since baseUrl is guaranteed to end with a slash
-        const cleanPath = normalizedPath.replace(/^\/+/, '');
+        // Remove single leading slash from normalizedPath since baseUrl is guaranteed to end with a slash
+        const cleanPath = normalizedPath.replace(/^\//, '');
         imageSrc = baseUrl + cleanPath;
       }
 
