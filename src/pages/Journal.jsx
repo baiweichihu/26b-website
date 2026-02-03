@@ -18,12 +18,16 @@ const Journal = () => {
   const [toc, setToc] = useState([]);
   // MD 内容容器 ref
   const mdContentRef = useRef(null);
-
   // 获取文件的引用
   const baseUrl = import.meta.env.BASE_URL || '/';
-  const pdfFile = `${baseUrl}journals/journal1.pdf`;
-  const mdFile = `${baseUrl}journals/journal1.md`;
-
+  const pdfFiles = React.useMemo(
+    () => [`${baseUrl}journals/journal1.pdf`, `${baseUrl}journals/journal2.pdf`],
+    [baseUrl]
+  );
+  const mdFiles = React.useMemo(
+    () => [`${baseUrl}journals/journal1.md`, `${baseUrl}journals/journal2.md`],
+    [baseUrl]
+  );
   // 字体调整函数
   const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 1, 24));
   const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 1, 12));
@@ -56,6 +60,8 @@ const Journal = () => {
     setTotalPages(numPages);
   };
 
+  const clampedPage = totalPages > 0 ? Math.min(currentPage, totalPages) : currentPage;
+
   // 处理 PDF 翻页
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -85,7 +91,7 @@ const Journal = () => {
 
         <div className={styles.pdfInfo}>
           <span>
-            PDF: 第 {currentPage} 页 / 共 {totalPages} 页
+            PDF: 第 {clampedPage} 页 / 共 {totalPages} 页
           </span>
         </div>
       </div>
@@ -113,7 +119,7 @@ const Journal = () => {
                 <span className={styles.pageInput}>
                   <input
                     type="number"
-                    value={currentPage}
+                    value={clampedPage}
                     min="1"
                     max={totalPages}
                     onChange={(e) => {
@@ -137,11 +143,7 @@ const Journal = () => {
                 </button>
               </div>
             </div>
-            <PDFViewer
-              file={pdfFile}
-              currentPage={currentPage}
-              onLoadSuccess={handlePDFLoaded}
-            />
+            <PDFViewer files={pdfFiles} currentPage={clampedPage} onLoadSuccess={handlePDFLoaded} />
           </div>
 
           {/* Markdown 查看器 */}
@@ -154,7 +156,7 @@ const Journal = () => {
             </div>
             <MDViewer
               ref={mdContentRef}
-              file={mdFile}
+              files={mdFiles}
               fontSize={fontSize}
               onTocGenerated={setToc}
             />
