@@ -1,7 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useIrisTransition } from '../components/layout/IrisTransition';
 
 const Home = () => {
+  const { triggerIris } = useIrisTransition();
   return (
     <div className="page-content scene-page">
       <section className="scene-hero scene-surface">
@@ -10,11 +12,19 @@ const Home = () => {
           <h1 className="scene-title">光阴似箭，日月如梭</h1>
           <p className="scene-subtitle">人物，故事，记忆...</p>
           <div className="scene-actions">
-            <Link to="/" className="scene-button primary">
+            <Link
+              to="/"
+              className="scene-button primary"
+              onClick={(event) => triggerIris?.(event, '/')}
+            >
               <i className="fas fa-compass"></i>
               26B，启动！
             </Link>
-            <Link to="/journal" className="scene-button ghost">
+            <Link
+              to="/journal"
+              className="scene-button ghost"
+              onClick={(event) => triggerIris?.(event, '/journal')}
+            >
               <i className="fas fa-book-open"></i>
               班级日志
             </Link>

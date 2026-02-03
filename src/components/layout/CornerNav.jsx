@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import ThemeToggle from '../ui/ThemeToggle';
+import { useIrisTransition } from './IrisTransition';
 import styles from './CornerNav.module.css';
 
 const NAV_LINKS = [
@@ -16,6 +17,12 @@ const CornerNav = () => {
   const [open, setOpen] = useState(false);
   const itemsRef = useRef([]);
   const closeNav = () => setOpen(false);
+  const { triggerIris } = useIrisTransition();
+
+  const handleNavClick = (event, to) => {
+    triggerIris?.(event, to);
+    closeNav();
+  };
 
   useEffect(() => {
     const gsap = window.gsap;
@@ -68,7 +75,7 @@ const CornerNav = () => {
           className={({ isActive }) =>
             `${styles.homeQuick} ${isActive ? styles.homeQuickActive : ''}`
           }
-          onClick={closeNav}
+          onClick={(event) => handleNavClick(event, '/home')}
         >
           <i className="fas fa-home" aria-hidden="true"></i>
           <span>首页</span>
@@ -84,7 +91,7 @@ const CornerNav = () => {
               itemsRef.current[index] = el;
             }}
             className={({ isActive }) => `${styles.trailItem} ${isActive ? styles.active : ''}`}
-            onClick={closeNav}
+            onClick={(event) => handleNavClick(event, item.to)}
           >
             <i className={`fas ${item.icon}`} aria-hidden="true"></i>
             <span>{item.label}</span>

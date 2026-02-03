@@ -11,6 +11,7 @@ import IntroScreen from './components/landing/IntroScreen';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import CornerNav from './components/layout/CornerNav';
+import IrisTransition from './components/layout/IrisTransition';
 import Lobby from './pages/Lobby';
 import Home from './pages/Home';
 import Introduction from './pages/Introduction';
@@ -67,14 +68,18 @@ function App() {
   return (
     <>
       <Router>
-        <IntroGate />
-        <AppLayout />
+        <div className="app-shell">
+          <IrisTransition>
+            <IntroGate />
+            <AppLayout />
 
-        {/* Floating Music Player */}
-        <MusicPlayer />
+            {/* Floating Music Player */}
+            <MusicPlayer />
 
-        {/* Easter Egg glitch functionality */}
-        <EasterEgg />
+            {/* Easter Egg glitch functionality */}
+            <EasterEgg />
+          </IrisTransition>
+        </div>
       </Router>
     </>
   );

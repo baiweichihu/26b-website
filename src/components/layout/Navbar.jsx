@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import ThemeToggle from '../ui/ThemeToggle';
+import { useIrisTransition } from './IrisTransition';
 import styles from './Navbar.module.css';
 
 const NAV_ITEMS = [
@@ -37,6 +38,7 @@ const NAV_ITEMS = [
 ];
 
 const Navbar = () => {
+  const { triggerIris } = useIrisTransition();
   return (
     <nav className={styles.lobbyNav} aria-label="主导航">
       <div className={styles.lobbyShell}>
@@ -62,6 +64,7 @@ const Navbar = () => {
                   }
                   end={item.to === '/'}
                   draggable={false}
+                  onClick={(event) => triggerIris?.(event, item.to)}
                 >
                   <span className={styles.cardHalo} aria-hidden="true" />
                   <span className={styles.cardInner}>

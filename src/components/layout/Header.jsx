@@ -1,10 +1,56 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Header.module.css';
+import { useIrisTransition } from './IrisTransition';
 
 const Header = () => {
+  const headerRef = useRef(null);
+  const swipeRef = useRef(null);
+  const blobRef = useRef(null);
+  const { triggerIris } = useIrisTransition();
+
+  useLayoutEffect(() => {
+    const gsap = window.gsap;
+    const header = headerRef.current;
+    if (!gsap || !header || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return undefined;
+    }
+
+    const ctx = gsap.context(() => {
+      if (swipeRef.current) {
+        gsap.fromTo(
+          swipeRef.current,
+          { xPercent: -120, opacity: 0 },
+          { xPercent: 120, opacity: 0.85, duration: 1.6, ease: 'power3.out' }
+        );
+      }
+
+      if (blobRef.current) {
+        gsap.to(blobRef.current, {
+          borderRadius: '40% 60% 55% 45% / 45% 40% 60% 55%',
+          duration: 5.5,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        });
+        gsap.to(blobRef.current, {
+          x: 24,
+          y: -12,
+          duration: 8,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        });
+      }
+    }, header);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <header className={styles.pageHeader}>
+    <header className={styles.pageHeader} ref={headerRef}>
+      <div className={styles.headerSwipe} ref={swipeRef} aria-hidden="true" />
+      <div className={styles.headerBlob} ref={blobRef} aria-hidden="true" />
       <div className="container">
         <div className="row align-items-center">
           <div className="col-md-2 text-center">
@@ -24,7 +70,11 @@ const Header = () => {
             </h1>
           </div>
           <div className="col-md-2 text-end">
-            <Link to="/contact" className={styles.contactBtn}>
+            <Link
+              to="/contact"
+              className={styles.contactBtn}
+              onClick={(event) => triggerIris?.(event, '/contact')}
+            >
               <i className={`fas fa-envelope ${styles.contactIcon}`}></i>
               <span className={styles.contactText}>联系我们</span>
             </Link>
