@@ -141,7 +141,6 @@ const Journal = () => {
               file={pdfFile}
               currentPage={currentPage}
               onLoadSuccess={handlePDFLoaded}
-              onPageChange={handlePageChange}
             />
           </div>
 
