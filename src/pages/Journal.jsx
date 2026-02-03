@@ -14,9 +14,14 @@ const Journal = () => {
   const mdContentRef = useRef(null);
 
   const baseUrl = import.meta.env.BASE_URL || '/';
-  const pdfFile = `${baseUrl}journals/journal1.pdf`;
-  const mdFile = `${baseUrl}journals/journal1.md`;
-
+  const pdfFiles = React.useMemo(
+    () => [`${baseUrl}journals/journal1.pdf`, `${baseUrl}journals/journal2.pdf`],
+    [baseUrl]
+  );
+  const mdFiles = React.useMemo(
+    () => [`${baseUrl}journals/journal1.md`, `${baseUrl}journals/journal2.md`],
+    [baseUrl]
+  );
   const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 1, 24));
   const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 1, 12));
   const resetFontSize = () => setFontSize(16);
@@ -44,6 +49,9 @@ const Journal = () => {
     setTotalPages(numPages);
   };
 
+  const totalPagesSafe = totalPages > 0 ? totalPages : 1;
+  const clampedPage = Math.min(currentPage, totalPagesSafe);
+
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -55,7 +63,7 @@ const Journal = () => {
           <p className={styles.kicker}>班级日志</p>
           <h1>26B 班日志</h1>
           <p>光阴似箭，日月如梭，我们不觉离别</p>
-          <p> 故册轻启，往事盈怀，墨迹犹存少年</p>
+          <p>故册轻启，往事盈怀，墨迹犹存少年</p>
         </header>
 
         <div className={styles.controls}>
@@ -75,7 +83,7 @@ const Journal = () => {
 
           <div className={styles.pdfInfo}>
             <span>
-              页码 {currentPage} / {totalPages || 1}
+              页码 {clampedPage} / {totalPagesSafe}
             </span>
           </div>
         </div>
@@ -104,31 +112,34 @@ const Journal = () => {
                   <span className={styles.pageInput}>
                     <input
                       type="number"
-                      value={currentPage}
+                      value={clampedPage}
                       min="1"
-                      max={totalPages || 1}
+                      max={totalPagesSafe}
                       onChange={(e) => {
                         const rawValue = Number(e.target.value);
                         if (Number.isNaN(rawValue)) {
                           return;
                         }
-                        const upperBound = totalPages > 0 ? totalPages : 1;
-                        const clampedValue = Math.min(Math.max(rawValue, 1), upperBound);
-                        handlePageChange(clampedValue);
+                        const nextValue = Math.min(Math.max(rawValue, 1), totalPagesSafe);
+                        handlePageChange(nextValue);
                       }}
                     />{' '}
-                    / {totalPages || 1}
+                    / {totalPagesSafe}
                   </span>
                   <button
                     className={styles.pageButton}
-                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
-                    disabled={currentPage >= totalPages}
+                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPagesSafe))}
+                    disabled={currentPage >= totalPagesSafe}
                   >
                     下一页
                   </button>
                 </div>
               </div>
-              <PDFViewer file={pdfFile} currentPage={currentPage} onLoadSuccess={handlePDFLoaded} />
+              <PDFViewer
+                files={pdfFiles}
+                currentPage={clampedPage}
+                onLoadSuccess={handlePDFLoaded}
+              />
             </div>
 
             <div className={styles.mdSection}>
@@ -140,7 +151,7 @@ const Journal = () => {
               </div>
               <MDViewer
                 ref={mdContentRef}
-                file={mdFile}
+                files={mdFiles}
                 fontSize={fontSize}
                 onTocGenerated={setToc}
               />
