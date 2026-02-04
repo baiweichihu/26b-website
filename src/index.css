@@ -1,175 +1,465 @@
 /* ========== 全局变量定义 ========== */
 :root {
-    --bg-color: #f8f9fa;
-    --text-color: #212529;
-    --card-bg: #ffffff;
-    --border-color: #dee2e6;
-    --header-bg: #ffffff;
-    --navbar-bg: #f8f9fa;
-    --link-color: #0d6efd;
-    --muted-color: #6c757d;
+  --bg-color: #f3efe6;
+  --text-color: #1a2235;
+  --card-bg: rgba(255, 255, 255, 0.82);
+  --border-color: rgba(255, 255, 255, 0.6);
+  --header-bg: rgba(255, 255, 255, 0.7);
+  --navbar-bg: transparent;
+  --link-color: #1d4ed8;
+  --muted-color: #5f6c80;
+  --scene-accent: #f5b56a;
+  --scene-accent-2: #7cc5ff;
+  --panel-bg: rgba(255, 255, 255, 0.72);
+  --panel-border: rgba(255, 255, 255, 0.6);
+  --panel-shadow: 0 24px 50px rgba(17, 29, 54, 0.18);
+  --panel-glow: rgba(255, 200, 140, 0.3);
 }
 
-[data-theme="dark"] {
-    --bg-color: #121212;
-    --text-color: #e0e0e0;
-    --card-bg: #1e1e1e;
-    --border-color: #444444;
-    --header-bg: #1a1a1a;
-    --navbar-bg: #1a1a1a;
-    --link-color: #6ea8fe;
-    --muted-color: #adb5bd;
+[data-theme='dark'] {
+  --bg-color: #0b1220;
+  --text-color: #e6efff;
+  --card-bg: rgba(16, 24, 44, 0.9);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --header-bg: rgba(12, 18, 32, 0.9);
+  --navbar-bg: transparent;
+  --link-color: #89b4ff;
+  --muted-color: #98a7bf;
+  --scene-accent: #ffc98a;
+  --scene-accent-2: #7cc5ff;
+  --panel-bg: rgba(12, 18, 32, 0.82);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  --panel-glow: rgba(88, 126, 185, 0.35);
 }
 
 /* ========== 全局样式与重置 ========== */
 
-html, body {
-    height: 100%;
-    margin: 0;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 /* Override Bootstrap defaults for body */
 body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background-color: var(--bg-color) !important;
-    color: var(--text-color) !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(255, 214, 170, 0.3), rgba(255, 214, 170, 0) 45%),
+    radial-gradient(circle at 80% 10%, rgba(125, 197, 255, 0.25), rgba(125, 197, 255, 0) 50%),
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%);
+}
+
+[data-theme='dark'] body {
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(88, 126, 185, 0.18), rgba(88, 126, 185, 0) 45%),
+    radial-gradient(circle at 80% 10%, rgba(255, 170, 106, 0.18), rgba(255, 170, 106, 0) 50%),
+    radial-gradient(circle at 20% 80%, rgba(32, 44, 76, 0.6), rgba(32, 44, 76, 0) 55%);
 }
 
 #root {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.particle-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.55;
 }
 
 main {
-    flex: 1;
+  flex: 1;
 }
 
-footer {
-    background-color: #212529 !important;
+.scene-main {
+  padding: 2.5rem clamp(1.5rem, 4vw, 4rem) 4rem;
+}
+
+.lobby-main {
+  padding: 0;
+}
+
+.lobby-page {
+  padding: 2.5rem 0 4rem;
+}
+
+.scene-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.scene-page::before {
+  content: '';
+  position: absolute;
+  inset: -80px;
+  background:
+    radial-gradient(circle at 12% 16%, rgba(255, 199, 135, 0.28), transparent 50%),
+    radial-gradient(circle at 85% 12%, rgba(124, 197, 255, 0.25), transparent 55%);
+  filter: blur(8px);
+  opacity: 0.8;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.scene-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.scene-surface,
+.scene-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(12px);
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.scene-hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2rem;
+  padding: clamp(1.8rem, 4vw, 3rem);
+  align-items: center;
+  transform-style: preserve-3d;
+}
+
+.scene-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  font-size: 0.75rem;
+  color: var(--muted-color);
+  margin: 0 0 0.6rem;
+}
+
+.scene-title {
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  margin: 0 0 0.8rem;
+  color: var(--text-color);
+  font-weight: 700;
+}
+
+.scene-subtitle {
+  margin: 0 0 1.6rem;
+  color: var(--muted-color);
+  max-width: 420px;
+  font-size: 1.02rem;
+}
+
+.scene-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.scene-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.scene-button.primary {
+  background: linear-gradient(120deg, var(--scene-accent), var(--scene-accent-2));
+  color: #132238;
+  box-shadow: 0 16px 28px rgba(22, 38, 60, 0.2);
+}
+
+.scene-button.ghost {
+  color: var(--text-color);
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme='dark'] .scene-button.ghost {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(16, 24, 44, 0.7);
+}
+
+.scene-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 26px rgba(16, 28, 52, 0.18);
+}
+
+.scene-orb {
+  position: relative;
+  width: min(260px, 60vw);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  transform-style: preserve-3d;
+  animation: floatOrb 8s ease-in-out infinite;
+}
+
+.scene-orb-core {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 214, 170, 0.6)
+  );
+  box-shadow: 0 20px 40px rgba(17, 29, 54, 0.25);
+  transform: translateZ(30px);
+}
+
+.scene-orb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(124, 197, 255, 0.6);
+  box-shadow: 0 0 25px rgba(124, 197, 255, 0.45);
+  transform: rotateX(65deg) translateZ(18px);
+}
+
+.scene-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.4rem;
+}
+
+.scene-card {
+  position: relative;
+  padding: 1.4rem;
+  border-radius: 20px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 18px 30px rgba(18, 32, 60, 0.14);
+  transform-style: preserve-3d;
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.scene-card::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.scene-card:hover {
+  transform: translateY(-8px) rotateX(4deg) rotateY(-3deg);
+  box-shadow: 0 24px 40px rgba(18, 32, 60, 0.2);
+}
+
+.scene-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.scene-card p {
+  margin: 0;
+  color: var(--muted-color);
+}
+
+.scene-icon {
+  font-size: 1.6rem;
+  color: var(--scene-accent-2);
+  margin-bottom: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .scene-main {
+    padding: 1.8rem 1.2rem 3rem;
+  }
+
+  .scene-hero {
+    padding: 1.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-orb {
+    animation: none;
+  }
+}
+
+@keyframes floatOrb {
+  0%,
+  100% {
+    transform: translateY(0) rotateZ(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateZ(3deg);
+  }
 }
 
 /* 新增：页面内容切换样式 - React Router transitions can use this but basically standard display is fine */
 .page-content {
-    /* display: none; In React we just render the component */
-    animation: fadeIn 0.3s ease;
+  /* display: none; In React we just render the component */
+  animation: fadeIn 0.3s ease;
 }
 
 .page-content.active {
-    display: block;
+  display: block;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 帖子卡片样式 */
 .post-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 100%;
+  height: 100%;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 16px 28px rgba(18, 32, 60, 0.12);
+  transform-style: preserve-3d;
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
 .post-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+  transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
+  box-shadow: 0 24px 40px rgba(18, 32, 60, 0.2);
 }
 
 .post-header {
-    border-bottom: 1px solid #dee2e6;
-    padding-bottom: 0.75rem;
-    margin-bottom: 1rem;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .post-author {
-    color: #1a56a8;
-    font-weight: 600;
+  color: var(--scene-accent-2);
+  font-weight: 600;
 }
 
 .post-date {
-    color: #6c757d;
-    font-size: 0.85rem;
+  color: var(--muted-color);
+  font-size: 0.85rem;
 }
 
 .post-category {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .post-content {
-    line-height: 1.6;
-    color: #333;
+  line-height: 1.6;
+  color: var(--text-color);
 }
 
 .post-likes {
-    color: #dc3545;
-    font-weight: 500;
+  color: #dc3545;
+  font-weight: 500;
 }
 
 /* 分类标签颜色 */
 .category-general {
-    background-color: #e3f2fd;
-    color: #0d47a1;
+  background-color: #e3f2fd;
+  color: #0d47a1;
 }
 
 .category-question {
-    background-color: #f3e5f5;
-    color: #4a148c;
+  background-color: #f3e5f5;
+  color: #4a148c;
 }
 
 .category-story {
-    background-color: #e8f5e8;
-    color: #1b5e20;
+  background-color: #e8f5e8;
+  color: #1b5e20;
 }
 
 .category-other {
-    background-color: #fff3e0;
-    color: #e65100;
+  background-color: #fff3e0;
+  color: #e65100;
 }
 
 /* 空状态样式 */
 .empty-state {
-    padding: 3rem 1rem;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    border: 2px dashed #dee2e6;
+  padding: 3rem 1rem;
+  background-color: var(--panel-bg);
+  border-radius: 16px;
+  border: 1px dashed var(--panel-border);
 }
 
 /* 帖子卡片整体样式 */
 .post-card {
-    background: transparent;
-    border: 2px solid #1a56a8; /* 深蓝色边框 */
-    border-radius: 16px; /* 柔和圆角 */
-    padding: 1.5rem;
-    height: 100%;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(26, 86, 168, 0.1);
+  background: transparent;
+  border: 2px solid #1a56a8; /* 深蓝色边框 */
+  border-radius: 16px; /* 柔和圆角 */
+  padding: 1.5rem;
+  height: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(26, 86, 168, 0.1);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 18px;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+  box-shadow: 0 16px 28px rgba(18, 32, 60, 0.12);
 }
 
 .post-card:hover {
-    box-shadow: 0 8px 15px rgba(26, 86, 168, 0.15);
+  box-shadow: 0 8px 15px rgba(26, 86, 168, 0.15);
+  box-shadow: 0 24px 40px rgba(18, 32, 60, 0.2);
 }
 
-[data-theme="dark"] .post-card {
-    background-color: var(--card-bg);
-    color: var(--text-color);
-    border-color: var(--border-color);
+[data-theme='dark'] .post-card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
 }
 
-[data-theme="dark"] .alert-info {
-    background-color: #1a3a52;
-    color: #a3c9e8;
-    border-color: #2a5a82;
-}
-
-[data-theme="dark"] footer {
-    background-color: #0d0d0d !important;
+[data-theme='dark'] .alert-info {
+  background-color: #1a3a52;
+  color: #a3c9e8;
+  border-color: #2a5a82;
 }
