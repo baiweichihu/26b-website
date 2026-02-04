@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import PDFViewer from '../components/features/journal/PDFViewer';
 import MDViewer from '../components/features/journal/MDViewer';
 import TableOfContents from '../components/features/journal/TableOfContents';
@@ -8,6 +8,9 @@ import styles from './Journal.module.css';
 const Journal = () => {
   const [fontSize, setFontSize] = useState(16);
   const [currentSection, setCurrentSection] = useState('');
+  const [mdSections, setMdSections] = useState([]);
+  const [mdSectionIndex, setMdSectionIndex] = useState(0);
+  const [mdSectionTotal, setMdSectionTotal] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [toc, setToc] = useState([]);
@@ -26,24 +29,57 @@ const Journal = () => {
   const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 1, 12));
   const resetFontSize = () => setFontSize(16);
 
-  const handleTocClick = (id) => {
-    setCurrentSection(id);
-
-    setTimeout(() => {
-      const element = document.getElementById(id);
-      if (element && mdContentRef.current) {
-        const elementRect = element.getBoundingClientRect();
-        const containerRect = mdContentRef.current.getBoundingClientRect();
-        const scrollTop = mdContentRef.current.scrollTop;
-        const targetScroll = scrollTop + (elementRect.top - containerRect.top) - 20;
-
-        mdContentRef.current.scrollTo({
-          top: targetScroll,
-          behavior: 'smooth',
-        });
+  const updateMdSectionByIndex = useCallback(
+    (nextIndex) => {
+      if (!mdSections || mdSections.length === 0) {
+        setMdSectionIndex(0);
+        setCurrentSection('');
+        return;
       }
-    }, 0);
-  };
+
+      const safeIndex = Math.min(Math.max(nextIndex, 0), mdSections.length - 1);
+      const nextId = mdSections[safeIndex]?.id || '';
+      setMdSectionIndex(safeIndex);
+      setCurrentSection(nextId);
+    },
+    [mdSections]
+  );
+
+  const handleTocClick = useCallback(
+    (id) => {
+      const targetIndex = mdSections.findIndex((item) => item.id === id);
+      if (targetIndex >= 0) {
+        updateMdSectionByIndex(targetIndex);
+        return;
+      }
+      setCurrentSection(id);
+    },
+    [mdSections, updateMdSectionByIndex]
+  );
+
+  const handleTocGenerated = useCallback((nextToc) => {
+    setToc(nextToc);
+  }, []);
+
+  const handleSectionsGenerated = useCallback(
+    (sections) => {
+      setMdSections(sections);
+      const total = sections.length > 0 ? sections.length : 1;
+      setMdSectionTotal(total);
+
+      if (sections.length === 0) {
+        setMdSectionIndex(0);
+        setCurrentSection('');
+        return;
+      }
+
+      const existingIndex = sections.findIndex((item) => item.id === currentSection);
+      const nextIndex = existingIndex >= 0 ? existingIndex : 0;
+      setMdSectionIndex(nextIndex);
+      setCurrentSection(sections[nextIndex]?.id || '');
+    },
+    [currentSection]
+  );
 
   const handlePDFLoaded = ({ numPages }) => {
     setTotalPages(numPages);
@@ -55,6 +91,10 @@ const Journal = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
+  const totalMdSectionsSafe = mdSectionTotal > 0 ? mdSectionTotal : 1;
+  const clampedMdIndex = Math.min(Math.max(mdSectionIndex, 0), totalMdSectionsSafe - 1);
+  const mdDisplayIndex = totalMdSectionsSafe === 0 ? 0 : clampedMdIndex + 1;
 
   return (
     <div className="page-content scene-page">
@@ -106,8 +146,11 @@ const Journal = () => {
                     className={styles.pageButton}
                     onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                     disabled={currentPage <= 1}
+                    aria-label="上一页"
                   >
-                    上一页
+                    <span className={styles.iconButton} aria-hidden="true">
+                      ◀
+                    </span>
                   </button>
                   <span className={styles.pageInput}>
                     <input
@@ -130,8 +173,11 @@ const Journal = () => {
                     className={styles.pageButton}
                     onClick={() => handlePageChange(Math.min(currentPage + 1, totalPagesSafe))}
                     disabled={currentPage >= totalPagesSafe}
+                    aria-label="下一页"
                   >
-                    下一页
+                    <span className={styles.iconButton} aria-hidden="true">
+                      ▶
+                    </span>
                   </button>
                 </div>
               </div>
@@ -145,15 +191,39 @@ const Journal = () => {
             <div className={styles.mdSection}>
               <div className={styles.sectionHeader}>
                 <h2>Markdown 版</h2>
-                <div className={styles.mdStats}>
-                  <span>字符数：--</span>
+                <div className={styles.mdControls}>
+                  <button
+                    className={styles.pageButton}
+                    onClick={() => updateMdSectionByIndex(clampedMdIndex - 1)}
+                    disabled={clampedMdIndex <= 0}
+                    aria-label="上一篇"
+                  >
+                    <span className={styles.iconButton} aria-hidden="true">
+                      ◀
+                    </span>
+                  </button>
+                  <span className={styles.mdPageInfo}>
+                    篇章 {mdDisplayIndex} / {totalMdSectionsSafe}
+                  </span>
+                  <button
+                    className={styles.pageButton}
+                    onClick={() => updateMdSectionByIndex(clampedMdIndex + 1)}
+                    disabled={clampedMdIndex >= totalMdSectionsSafe - 1}
+                    aria-label="下一篇"
+                  >
+                    <span className={styles.iconButton} aria-hidden="true">
+                      ▶
+                    </span>
+                  </button>
                 </div>
               </div>
               <MDViewer
                 ref={mdContentRef}
                 files={mdFiles}
                 fontSize={fontSize}
-                onTocGenerated={setToc}
+                activeSectionIndex={clampedMdIndex}
+                onTocGenerated={handleTocGenerated}
+                onSectionsGenerated={handleSectionsGenerated}
               />
             </div>
           </JournalLayout>
