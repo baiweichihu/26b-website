@@ -292,10 +292,10 @@ const MDViewer = React.forwardRef(({ file, files, fontSize, onTocGenerated }, re
 
     // 图片处理
     img: ({ src, alt, ...props }) => (
-      <div className={styles.mdImageContainer}>
+      <span className={styles.mdImageContainer}>
         <img src={src} alt={alt} className={styles.mdImage} {...props} />
-        {alt && <div className={styles.imageCaption}>{alt}</div>}
-      </div>
+        {alt && <span className={styles.imageCaption}>{alt}</span>}
+      </span>
     ),
   };
 

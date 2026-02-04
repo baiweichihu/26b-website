@@ -5,7 +5,7 @@ import { useIrisTransition } from '../ui/IrisTransition';
 import styles from './CornerNav.module.css';
 
 const NAV_LINKS = [
-  { to: '/', label: '大厅', icon: 'fa-compass' },
+  { to: '/lobby', label: '大厅', icon: 'fa-compass' },
   { to: '/introduction', label: '人物', icon: 'fa-users' },
   { to: '/activities', label: '大事纪', icon: 'fa-images' },
   { to: '/journal', label: '班日志', icon: 'fa-book-open' },
@@ -71,11 +71,11 @@ const CornerNav = () => {
           <span className={styles.orbText}>NAV</span>
         </button>
         <NavLink
-          to="/home"
+          to="/"
           className={({ isActive }) =>
             `${styles.homeQuick} ${isActive ? styles.homeQuickActive : ''}`
           }
-          onClick={(event) => handleNavClick(event, '/home')}
+          onClick={(event) => handleNavClick(event, '/')}
         >
           <i className="fas fa-home" aria-hidden="true"></i>
           <span>首页</span>
