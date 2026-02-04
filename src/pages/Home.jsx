@@ -13,9 +13,9 @@ const Home = () => {
           <p className="scene-subtitle">人物，故事，记忆...</p>
           <div className="scene-actions">
             <Link
-              to="/"
+              to="/lobby"
               className="scene-button primary"
-              onClick={(event) => triggerIris?.(event, '/')}
+              onClick={(event) => triggerIris?.(event, '/lobby')}
             >
               <i className="fas fa-compass"></i>
               26B，启动！

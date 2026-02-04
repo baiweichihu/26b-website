@@ -11,6 +11,7 @@ import IntroScreen from './components/landing/IntroScreen';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import CornerNav from './components/layout/CornerNav';
+import BackgroundParticles from './components/layout/BackgroundParticles';
 import IrisTransition from './components/ui/IrisTransition';
 import Lobby from './pages/Lobby';
 import Home from './pages/Home';
@@ -24,7 +25,7 @@ import EasterEgg from './components/features/media/EasterEgg'; // already import
 
 const AppLayout = () => {
   const location = useLocation();
-  const isLobby = location.pathname === '/';
+  const isLobby = location.pathname === '/lobby';
 
   return (
     <>
@@ -32,8 +33,9 @@ const AppLayout = () => {
       {!isLobby && <Header />}
       <main className={isLobby ? 'lobby-main' : 'scene-main'}>
         <Routes>
-          <Route path="/" element={<Lobby />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
+          <Route path="/lobby" element={<Lobby />} />
           <Route path="/introduction" element={<Introduction />} />
           <Route path="/activities" element={<Activities />} />
           <Route path="/journal" element={<Journal />} />
@@ -57,7 +59,7 @@ const IntroGate = () => {
     setShowIntro(false);
     if (!hasRedirected.current && location.pathname === '/') {
       hasRedirected.current = true;
-      navigate('/home', { replace: true });
+      navigate('/', { replace: true });
     }
   };
 
@@ -68,6 +70,7 @@ function App() {
   return (
     <>
       <Router>
+        <BackgroundParticles />
         <div className="app-shell">
           <IrisTransition>
             <IntroGate />
