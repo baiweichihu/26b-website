@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import PDFViewer from '../components/features/journal/PDFViewer';
 import MDViewer from '../components/features/journal/MDViewer';
 import TableOfContents from '../components/features/journal/TableOfContents';
@@ -6,7 +6,9 @@ import JournalLayout from '../components/features/journal/JournalLayout';
 import styles from './Journal.module.css';
 
 const Journal = () => {
-  const [fontSize, setFontSize] = useState(16);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [pdfScale, setPdfScale] = useState(1.0);
+  const [mdFontSize, setMdFontSize] = useState(16);
   const [currentSection, setCurrentSection] = useState('');
   const [mdSections, setMdSections] = useState([]);
   const [mdSectionIndex, setMdSectionIndex] = useState(0);
@@ -15,6 +17,8 @@ const Journal = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [toc, setToc] = useState([]);
   const mdContentRef = useRef(null);
+  const pdfFullscreenRef = useRef(null);
+  const mdFullscreenRef = useRef(null);
 
   const baseUrl = import.meta.env.BASE_URL || '/';
   const pdfFiles = React.useMemo(
@@ -25,9 +29,38 @@ const Journal = () => {
     () => [`${baseUrl}journals/journal1.md`, `${baseUrl}journals/journal2.md`],
     [baseUrl]
   );
-  const increaseFontSize = () => setFontSize((prev) => Math.min(prev + 1, 24));
-  const decreaseFontSize = () => setFontSize((prev) => Math.max(prev - 1, 12));
-  const resetFontSize = () => setFontSize(16);
+
+  // 监听全屏状态变化
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  // 进入全屏
+  const enterFullscreen = async (type) => {
+    const element = type === 'pdf' ? pdfFullscreenRef.current : mdFullscreenRef.current;
+    if (element) {
+      try {
+        await element.requestFullscreen();
+      } catch (err) {
+        console.error('无法进入全屏模式:', err);
+      }
+    }
+  };
+
+  // 退出全屏
+  const exitFullscreen = async () => {
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+      } catch (err) {
+        console.error('无法退出全屏模式:', err);
+      }
+    }
+  };
 
   const updateMdSectionByIndex = useCallback(
     (nextIndex) => {
@@ -107,24 +140,142 @@ const Journal = () => {
         </header>
 
         <div className={styles.controls}>
-          <div className={styles.fontControls}>
-            <span className={styles.controlLabel}>字号</span>
-            <button onClick={decreaseFontSize} className={styles.controlButton}>
-              A-
-            </button>
-            <span className={styles.fontSizeDisplay}>{fontSize}px</span>
-            <button onClick={increaseFontSize} className={styles.controlButton}>
-              A+
-            </button>
-            <button onClick={resetFontSize} className={styles.controlButton}>
-              重置
-            </button>
+          <div className={styles.controlPanel}>
+            <div className={styles.controlGroup}>
+              <label className={styles.controlLabel}>PDF缩放</label>
+              <div className={styles.zoomControls}>
+                <button
+                  className={styles.toolbarButton}
+                  title="缩小"
+                  onClick={() => setPdfScale((p) => Math.max(p - 0.2, 0.5))}
+                >
+                  −
+                </button>
+                <span className={styles.zoomDisplay}>{Math.round(pdfScale * 100)}%</span>
+                <button
+                  className={styles.toolbarButton}
+                  title="放大"
+                  onClick={() => setPdfScale((p) => Math.min(p + 0.2, 3.0))}
+                >
+                  +
+                </button>
+                <button
+                  className={styles.toolbarButton}
+                  title="重置缩放"
+                  onClick={() => setPdfScale(1.0)}
+                >
+                  重置
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.controlGroup}>
+              <label className={styles.controlLabel}>PDF页码</label>
+              <div className={styles.pageControls}>
+                <button
+                  className={styles.pageButton}
+                  onClick={() => handlePageChange(Math.max(clampedPage - 1, 1))}
+                  disabled={clampedPage <= 1}
+                  aria-label="上一页"
+                >
+                  ◀
+                </button>
+                <span className={styles.pageInput}>
+                  <input
+                    type="number"
+                    value={clampedPage}
+                    min="1"
+                    max={totalPagesSafe}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      if (!Number.isNaN(val)) {
+                        handlePageChange(Math.min(Math.max(val, 1), totalPagesSafe));
+                      }
+                    }}
+                  />{' '}
+                  / {totalPagesSafe}
+                </span>
+                <button
+                  className={styles.pageButton}
+                  onClick={() => handlePageChange(Math.min(clampedPage + 1, totalPagesSafe))}
+                  disabled={clampedPage >= totalPagesSafe}
+                  aria-label="下一页"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className={styles.pdfInfo}>
-            <span>
-              页码 {clampedPage} / {totalPagesSafe}
-            </span>
+          <div className={styles.dividerHorizontal}></div>
+
+          <div className={styles.controlPanel}>
+            <div className={styles.controlGroup}>
+              <label className={styles.controlLabel}>MD字体</label>
+              <div className={styles.fontControls}>
+                <button
+                  className={styles.toolbarButton}
+                  title="减小字体"
+                  onClick={() => setMdFontSize((p) => Math.max(p - 1, 12))}
+                >
+                  −
+                </button>
+                <span className={styles.fontSizeDisplay}>{mdFontSize}</span>
+                <button
+                  className={styles.toolbarButton}
+                  title="增大字体"
+                  onClick={() => setMdFontSize((p) => Math.min(p + 1, 24))}
+                >
+                  +
+                </button>
+                <button
+                  className={styles.toolbarButton}
+                  title="重置字体"
+                  onClick={() => setMdFontSize(16)}
+                >
+                  重置
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.controlGroup}>
+              <label className={styles.controlLabel}>MD章节</label>
+              <div className={styles.sectionControls}>
+                <button
+                  className={styles.pageButton}
+                  onClick={() => updateMdSectionByIndex(Math.max(clampedMdIndex - 1, 0))}
+                  disabled={clampedMdIndex <= 0}
+                  aria-label="上一章节"
+                >
+                  ◀
+                </button>
+                <span className={styles.pageInput}>
+                  <input
+                    type="number"
+                    value={mdDisplayIndex}
+                    min="1"
+                    max={totalMdSectionsSafe}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      if (!Number.isNaN(val)) {
+                        updateMdSectionByIndex(Math.min(Math.max(val, 1), totalMdSectionsSafe) - 1);
+                      }
+                    }}
+                  />{' '}
+                  / {totalMdSectionsSafe}
+                </span>
+                <button
+                  className={styles.pageButton}
+                  onClick={() =>
+                    updateMdSectionByIndex(Math.min(clampedMdIndex + 1, totalMdSectionsSafe - 1))
+                  }
+                  disabled={clampedMdIndex >= totalMdSectionsSafe - 1}
+                  aria-label="下一章节"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -138,92 +289,233 @@ const Journal = () => {
           </aside>
 
           <JournalLayout>
-            <div className={styles.pdfSection}>
-              <div className={styles.sectionHeader}>
-                <h2>PDF 版</h2>
-                <div className={styles.pdfControls}>
-                  <button
-                    className={styles.pageButton}
-                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
-                    disabled={currentPage <= 1}
-                    aria-label="上一页"
-                  >
-                    <span className={styles.iconButton} aria-hidden="true">
-                      ◀
-                    </span>
-                  </button>
-                  <span className={styles.pageInput}>
-                    <input
-                      type="number"
-                      value={clampedPage}
-                      min="1"
-                      max={totalPagesSafe}
-                      onChange={(e) => {
-                        const rawValue = Number(e.target.value);
-                        if (Number.isNaN(rawValue)) {
-                          return;
-                        }
-                        const nextValue = Math.min(Math.max(rawValue, 1), totalPagesSafe);
-                        handlePageChange(nextValue);
-                      }}
-                    />{' '}
-                    / {totalPagesSafe}
-                  </span>
-                  <button
-                    className={styles.pageButton}
-                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPagesSafe))}
-                    disabled={currentPage >= totalPagesSafe}
-                    aria-label="下一页"
-                  >
-                    <span className={styles.iconButton} aria-hidden="true">
-                      ▶
-                    </span>
-                  </button>
-                </div>
+            <div className={styles.pdfSection} ref={pdfFullscreenRef}>
+              <div className={styles.sectionHeader} data-fullscreen={isFullscreen}>
+                {!isFullscreen && (
+                  <div className={styles.headerRow1}>
+                    <h2>PDF 版</h2>
+                    <button
+                      className={styles.fullscreenButton}
+                      onClick={() => (isFullscreen ? exitFullscreen() : enterFullscreen('pdf'))}
+                      title={isFullscreen ? '退出全屏 (ESC)' : '全屏查看PDF'}
+                    >
+                      {isFullscreen ? '✕' : '⛶'}
+                    </button>
+                  </div>
+                )}
+                {isFullscreen && (
+                  <div className={styles.fullscreenHeader}>
+                    <h2>PDF 版</h2>
+                    <div className={styles.fullscreenControls}>
+                      <div className={styles.controlPanel}>
+                        <div className={styles.controlGroup}>
+                          <label className={styles.controlLabel}>PDF缩放</label>
+                          <div className={styles.zoomControls}>
+                            <button
+                              className={styles.toolbarButton}
+                              title="缩小"
+                              onClick={() => setPdfScale((p) => Math.max(p - 0.2, 0.5))}
+                            >
+                              −
+                            </button>
+                            <span className={styles.zoomDisplay}>
+                              {Math.round(pdfScale * 100)}%
+                            </span>
+                            <button
+                              className={styles.toolbarButton}
+                              title="放大"
+                              onClick={() => setPdfScale((p) => Math.min(p + 0.2, 3.0))}
+                            >
+                              +
+                            </button>
+                            <button
+                              className={styles.toolbarButton}
+                              title="重置缩放"
+                              onClick={() => setPdfScale(1.0)}
+                            >
+                              重置
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={styles.dividerHorizontal}></div>
+                      <div className={styles.controlPanel}>
+                        <div className={styles.controlGroup}>
+                          <label className={styles.controlLabel}>PDF页码</label>
+                          <div className={styles.pageControls}>
+                            <button
+                              className={styles.pageButton}
+                              onClick={() => handlePageChange(Math.max(clampedPage - 1, 1))}
+                              disabled={clampedPage <= 1}
+                              aria-label="上一页"
+                            >
+                              ◀
+                            </button>
+                            <span className={styles.pageInput}>
+                              <input
+                                type="number"
+                                value={clampedPage}
+                                min="1"
+                                max={totalPagesSafe}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  if (!Number.isNaN(val)) {
+                                    handlePageChange(Math.min(Math.max(val, 1), totalPagesSafe));
+                                  }
+                                }}
+                              />{' '}
+                              / {totalPagesSafe}
+                            </span>
+                            <button
+                              className={styles.pageButton}
+                              onClick={() =>
+                                handlePageChange(Math.min(clampedPage + 1, totalPagesSafe))
+                              }
+                              disabled={clampedPage >= totalPagesSafe}
+                              aria-label="下一页"
+                            >
+                              ▶
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      className={styles.fullscreenButton}
+                      onClick={() => (isFullscreen ? exitFullscreen() : enterFullscreen('pdf'))}
+                      title={isFullscreen ? '退出全屏 (ESC)' : '全屏查看PDF'}
+                    >
+                      {isFullscreen ? '✕' : '⛶'}
+                    </button>
+                  </div>
+                )}
               </div>
               <PDFViewer
                 files={pdfFiles}
                 currentPage={clampedPage}
+                totalPages={totalPagesSafe}
+                onPageChange={handlePageChange}
                 onLoadSuccess={handlePDFLoaded}
+                isFullscreen={isFullscreen}
+                scale={pdfScale}
               />
             </div>
 
-            <div className={styles.mdSection}>
-              <div className={styles.sectionHeader}>
-                <h2>Markdown 版</h2>
-                <div className={styles.mdControls}>
-                  <button
-                    className={styles.pageButton}
-                    onClick={() => updateMdSectionByIndex(clampedMdIndex - 1)}
-                    disabled={clampedMdIndex <= 0}
-                    aria-label="上一篇"
-                  >
-                    <span className={styles.iconButton} aria-hidden="true">
-                      ◀
-                    </span>
-                  </button>
-                  <span className={styles.mdPageInfo}>
-                    篇章 {mdDisplayIndex} / {totalMdSectionsSafe}
-                  </span>
-                  <button
-                    className={styles.pageButton}
-                    onClick={() => updateMdSectionByIndex(clampedMdIndex + 1)}
-                    disabled={clampedMdIndex >= totalMdSectionsSafe - 1}
-                    aria-label="下一篇"
-                  >
-                    <span className={styles.iconButton} aria-hidden="true">
-                      ▶
-                    </span>
-                  </button>
-                </div>
+            <div className={styles.mdSection} ref={mdFullscreenRef}>
+              <div className={styles.sectionHeader} data-fullscreen={isFullscreen}>
+                {!isFullscreen && (
+                  <div className={styles.headerRow1}>
+                    <h2>Markdown 版</h2>
+                    <button
+                      className={styles.fullscreenButton}
+                      onClick={() => (isFullscreen ? exitFullscreen() : enterFullscreen('md'))}
+                      title={isFullscreen ? '退出全屏 (ESC)' : '全屏查看Markdown'}
+                    >
+                      {isFullscreen ? '✕' : '⛶'}
+                    </button>
+                  </div>
+                )}
+                {isFullscreen && (
+                  <div className={styles.fullscreenHeader}>
+                    <h2>Markdown 版</h2>
+                    <div className={styles.fullscreenControls}>
+                      <div className={styles.controlPanel}>
+                        <div className={styles.controlGroup}>
+                          <label className={styles.controlLabel}>MD字体</label>
+                          <div className={styles.fontControls}>
+                            <button
+                              className={styles.toolbarButton}
+                              title="减小字体"
+                              onClick={() => setMdFontSize((p) => Math.max(p - 1, 12))}
+                            >
+                              −
+                            </button>
+                            <span className={styles.fontSizeDisplay}>{mdFontSize}</span>
+                            <button
+                              className={styles.toolbarButton}
+                              title="增大字体"
+                              onClick={() => setMdFontSize((p) => Math.min(p + 1, 24))}
+                            >
+                              +
+                            </button>
+                            <button
+                              className={styles.toolbarButton}
+                              title="重置字体"
+                              onClick={() => setMdFontSize(16)}
+                            >
+                              重置
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={styles.dividerHorizontal}></div>
+                      <div className={styles.controlPanel}>
+                        <div className={styles.controlGroup}>
+                          <label className={styles.controlLabel}>MD章节</label>
+                          <div className={styles.sectionControls}>
+                            <button
+                              className={styles.pageButton}
+                              onClick={() =>
+                                updateMdSectionByIndex(Math.max(clampedMdIndex - 1, 0))
+                              }
+                              disabled={clampedMdIndex <= 0}
+                              aria-label="上一章节"
+                            >
+                              ◀
+                            </button>
+                            <span className={styles.pageInput}>
+                              <input
+                                type="number"
+                                value={mdDisplayIndex}
+                                min="1"
+                                max={totalMdSectionsSafe}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  if (!Number.isNaN(val)) {
+                                    updateMdSectionByIndex(
+                                      Math.min(Math.max(val, 1), totalMdSectionsSafe) - 1
+                                    );
+                                  }
+                                }}
+                              />{' '}
+                              / {totalMdSectionsSafe}
+                            </span>
+                            <button
+                              className={styles.pageButton}
+                              onClick={() =>
+                                updateMdSectionByIndex(
+                                  Math.min(clampedMdIndex + 1, totalMdSectionsSafe - 1)
+                                )
+                              }
+                              disabled={clampedMdIndex >= totalMdSectionsSafe - 1}
+                              aria-label="下一章节"
+                            >
+                              ▶
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      className={styles.fullscreenButton}
+                      onClick={() => (isFullscreen ? exitFullscreen() : enterFullscreen('md'))}
+                      title={isFullscreen ? '退出全屏 (ESC)' : '全屏查看Markdown'}
+                    >
+                      {isFullscreen ? '✕' : '⛶'}
+                    </button>
+                  </div>
+                )}
               </div>
               <MDViewer
                 ref={mdContentRef}
                 files={mdFiles}
-                fontSize={fontSize}
                 activeSectionIndex={clampedMdIndex}
+                totalSections={totalMdSectionsSafe}
+                displayIndex={mdDisplayIndex}
+                onSectionChange={updateMdSectionByIndex}
                 onTocGenerated={handleTocGenerated}
                 onSectionsGenerated={handleSectionsGenerated}
+                fontSize={mdFontSize}
               />
             </div>
           </JournalLayout>

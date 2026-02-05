@@ -10,7 +10,10 @@ import rehypeRaw from 'rehype-raw';
 import styles from '../../../pages/Journal.module.css';
 
 const MDViewer = React.forwardRef(
-  ({ file, files, fontSize, onTocGenerated, activeSectionIndex, onSectionsGenerated }, ref) => {
+  (
+    { file, files, onTocGenerated, activeSectionIndex, onSectionsGenerated, fontSize = 16 },
+    ref
+  ) => {
     const [fullContent, setFullContent] = useState('');
     const [sections, setSections] = useState([]);
     const [rawContent, setRawContent] = useState('');
