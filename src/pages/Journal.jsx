@@ -16,6 +16,8 @@ const Journal = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [toc, setToc] = useState([]);
+  const [pdfMapping, setPdfMapping] = useState({});
+  const [filePages, setFilePages] = useState([]);
   const mdContentRef = useRef(null);
   const pdfFullscreenRef = useRef(null);
   const mdFullscreenRef = useRef(null);
@@ -29,6 +31,31 @@ const Journal = () => {
     () => [`${baseUrl}journals/journal1.md`, `${baseUrl}journals/journal2.md`],
     [baseUrl]
   );
+
+  // 加载 PDF 映射配置
+  useEffect(() => {
+    const loadMapping = async () => {
+      try {
+        const response = await fetch(`${baseUrl}journals/mapping.json`);
+        if (response.ok) {
+          const data = await response.json();
+          // 转换为以 id 为 key 的对象，方便查询
+          const mappingObj = {};
+          if (data.sections && Array.isArray(data.sections)) {
+            data.sections.forEach((item) => {
+              // 这里先暂存，稍后当 mdSections 加载后再关联 id
+              const key = `${item.volume}-${item.sectionIndex}`;
+              mappingObj[key] = { pdfPageStart: item.pdfPageStart };
+            });
+          }
+          setPdfMapping(mappingObj);
+        }
+      } catch (err) {
+        console.warn('加载 PDF 映射配置失败:', err);
+      }
+    };
+    loadMapping();
+  }, [baseUrl]);
 
   // 监听全屏状态变化
   useEffect(() => {
@@ -83,11 +110,33 @@ const Journal = () => {
       const targetIndex = mdSections.findIndex((item) => item.id === id);
       if (targetIndex >= 0) {
         updateMdSectionByIndex(targetIndex);
+
+        // 根据 section 的 volume 和 sectionIndex 查找对应的 PDF 页码
+        const targetSection = mdSections[targetIndex];
+        if (
+          targetSection &&
+          targetSection.volume !== undefined &&
+          targetSection.sectionIndex !== undefined
+        ) {
+          const mappingKey = `${targetSection.volume}-${targetSection.sectionIndex}`;
+          const pdfInfo = pdfMapping[mappingKey];
+          if (pdfInfo && pdfInfo.pdfPageStart) {
+            // 计算全局页码（需要加上前面文件的总页数）
+            let globalPage = pdfInfo.pdfPageStart;
+            if (targetSection.volume > 1 && filePages.length > 0) {
+              // 累加前面所有文件的页数
+              for (let i = 0; i < targetSection.volume - 1; i++) {
+                globalPage += filePages[i] || 0;
+              }
+            }
+            setCurrentPage(globalPage);
+          }
+        }
         return;
       }
       setCurrentSection(id);
     },
-    [mdSections, updateMdSectionByIndex]
+    [mdSections, pdfMapping, filePages, updateMdSectionByIndex]
   );
 
   const handleTocGenerated = useCallback((nextToc) => {
@@ -116,6 +165,13 @@ const Journal = () => {
 
   const handlePDFLoaded = ({ numPages }) => {
     setTotalPages(numPages);
+  };
+
+  // 当 PDFViewer 加载完所有 PDF 并知道每个文件的页数时，我们需要获取这个信息
+  // 这里我们需要从 PDFViewer 获取 filePages 信息
+  // 暂时添加一个处理函数来接收 filePages
+  const handlePDFFilePagesUpdated = (pages) => {
+    setFilePages(pages);
   };
 
   const totalPagesSafe = totalPages > 0 ? totalPages : 1;
@@ -396,6 +452,7 @@ const Journal = () => {
                 totalPages={totalPagesSafe}
                 onPageChange={handlePageChange}
                 onLoadSuccess={handlePDFLoaded}
+                onFilePages={handlePDFFilePagesUpdated}
                 isFullscreen={isFullscreen}
                 scale={pdfScale}
               />
