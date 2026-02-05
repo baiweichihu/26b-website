@@ -14,7 +14,10 @@ import { supabase } from '../lib/supabase.js';
 export const createPost = async (postData) => {
   try {
     // 1. 获取当前登录用户
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       throw new Error('用户未登录或认证失败');
     }
@@ -31,11 +34,12 @@ export const createPost = async (postData) => {
     }
 
     // 3. 检查发布权限（仅本班同学和校友可以发布）
-    const canCreatePost = profile.identity_type === 'classmate' || 
-                         profile.identity_type === 'alumni' ||
-                         profile.role === 'admin' || 
-                         profile.role === 'superuser';
-    
+    const canCreatePost =
+      profile.identity_type === 'classmate' ||
+      profile.identity_type === 'alumni' ||
+      profile.role === 'admin' ||
+      profile.role === 'superuser';
+
     if (!canCreatePost) {
       throw new Error('游客不能发布帖子，请联系管理员升级为校友');
     }
@@ -52,7 +56,7 @@ export const createPost = async (postData) => {
       visibility: postData.visibility || 'public',
       is_anonymous: postData.is_anonymous || false,
       created_at: new Date().toISOString(),
-      view_count: 0
+      view_count: 0,
     };
 
     // 6. 处理媒体文件
@@ -70,7 +74,7 @@ export const createPost = async (postData) => {
         .in('id', postData.selectedAlbumPhotos);
 
       if (!albumError && albumPhotos) {
-        const albumUrls = albumPhotos.map(photo => photo.url);
+        const albumUrls = albumPhotos.map((photo) => photo.url);
         finalMediaUrls = [...finalMediaUrls, ...albumUrls];
       }
     }
@@ -83,38 +87,38 @@ export const createPost = async (postData) => {
     const { data: createdPost, error: insertError } = await supabase
       .from('posts')
       .insert(postPayload)
-      .select(`
-        *,
-        author:profiles!posts_author_id_fkey(
-          nickname,
-          avatar_url,
-          identity_type
-        )
-      `)
+      .select('*')
       .single();
 
     if (insertError) {
       throw new Error(`创建帖子失败: ${insertError.message}`);
     }
 
+    // 处理作者信息
+    let postWithAuthor = { ...createdPost };
+    const { data: author } = await supabase
+      .from('profiles')
+      .select('nickname, avatar_url, identity_type')
+      .eq('id', user.id)
+      .single();
+    postWithAuthor.author = author;
+
     // 9. 处理Hashtag（如果有）
     if (postData.hashtags && postData.hashtags.length > 0) {
-      await processHashtags(createdPost.id, postData.hashtags);
+      await processHashtags(postWithAuthor.id, postData.hashtags);
     }
 
     // 10. 返回创建的帖子（处理匿名）
-    const responsePost = { ...createdPost };
-    
-    if (responsePost.is_anonymous && 
-        profile.role !== 'admin' && 
-        profile.role !== 'superuser') {
+    const responsePost = { ...postWithAuthor };
+
+    if (responsePost.is_anonymous && profile.role !== 'admin' && profile.role !== 'superuser') {
       // 对非管理员隐藏作者信息
       delete responsePost.author_id;
       if (responsePost.author) {
         responsePost.author = {
           is_anonymous: true,
           nickname: '匿名用户',
-          avatar_url: null
+          avatar_url: null,
         };
       }
     }
@@ -122,15 +126,14 @@ export const createPost = async (postData) => {
     return {
       success: true,
       data: responsePost,
-      message: '帖子创建成功'
+      message: '帖子创建成功',
     };
-
   } catch (error) {
     console.error('createPost error:', error);
     return {
       success: false,
       error: error.message,
-      data: null
+      data: null,
     };
   }
 };
@@ -160,9 +163,9 @@ const processHashtags = async (postId, hashtags) => {
         tagId = existingTag.id;
         await supabase
           .from('hashtags')
-          .update({ 
+          .update({
             usage_count: existingTag.usage_count + 1,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', tagId);
       } else {
@@ -172,30 +175,26 @@ const processHashtags = async (postId, hashtags) => {
           .insert({
             name: cleanTag,
             usage_count: 1,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           })
           .select('id')
           .single();
-        
+
         tagId = newTag.id;
       }
 
       // 2. 关联帖子与标签
-      await supabase
-        .from('post_tags')
-        .insert({
-          post_id: postId,
-          tag_id: tagId,
-          created_at: new Date().toISOString()
-        });
+      await supabase.from('post_tags').insert({
+        post_id: postId,
+        tag_id: tagId,
+        created_at: new Date().toISOString(),
+      });
     }
   } catch (error) {
     console.error('处理Hashtag失败:', error);
     // 不影响主流程
   }
 };
-
-
 
 /**
  * 获取帖子列表（一次性加载全部可见帖子）
@@ -204,7 +203,10 @@ const processHashtags = async (postId, hashtags) => {
 export const getPosts = async () => {
   try {
     // 1. 获取当前登录用户
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
       throw new Error('用户未登录或认证失败');
     }
@@ -224,7 +226,7 @@ export const getPosts = async () => {
     let visibilityCondition = '';
     const userRole = profile.role;
     const userIdentity = profile.identity_type;
-    
+
     // 管理员和superuser可以看到所有帖子
     if (userRole === 'admin' || userRole === 'superuser') {
       visibilityCondition = ''; // 不需要筛选
@@ -250,7 +252,8 @@ export const getPosts = async () => {
     // 4. 构建查询：获取帖子列表 + 统计信息 + 作者信息
     let query = supabase
       .from('posts')
-      .select(`
+      .select(
+        `
         id,
         content,
         media_urls,
@@ -266,7 +269,8 @@ export const getPosts = async () => {
         ),
         post_likes:post_likes(count),
         comments:comments(count)
-      `)
+      `
+      )
       .order('created_at', { ascending: false });
 
     // 5. 应用可见性筛选条件（如果不是管理员）
@@ -282,7 +286,7 @@ export const getPosts = async () => {
     }
 
     // 7. 处理数据：格式化统计信息，处理匿名帖子
-    const processedPosts = posts.map(post => {
+    const processedPosts = posts.map((post) => {
       // 基础帖子信息
       const processedPost = {
         id: post.id,
@@ -293,7 +297,7 @@ export const getPosts = async () => {
         view_count: post.view_count || 0,
         created_at: post.created_at,
         like_count: post.post_likes?.[0]?.count || 0,
-        comment_count: post.comments?.[0]?.count || 0
+        comment_count: post.comments?.[0]?.count || 0,
       };
 
       // 处理作者信息
@@ -306,7 +310,7 @@ export const getPosts = async () => {
             nickname: post.author?.nickname || '未知用户',
             avatar_url: post.author?.avatar_url,
             is_anonymous: false,
-            is_real_author: true // 标记这是真实作者（仅管理员可见）
+            is_real_author: true, // 标记这是真实作者（仅管理员可见）
           };
         } else {
           // 普通用户看到匿名信息
@@ -315,7 +319,7 @@ export const getPosts = async () => {
             nickname: '匿名用户',
             avatar_url: null, // 可以使用默认匿名头像URL
             is_anonymous: true,
-            is_real_author: false
+            is_real_author: false,
           };
         }
       } else {
@@ -325,7 +329,7 @@ export const getPosts = async () => {
           nickname: post.author?.nickname || '未知用户',
           avatar_url: post.author?.avatar_url,
           is_anonymous: false,
-          is_real_author: true
+          is_real_author: true,
         };
       }
 
@@ -345,17 +349,16 @@ export const getPosts = async () => {
       user_info: {
         identity_type: userIdentity,
         role: userRole,
-        nickname: profile.nickname
-      }
+        nickname: profile.nickname,
+      },
     };
-
   } catch (error) {
     console.error('getPosts error:', error);
     return {
       success: false,
       error: error.message,
       data: [],
-      user_info: null
+      user_info: null,
     };
   }
 };
@@ -373,7 +376,10 @@ export const getPostById = async (postId) => {
 
     // 1. 获取当前登录用户（用于权限检查）
     console.log('[getPostById] 获取用户信息...');
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     console.log('[getPostById] 用户信息:', { user, authError });
     if (authError || !user) {
       throw new Error('用户未登录或认证失败');
@@ -395,14 +401,15 @@ export const getPostById = async (postId) => {
 
     console.log('[getPostById] 用户角色和身份:', {
       role: profile.role,
-      identity: profile.identity_type
+      identity: profile.identity_type,
     });
 
     // 3. 获取帖子详情
     console.log('[getPostById] 查询帖子...');
     const { data: post, error: postError } = await supabase
       .from('posts')
-      .select(`
+      .select(
+        `
         *,
         author:profiles!posts_author_id_fkey(
           nickname,
@@ -413,7 +420,8 @@ export const getPostById = async (postId) => {
         post_likes:post_likes(count),
         comments:comments(count),
         hashtags:hashtags(name)
-      `)
+      `
+      )
       .eq('id', postId)
       .single();
 
@@ -459,7 +467,8 @@ export const getPostById = async (postId) => {
     }
 
     // 5. 增加浏览量（如果是第一次查看）
-    if (user.id !== post.author_id) { // 不增加作者自己的浏览量
+    if (user.id !== post.author_id) {
+      // 不增加作者自己的浏览量
       await supabase
         .from('posts')
         .update({ view_count: (post.view_count || 0) + 1 })
@@ -469,7 +478,7 @@ export const getPostById = async (postId) => {
 
     // 6. 处理匿名帖子的作者信息
     const processedPost = { ...post };
-    
+
     if (post.is_anonymous) {
       if (userRole === 'admin' || userRole === 'superuser') {
         // 管理员可以看到真实作者，但标记为匿名
@@ -477,7 +486,7 @@ export const getPostById = async (postId) => {
           ...post.author,
           is_anonymous: true,
           is_real_author: true,
-          display_nickname: post.author?.nickname || '未知用户'
+          display_nickname: post.author?.nickname || '未知用户',
         };
       } else {
         // 普通用户看到匿名信息
@@ -486,7 +495,7 @@ export const getPostById = async (postId) => {
           avatar_url: null,
           is_anonymous: true,
           is_real_author: false,
-          display_nickname: '匿名用户'
+          display_nickname: '匿名用户',
         };
       }
     } else {
@@ -495,14 +504,14 @@ export const getPostById = async (postId) => {
         ...post.author,
         is_anonymous: false,
         is_real_author: true,
-        display_nickname: post.author?.nickname || '未知用户'
+        display_nickname: post.author?.nickname || '未知用户',
       };
     }
 
     // 7. 格式化统计信息
     processedPost.like_count = post.post_likes?.[0]?.count || 0;
     processedPost.comment_count = post.comments?.[0]?.count || 0;
-    processedPost.hashtags = post.hashtags?.map(tag => tag.name) || [];
+    processedPost.hashtags = post.hashtags?.map((tag) => tag.name) || [];
 
     // 8. 移除原始数据中的冗余字段
     delete processedPost.post_likes;
@@ -512,19 +521,17 @@ export const getPostById = async (postId) => {
     return {
       success: true,
       data: processedPost,
-      message: '获取帖子详情成功'
+      message: '获取帖子详情成功',
     };
-
   } catch (error) {
     console.error('[getPostById] 错误详情:', {
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
     return {
       success: false,
       error: error.message,
-      data: null
+      data: null,
     };
   }
 };
-
