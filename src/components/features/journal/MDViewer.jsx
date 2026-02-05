@@ -422,7 +422,7 @@ const MDViewer = React.forwardRef(
         {!isLoading && !error && (
           <div className={styles.mdStats}>
             <span>总字符数: {rawContent.length}</span>
-            <span>行数: {rawContent ? rawContent.split('\n').length : 0}</span>
+            <span>本篇字符数: {displayContent.length}</span>
           </div>
         )}
       </div>

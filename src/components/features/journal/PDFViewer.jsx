@@ -13,6 +13,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale = 1.0 }) => {
   const [filePages, setFilePages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const containerRef = useRef(null);
 
   const fileList = React.useMemo(() => {
@@ -62,6 +64,8 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
         next[index] = numPages;
         return next;
       });
+      setHasLoadedOnce(true);
+      setLoadError(false);
     };
 
   React.useEffect(() => {
@@ -71,6 +75,7 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
     } else {
       setIsLoading(false);
     }
+    setLoadError(false);
   }, [fileList]);
 
   React.useEffect(() => {
@@ -112,6 +117,18 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
     }
   }, [onFilePages, filePages]);
 
+  const handlePageRenderSuccess = React.useCallback(() => {
+    setIsLoading(false);
+    setHasLoadedOnce(true);
+    setLoadError(false);
+  }, []);
+
+  const handlePageRenderError = React.useCallback((error) => {
+    console.error('PDF页面渲染失败:', error);
+    setIsLoading(false);
+    setLoadError(true);
+  }, []);
+
   return (
     <div className={styles.pdfViewerContainer} ref={containerRef}>
       {isLoading && (
@@ -131,6 +148,9 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
             onLoadError={(error) => {
               console.error('PDF加载失败:', error);
               setIsLoading(false);
+              if (!document.hidden) {
+                setLoadError(true);
+              }
             }}
             loading={<div className={styles.pdfLoading}>加载中...</div>}
           >
@@ -142,6 +162,8 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
                   className={styles.pdfPage}
+                  onRenderSuccess={handlePageRenderSuccess}
+                  onRenderError={handlePageRenderError}
                 />
               </div>
             )}
@@ -151,7 +173,7 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
 
       {/* 错误提示 */}
       <div className={styles.pdfError}>
-        {!isLoading && !totalPages && (
+        {!isLoading && loadError && !hasLoadedOnce && !totalPages && (
           <div className={styles.errorMessage}>
             <p>⚠️ PDF加载失败，请检查文件路径：{fileList.join(', ')}</p>
             <p>
