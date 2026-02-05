@@ -10,9 +10,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
-const PDFViewer = ({ file, files, currentPage, onLoadSuccess }) => {
+const PDFViewer = ({ file, files, currentPage, onLoadSuccess, scale = 1.0 }) => {
   const [filePages, setFilePages] = useState([]);
-  const [scale, setScale] = useState(1.0); // 默认100%缩放
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef(null);
 
@@ -75,9 +74,30 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess }) => {
   }, [fileList]);
 
   React.useEffect(() => {
+    // 检查是否所有 PDF 都已加载完成
     if (fileList.length > 0 && filePages.filter(Boolean).length === fileList.length) {
       setIsLoading(false);
+    } else if (fileList.length > 0 && filePages.length > 0) {
+      // 如果有 filePages 但还没全部加载完，保持 loading 状态
+      // 这里不做任何操作，保持当前的 isLoading 状态
     }
+  }, [fileList.length, filePages]);
+
+  // 添加页面可见性监听，确保页面恢复时重新检查加载状态
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (
+        !document.hidden &&
+        fileList.length > 0 &&
+        filePages.filter(Boolean).length === fileList.length
+      ) {
+        // 页面可见且所有PDF已加载，确保设置为非加载状态
+        setIsLoading(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [fileList.length, filePages]);
 
   React.useEffect(() => {
@@ -85,11 +105,6 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess }) => {
       onLoadSuccess({ numPages: totalPages });
     }
   }, [onLoadSuccess, totalPages]);
-
-  // 缩放控制
-  const zoomIn = () => setScale((prev) => Math.min(prev + 0.2, 3.0));
-  const zoomOut = () => setScale((prev) => Math.max(prev - 0.2, 0.5));
-  const zoomReset = () => setScale(1.0); // 重置到100%
 
   return (
     <div className={styles.pdfViewerContainer} ref={containerRef}>
@@ -99,22 +114,6 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess }) => {
           <p>正在加载PDF...</p>
         </div>
       )}
-
-      {/* 缩放控件 */}
-      <div className={styles.pdfToolbar}>
-        <div className={styles.zoomControls}>
-          <button onClick={zoomOut} className={styles.toolbarButton}>
-            -
-          </button>
-          <span className={styles.zoomDisplay}>{Math.round(scale * 100)}%</span>
-          <button onClick={zoomIn} className={styles.toolbarButton}>
-            +
-          </button>
-          <button onClick={zoomReset} className={styles.toolbarButton}>
-            100%
-          </button>
-        </div>
-      </div>
 
       {/* PDF 渲染区域 */}
       <div className={styles.pdfContent}>
@@ -133,7 +132,7 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess }) => {
               <div className={styles.pdfPageWrapper}>
                 <Page
                   pageNumber={activePageInfo.pageInFile}
-                  scale={scale} // 使用scale参数控制缩放
+                  scale={scale}
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
                   className={styles.pdfPage}
