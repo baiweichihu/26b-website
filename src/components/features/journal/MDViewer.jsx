@@ -118,16 +118,12 @@ const MDViewer = React.forwardRef(
     );
 
     // 提取目录并按二级标题分页
+    // 现在接收一个数组，每个元素是 { filePath, text, volume }
     const buildSections = useCallback(
-      (markdown) => {
-        const lines = markdown.split('\n');
+      (markdownFiles) => {
         const toc = [];
         const sectionsList = [];
         const slugCounts = new Map();
-        let currentId = '';
-        let currentTitle = '';
-        let currentLines = [];
-        const leadingLines = [];
 
         const createUniqueId = (title) => {
           const baseSlug = generateSlug(title);
@@ -137,51 +133,71 @@ const MDViewer = React.forwardRef(
           return `heading-${baseSlug}${suffix}`;
         };
 
-        lines.forEach((line) => {
-          if (line.startsWith('## ')) {
-            if (currentId) {
-              sectionsList.push({
+        // 逐个处理每个文件的内容
+        markdownFiles.forEach(({ text, volume }) => {
+          const lines = text.split('\n');
+          let currentId = '';
+          let currentTitle = '';
+          let currentLines = [];
+          const leadingLines = [];
+          let sectionIndexInVolume = 0;
+
+          lines.forEach((line) => {
+            if (line.startsWith('## ')) {
+              if (currentId) {
+                sectionsList.push({
+                  id: currentId,
+                  title: currentTitle,
+                  content: currentLines.join('\n').trimEnd(),
+                  volume,
+                  sectionIndex: sectionIndexInVolume,
+                });
+              }
+
+              if (leadingLines.length > 0) {
+                currentLines = [...leadingLines];
+                leadingLines.length = 0;
+              } else {
+                currentLines = [];
+              }
+
+              currentTitle = line.replace('## ', '').trim();
+              currentId = createUniqueId(currentTitle);
+              toc.push({
                 id: currentId,
                 title: currentTitle,
-                content: currentLines.join('\n').trimEnd(),
+                level: 2,
               });
-            }
-
-            if (leadingLines.length > 0) {
-              currentLines = [...leadingLines];
-              leadingLines.length = 0;
+              currentLines.push(line);
+              sectionIndexInVolume += 1;
+            } else if (!currentId) {
+              leadingLines.push(line);
             } else {
-              currentLines = [];
+              currentLines.push(line);
             }
+          });
 
-            currentTitle = line.replace('## ', '').trim();
-            currentId = createUniqueId(currentTitle);
-            toc.push({
+          if (currentId) {
+            sectionsList.push({
               id: currentId,
               title: currentTitle,
-              level: 2,
+              content: currentLines.join('\n').trimEnd(),
+              volume,
+              sectionIndex: sectionIndexInVolume,
             });
-            currentLines.push(line);
-          } else if (!currentId) {
-            leadingLines.push(line);
-          } else {
-            currentLines.push(line);
           }
         });
-
-        if (currentId) {
-          sectionsList.push({
-            id: currentId,
-            title: currentTitle,
-            content: currentLines.join('\n').trimEnd(),
-          });
-        }
 
         if (sectionsList.length === 0) {
           sectionsList.push({
             id: 'section-1',
             title: '正文',
-            content: markdown.trimEnd(),
+            content: markdownFiles
+              .map((f) => f.text)
+              .join('\n\n---\n\n')
+              .trimEnd(),
+            volume: 1,
+            sectionIndex: 0,
           });
         }
 
@@ -230,7 +246,13 @@ const MDViewer = React.forwardRef(
             .join('\n\n---\n\n')
             .trimEnd();
 
-          const { sectionsList, toc } = buildSections(normalizedText);
+          // 为每个响应添加 volume 信息（从1开始）
+          const markdownFilesWithVolume = responses.map((item, index) => ({
+            text: normalizeMarkdownImages(item.text, item.filePath),
+            volume: index + 1,
+          }));
+
+          const { sectionsList, toc } = buildSections(markdownFilesWithVolume);
           setRawContent(rawText);
           setFullContent(normalizedText);
           setSections(sectionsList);
@@ -240,7 +262,14 @@ const MDViewer = React.forwardRef(
           }
 
           if (onSectionsGenerated) {
-            onSectionsGenerated(sectionsList.map((item) => ({ id: item.id, title: item.title })));
+            onSectionsGenerated(
+              sectionsList.map((item) => ({
+                id: item.id,
+                title: item.title,
+                volume: item.volume,
+                sectionIndex: item.sectionIndex,
+              }))
+            );
           }
           setError(null);
         } catch (err) {

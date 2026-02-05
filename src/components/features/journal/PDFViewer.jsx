@@ -10,7 +10,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
-const PDFViewer = ({ file, files, currentPage, onLoadSuccess, scale = 1.0 }) => {
+const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale = 1.0 }) => {
   const [filePages, setFilePages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef(null);
@@ -105,6 +105,12 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, scale = 1.0 }) => 
       onLoadSuccess({ numPages: totalPages });
     }
   }, [onLoadSuccess, totalPages]);
+
+  React.useEffect(() => {
+    if (onFilePages && filePages.length > 0) {
+      onFilePages(filePages);
+    }
+  }, [onFilePages, filePages]);
 
   return (
     <div className={styles.pdfViewerContainer} ref={containerRef}>
