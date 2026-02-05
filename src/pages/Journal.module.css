@@ -47,14 +47,40 @@
 /* ===== 控制栏 ===== */
 .controls {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: center;
+  align-items: flex-start;
   margin-bottom: 25px;
   padding: 15px 20px;
   background: var(--panel-bg);
   border-radius: 16px;
   border: 1px solid var(--panel-border);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  gap: 30px;
+}
+
+.controlPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.controlGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dividerHorizontal {
+  width: 1px;
+  height: 70px;
+  background: var(--panel-border);
+}
+
+.dividerVertical {
+  width: 1px;
+  height: 30px;
+  background: var(--panel-border);
+  margin: 0 5px;
 }
 
 .fontControls {
@@ -66,6 +92,8 @@
 .controlLabel {
   font-weight: 600;
   color: var(--muted-color);
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .controlButton {
@@ -182,6 +210,46 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+}
+
+.headerRow1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.headerRow1 .fullscreenButton {
+  margin-left: auto;
+}
+
+.headerRow2 {
+  display: none;
+}
+
+.fullscreenHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.fullscreenHeader h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--text-color);
+  flex-shrink: 0;
+}
+
+.fullscreenControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  flex: 1;
 }
 
 .sectionHeader h2 {
@@ -191,6 +259,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* 全屏按钮 */
+.fullscreenButton {
+  padding: 6px 12px;
+  border: 1px solid var(--panel-border);
+  background: var(--card-bg);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  color: var(--text-color);
+}
+
+.fullscreenButton:hover {
+  background: var(--scene-accent-2);
+  color: white;
+  border-color: var(--scene-accent-2);
+  transform: scale(1.05);
+}
+
+.fullscreenButton:active {
+  transform: scale(0.95);
 }
 
 .pdfControls,
@@ -252,10 +343,10 @@
   flex-direction: column;
   overflow: hidden;
   height: 100% !important;
-  max-height: 70vh !important;
-  aspect-ratio: 210 / 297 !important;
-  max-width: 600px !important;
-  margin: 0 auto !important;
+  max-height: none !important;
+  aspect-ratio: unset !important;
+  max-width: none !important;
+  margin: 0 !important;
 }
 
 .pdfToolbar {
@@ -263,17 +354,54 @@
   background: #f8fafc;
   border-bottom: 1px solid #e0e6ed;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
 }
 
-.zoomControls {
+/* MD工具栏样式（与PDF工具栏一致） */
+.mdToolbar {
+  padding: 10px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e0e6ed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.zoomControls,
+.pageControls,
+.sectionControls,
+.fontControls {
   display: flex;
   align-items: center;
   gap: 8px;
   background: white;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 20px;
   border: 1px solid #e0e6ed;
+}
+
+.fontControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mdToolbar .controlLabel {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.mdToolbar .fontSizeDisplay {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
 }
 
 .toolbarButton {
@@ -288,6 +416,7 @@
   justify-content: center;
   font-weight: bold;
   transition: all 0.2s;
+  font-size: 0.85rem;
 }
 
 .toolbarButton:hover {
@@ -312,8 +441,7 @@
   justify-content: flex-start;
   align-items: center;
   background: var(--card-bg);
-  height: 100% !important;
-  aspect-ratio: 210 / 297 !important;
+  height: 100%;
 }
 
 /* 修改PDF页面容器 */
@@ -681,10 +809,29 @@
     justify-content: center;
   }
 
-  .sectionHeader {
+  /* 工具栏响应式 */
+  .pdfToolbar,
+  .mdToolbar {
     flex-direction: column;
     gap: 10px;
-    align-items: flex-start;
+  }
+
+  .sectionHeader {
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .sectionHeader h2 {
+    flex-basis: 100%;
+  }
+
+  .zoomControls,
+  .pageControls,
+  .fontControls,
+  .sectionControls {
+    flex: 1;
+    min-width: 150px;
   }
 
   .downloadLinks {
@@ -802,6 +949,7 @@
   .sidebar,
   .journalFooter,
   .pdfToolbar,
+  .mdToolbar,
   .sectionHeader {
     display: none;
   }
@@ -819,4 +967,94 @@
   .mdSection {
     page-break-inside: avoid;
   }
+}
+
+/* ===== 全屏模式样式 ===== */
+.pdfSection:fullscreen,
+.mdSection:fullscreen {
+  background: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.pdfSection:fullscreen .sectionHeader,
+.mdSection:fullscreen .sectionHeader {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--panel-border);
+  padding: 20px 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* 全屏时的PDF查看器容器 */
+.pdfSection:fullscreen .pdfViewerContainer {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  aspect-ratio: unset !important;
+  max-width: none !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* 全屏时的PDF工具栏 */
+.pdfSection:fullscreen .pdfToolbar {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid var(--panel-border);
+  z-index: 10;
+}
+
+/* 全屏时的PDF内容区域 */
+.pdfSection:fullscreen .pdfContent {
+  flex: 1 !important;
+  display: block !important;
+  overflow: auto !important;
+  padding: 20px !important;
+  aspect-ratio: unset !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  background: var(--panel-bg) !important;
+}
+
+.pdfSection:fullscreen .pdfPageWrapper {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+  min-height: 100% !important;
+  height: auto !important;
+  padding: 20px 0 !important;
+}
+
+.pdfSection:fullscreen .pdfPage {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  aspect-ratio: unset !important;
+  display: block !important;
+}
+
+/* 全屏时的MD内容区域 */
+.mdSection:fullscreen .mdViewerContainer {
+  flex: 1;
+  height: 100%;
+  overflow: auto;
+  min-height: 0;
 }
