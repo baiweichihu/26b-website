@@ -237,11 +237,24 @@
   width: 100%;
 }
 
+.fullscreenLeftSection {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
 .fullscreenHeader h2 {
   margin: 0;
   font-size: 1.3rem;
   color: var(--text-color);
   flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.mdTitleShort {
+  display: none;
 }
 
 .fullscreenControls {
@@ -250,6 +263,246 @@
   align-items: center;
   gap: 30px;
   flex: 1;
+}
+
+.fullscreenControlsCompact {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+/* 目录按钮和下拉菜单容器 */
+.tocDropdownWrapper {
+  position: relative;
+  margin-left: 6px;
+}
+
+/* 目录按钮（三横线图标） */
+.tocButton {
+  padding: 8px 14px;
+  border: 1px solid var(--panel-border);
+  background: var(--card-bg);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  transition: all 0.2s;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+}
+
+.tocButton:hover {
+  background: var(--scene-accent-2);
+  color: white;
+  border-color: var(--scene-accent-2);
+  transform: scale(1.05);
+}
+
+.tocButton:active {
+  transform: scale(0.95);
+}
+
+/* 目录下拉菜单 */
+.tocDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 320px;
+  max-height: 500px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: tocDropdownSlide 0.2s ease-out;
+}
+
+@keyframes tocDropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tocDropdownHeader {
+  padding: 12px 16px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.tocDropdownHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.tocDropdownContent {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 440px;
+}
+
+.tocDropdownList {
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+}
+
+.tocDropdownItem {
+  padding: 0;
+  margin: 0;
+  transition: background-color 0.2s;
+}
+
+.tocDropdownItem:hover {
+  background: rgba(124, 197, 255, 0.08);
+}
+
+.tocDropdownItemActive {
+  background: rgba(124, 197, 255, 0.15);
+}
+
+@media (max-width: 900px) {
+  .sectionHeader[data-fullscreen='true'] .mdTitleFull {
+    display: none;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .mdTitleShort {
+    display: inline;
+  }
+  .controls {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .controlPanel {
+    width: 100%;
+    align-items: center;
+  }
+
+  .controlGroup {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .zoomControls,
+  .pageControls,
+  .fontControls,
+  .sectionControls {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .dividerHorizontal {
+    display: none;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .fullscreenHeader {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .fullscreenLeftSection {
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  .sectionHeader[data-fullscreen='true'] h2 {
+    flex-basis: auto;
+    width: auto;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .fullscreenControls {
+    display: none;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .fullscreenControlsCompact {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .controlLabel {
+    display: none;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .zoomDisplay,
+  .sectionHeader[data-fullscreen='true'] .fontSizeDisplay,
+  .sectionHeader[data-fullscreen='true'] .pageInput {
+    display: none;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .resetButton {
+    display: none;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .dividerHorizontal {
+    display: none;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .pageButton,
+  .sectionHeader[data-fullscreen='true'] .toolbarButton,
+  .sectionHeader[data-fullscreen='true'] .tocButton,
+  .sectionHeader[data-fullscreen='true'] .fullscreenButton {
+    padding: 6px 10px;
+    font-size: 1rem;
+  }
+
+  .sectionHeader[data-fullscreen='true'] .tocDropdown {
+    width: 80vw;
+    max-width: 320px;
+  }
+}
+
+.tocDropdownLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.tocDropdownLink:hover {
+  color: var(--scene-accent-2);
+}
+
+.tocDropdownLink span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tocDropdownEmpty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted-color);
+}
+
+.tocDropdownEmpty p {
+  margin: 0;
+  font-size: 0.9rem;
 }
 
 .sectionHeader h2 {
@@ -801,7 +1054,25 @@
   .controls {
     flex-direction: column;
     gap: 15px;
-    align-items: stretch;
+    align-items: center;
+  }
+
+  .controlPanel {
+    width: 100%;
+    align-items: center;
+  }
+
+  .controlGroup {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .zoomControls,
+  .pageControls,
+  .fontControls,
+  .sectionControls {
+    width: auto;
+    flex: 0 0 auto;
   }
 
   .pdfControls {
@@ -823,15 +1094,16 @@
   }
 
   .sectionHeader h2 {
-    flex-basis: 100%;
+    flex-basis: auto;
+    width: auto;
   }
 
   .zoomControls,
   .pageControls,
   .fontControls,
   .sectionControls {
-    flex: 1;
-    min-width: 150px;
+    flex: 0 0 auto;
+    min-width: auto;
   }
 
   .downloadLinks {

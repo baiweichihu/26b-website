@@ -18,9 +18,13 @@ const Journal = () => {
   const [toc, setToc] = useState([]);
   const [pdfMapping, setPdfMapping] = useState({});
   const [filePages, setFilePages] = useState([]);
+  const [showPdfTocDropdown, setShowPdfTocDropdown] = useState(false);
+  const [showMdTocDropdown, setShowMdTocDropdown] = useState(false);
   const mdContentRef = useRef(null);
   const pdfFullscreenRef = useRef(null);
   const mdFullscreenRef = useRef(null);
+  const pdfTocDropdownRef = useRef(null);
+  const mdTocDropdownRef = useRef(null);
 
   const baseUrl = import.meta.env.BASE_URL || '/';
   const pdfFiles = React.useMemo(
@@ -61,10 +65,49 @@ const Journal = () => {
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
+      // 退出全屏时关闭目录下拉菜单
+      if (!document.fullscreenElement) {
+        setShowPdfTocDropdown(false);
+        setShowMdTocDropdown(false);
+      }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  // 点击外部关闭PDF目录下拉菜单
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (pdfTocDropdownRef.current && !pdfTocDropdownRef.current.contains(event.target)) {
+        setShowPdfTocDropdown(false);
+      }
+    };
+
+    if (showPdfTocDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showPdfTocDropdown]);
+
+  // 点击外部关闭MD目录下拉菜单
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mdTocDropdownRef.current && !mdTocDropdownRef.current.contains(event.target)) {
+        setShowMdTocDropdown(false);
+      }
+    };
+
+    if (showMdTocDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMdTocDropdown]);
 
   // 进入全屏
   const enterFullscreen = async (type) => {
@@ -132,11 +175,21 @@ const Journal = () => {
             setCurrentPage(globalPage);
           }
         }
+        // 全屏模式下点击目录项后关闭下拉菜单
+        if (isFullscreen) {
+          setShowPdfTocDropdown(false);
+          setShowMdTocDropdown(false);
+        }
         return;
       }
       setCurrentSection(id);
+      // 全屏模式下点击目录项后关闭下拉菜单
+      if (isFullscreen) {
+        setShowPdfTocDropdown(false);
+        setShowMdTocDropdown(false);
+      }
     },
-    [mdSections, pdfMapping, filePages, updateMdSectionByIndex]
+    [mdSections, pdfMapping, filePages, updateMdSectionByIndex, isFullscreen]
   );
 
   const handleTocGenerated = useCallback((nextToc) => {
@@ -361,7 +414,68 @@ const Journal = () => {
                 )}
                 {isFullscreen && (
                   <div className={styles.fullscreenHeader}>
-                    <h2>PDF 版</h2>
+                    <div className={styles.fullscreenLeftSection}>
+                      <h2>PDF 版</h2>
+                      <div className={styles.tocDropdownWrapper} ref={pdfTocDropdownRef}>
+                        <button
+                          className={styles.tocButton}
+                          onClick={() => setShowPdfTocDropdown(!showPdfTocDropdown)}
+                          title="目录"
+                        >
+                          ☰
+                        </button>
+                        {showPdfTocDropdown && (
+                          <div className={styles.tocDropdown}>
+                            <div className={styles.tocDropdownHeader}>
+                              <h4>📑 目录</h4>
+                            </div>
+                            <div className={styles.tocDropdownContent}>
+                              {toc.length > 0 ? (
+                                <ul className={styles.tocDropdownList}>
+                                  {toc.map((item, index) => (
+                                    <li
+                                      key={index}
+                                      className={`${styles.tocDropdownItem} ${
+                                        currentSection === item.id
+                                          ? styles.tocDropdownItemActive
+                                          : ''
+                                      }`}
+                                      style={{
+                                        paddingLeft:
+                                          item.level === 1
+                                            ? '12px'
+                                            : item.level === 2
+                                              ? '28px'
+                                              : '44px',
+                                      }}
+                                    >
+                                      <button
+                                        className={styles.tocDropdownLink}
+                                        onClick={() => handleTocClick(item.id)}
+                                        title={item.title}
+                                      >
+                                        {item.level === 1 && '📖 '}
+                                        {item.level === 2 && '📝 '}
+                                        {item.level === 3 && '📄 '}
+                                        <span>
+                                          {item.title.length > 25
+                                            ? `${item.title.substring(0, 25)}...`
+                                            : item.title}
+                                        </span>
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className={styles.tocDropdownEmpty}>
+                                  <p>正在生成目录...</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div className={styles.fullscreenControls}>
                       <div className={styles.controlPanel}>
                         <div className={styles.controlGroup}>
@@ -385,7 +499,7 @@ const Journal = () => {
                               +
                             </button>
                             <button
-                              className={styles.toolbarButton}
+                              className={`${styles.toolbarButton} ${styles.resetButton}`}
                               title="重置缩放"
                               onClick={() => setPdfScale(1.0)}
                             >
@@ -436,6 +550,38 @@ const Journal = () => {
                         </div>
                       </div>
                     </div>
+                    <div className={styles.fullscreenControlsCompact}>
+                      <button
+                        className={styles.toolbarButton}
+                        title="缩小"
+                        onClick={() => setPdfScale((p) => Math.max(p - 0.2, 0.5))}
+                      >
+                        −
+                      </button>
+                      <button
+                        className={styles.toolbarButton}
+                        title="放大"
+                        onClick={() => setPdfScale((p) => Math.min(p + 0.2, 3.0))}
+                      >
+                        +
+                      </button>
+                      <button
+                        className={styles.pageButton}
+                        onClick={() => handlePageChange(Math.max(clampedPage - 1, 1))}
+                        disabled={clampedPage <= 1}
+                        aria-label="上一页"
+                      >
+                        ◀
+                      </button>
+                      <button
+                        className={styles.pageButton}
+                        onClick={() => handlePageChange(Math.min(clampedPage + 1, totalPagesSafe))}
+                        disabled={clampedPage >= totalPagesSafe}
+                        aria-label="下一页"
+                      >
+                        ▶
+                      </button>
+                    </div>
                     <button
                       className={styles.fullscreenButton}
                       onClick={() => (isFullscreen ? exitFullscreen() : enterFullscreen('pdf'))}
@@ -474,7 +620,71 @@ const Journal = () => {
                 )}
                 {isFullscreen && (
                   <div className={styles.fullscreenHeader}>
-                    <h2>Markdown 版</h2>
+                    <div className={styles.fullscreenLeftSection}>
+                      <h2 className={styles.mdTitle}>
+                        <span className={styles.mdTitleFull}>Markdown 版</span>
+                        <span className={styles.mdTitleShort}>MD 版</span>
+                      </h2>
+                      <div className={styles.tocDropdownWrapper} ref={mdTocDropdownRef}>
+                        <button
+                          className={styles.tocButton}
+                          onClick={() => setShowMdTocDropdown(!showMdTocDropdown)}
+                          title="目录"
+                        >
+                          ☰
+                        </button>
+                        {showMdTocDropdown && (
+                          <div className={styles.tocDropdown}>
+                            <div className={styles.tocDropdownHeader}>
+                              <h4>📑 目录</h4>
+                            </div>
+                            <div className={styles.tocDropdownContent}>
+                              {toc.length > 0 ? (
+                                <ul className={styles.tocDropdownList}>
+                                  {toc.map((item, index) => (
+                                    <li
+                                      key={index}
+                                      className={`${styles.tocDropdownItem} ${
+                                        currentSection === item.id
+                                          ? styles.tocDropdownItemActive
+                                          : ''
+                                      }`}
+                                      style={{
+                                        paddingLeft:
+                                          item.level === 1
+                                            ? '12px'
+                                            : item.level === 2
+                                              ? '28px'
+                                              : '44px',
+                                      }}
+                                    >
+                                      <button
+                                        className={styles.tocDropdownLink}
+                                        onClick={() => handleTocClick(item.id)}
+                                        title={item.title}
+                                      >
+                                        {item.level === 1 && '📖 '}
+                                        {item.level === 2 && '📝 '}
+                                        {item.level === 3 && '📄 '}
+                                        <span>
+                                          {item.title.length > 25
+                                            ? `${item.title.substring(0, 25)}...`
+                                            : item.title}
+                                        </span>
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <div className={styles.tocDropdownEmpty}>
+                                  <p>正在生成目录...</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <div className={styles.fullscreenControls}>
                       <div className={styles.controlPanel}>
                         <div className={styles.controlGroup}>
@@ -496,7 +706,7 @@ const Journal = () => {
                               +
                             </button>
                             <button
-                              className={styles.toolbarButton}
+                              className={`${styles.toolbarButton} ${styles.resetButton}`}
                               title="重置字体"
                               onClick={() => setMdFontSize(16)}
                             >
@@ -552,6 +762,42 @@ const Journal = () => {
                           </div>
                         </div>
                       </div>
+                    </div>
+                    <div className={styles.fullscreenControlsCompact}>
+                      <button
+                        className={styles.toolbarButton}
+                        title="减小字体"
+                        onClick={() => setMdFontSize((p) => Math.max(p - 1, 12))}
+                      >
+                        −
+                      </button>
+                      <button
+                        className={styles.toolbarButton}
+                        title="增大字体"
+                        onClick={() => setMdFontSize((p) => Math.min(p + 1, 24))}
+                      >
+                        +
+                      </button>
+                      <button
+                        className={styles.pageButton}
+                        onClick={() => updateMdSectionByIndex(Math.max(clampedMdIndex - 1, 0))}
+                        disabled={clampedMdIndex <= 0}
+                        aria-label="上一章节"
+                      >
+                        ◀
+                      </button>
+                      <button
+                        className={styles.pageButton}
+                        onClick={() =>
+                          updateMdSectionByIndex(
+                            Math.min(clampedMdIndex + 1, totalMdSectionsSafe - 1)
+                          )
+                        }
+                        disabled={clampedMdIndex >= totalMdSectionsSafe - 1}
+                        aria-label="下一章节"
+                      >
+                        ▶
+                      </button>
                     </div>
                     <button
                       className={styles.fullscreenButton}
