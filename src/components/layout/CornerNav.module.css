@@ -1,6 +1,6 @@
 .cornerNav {
   position: fixed;
-  top: 1.5rem;
+  top: calc(var(--header-offset, 0px) + 1.5rem);
   left: 1.5rem;
   display: flex;
   align-items: flex-start;
@@ -9,15 +9,12 @@
   pointer-events: none;
 }
 
-.cornerNav * {
-  pointer-events: auto;
-}
-
 .orbStack {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
+  pointer-events: auto;
 }
 
 .orb {
@@ -116,9 +113,17 @@
     transform 0.3s ease;
 }
 
+.trail * {
+  pointer-events: none;
+}
+
 .cornerNav[data-open='true'] .trail {
   opacity: 1;
   transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+
+.cornerNav[data-open='true'] .trail * {
   pointer-events: auto;
 }
 
@@ -212,7 +217,7 @@
 
 @media (max-width: 720px) {
   .cornerNav {
-    top: 1rem;
+    top: calc(var(--header-offset, 0px) + 1rem);
     left: 1rem;
   }
 

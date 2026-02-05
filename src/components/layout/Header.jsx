@@ -8,6 +8,28 @@ const Header = () => {
   const swipeRef = useRef(null);
   const blobRef = useRef(null);
   const { triggerIris } = useIrisTransition();
+  const schoolUrl = 'https://www.no8ms.bj.cn/cms/home/';
+
+  useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const updateHeaderOffset = () => {
+      document.documentElement.style.setProperty('--header-offset', `${header.offsetHeight}px`);
+    };
+
+    updateHeaderOffset();
+    window.addEventListener('resize', updateHeaderOffset);
+
+    return () => window.removeEventListener('resize', updateHeaderOffset);
+  }, []);
+
+  const handleSchoolClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    event.nativeEvent?.stopImmediatePropagation?.();
+    window.location.assign(schoolUrl);
+  };
 
   useLayoutEffect(() => {
     const gsap = window.gsap;
@@ -55,9 +77,15 @@ const Header = () => {
         <div className="row align-items-center">
           <div className="col-md-2 text-center">
             <div className="d-flex justify-content-center">
-              <div className={`${styles.iconCircle} me-2`}>
+              <a
+                className={`${styles.iconCircle} me-2`}
+                href={schoolUrl}
+                aria-label="北京八中官网"
+                onPointerDown={handleSchoolClick}
+                onClick={handleSchoolClick}
+              >
                 <img src={`${import.meta.env.BASE_URL}bjbz_icon.png`} alt="校徽" />
-              </div>
+              </a>
               <div className={`${styles.iconCircle} ms-2`}>
                 <img src={`${import.meta.env.BASE_URL}shao26b_icon.png`} alt="班徽" />
               </div>

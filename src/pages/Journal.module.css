@@ -401,6 +401,7 @@
 }
 
 .mdImageContainer {
+  display: block;
   margin: 1.5em 0;
   text-align: center;
 }
@@ -413,6 +414,7 @@
 }
 
 .imageCaption {
+  display: block;
   font-size: 0.9em;
   color: #7f8c8d;
   margin-top: 8px;

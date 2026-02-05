@@ -428,30 +428,6 @@ main {
   border: 1px dashed var(--panel-border);
 }
 
-/* 帖子卡片整体样式 */
-.post-card {
-  background: transparent;
-  border: 2px solid #1a56a8; /* 深蓝色边框 */
-  border-radius: 16px; /* 柔和圆角 */
-  padding: 1.5rem;
-  height: 100%;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(26, 86, 168, 0.1);
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 18px;
-  transform-style: preserve-3d;
-  transition:
-    transform 0.35s ease,
-    box-shadow 0.35s ease;
-  box-shadow: 0 16px 28px rgba(18, 32, 60, 0.12);
-}
-
-.post-card:hover {
-  box-shadow: 0 8px 15px rgba(26, 86, 168, 0.15);
-  box-shadow: 0 24px 40px rgba(18, 32, 60, 0.2);
-}
-
 [data-theme='dark'] .post-card {
   background-color: var(--card-bg);
   color: var(--text-color);
