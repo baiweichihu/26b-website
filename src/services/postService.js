@@ -75,8 +75,9 @@ const buildListAuthor = (post, role) => {
   };
 };
 
-const buildProcessedPost = (post, role) => ({
+const buildProcessedPost = (post, role, userId) => ({
   id: post.id,
+  title: post.title,
   content: post.content,
   media_urls: post.media_urls || [],
   visibility: post.visibility,
@@ -87,6 +88,7 @@ const buildProcessedPost = (post, role) => ({
   comment_count: post.comments?.[0]?.count || 0,
   hashtags: post.hashtags?.map((tag) => tag.name) || [],
   author: buildListAuthor(post, role),
+  is_owner: userId ? post.author_id === userId : false,
 });
 
 const buildDetailAuthor = (post, role) => {
@@ -139,6 +141,7 @@ const canViewPost = (post, user, profile) => {
 /**
  * 创建新帖子
  * @param {Object} postData - 帖子数据
+ * @param {string} postData.title - 帖子标题（必须）
  * @param {string} postData.content - 帖子内容（必须）
  * @param {string[]} postData.media_urls - 图片/视频链接数组（可选）
  * @param {string} postData.visibility - 可见范围: 'private'|'classmate_only'|'alumni_only'|'public'（默认：'public'）
@@ -164,6 +167,10 @@ export const createPost = async (postData) => {
     }
 
     // 4. 验证必填字段
+    if (!postData.title || postData.title.trim() === '') {
+      throw new Error('帖子标题不能为空');
+    }
+
     if (!postData.content || postData.content.trim() === '') {
       throw new Error('帖子内容不能为空');
     }
@@ -171,6 +178,7 @@ export const createPost = async (postData) => {
     // 5. 准备插入数据
     const postPayload = {
       author_id: user.id,
+      title: postData.title.trim(),
       content: postData.content.trim(),
       visibility: postData.visibility || 'public',
       is_anonymous: postData.is_anonymous || false,
@@ -322,7 +330,7 @@ const processHashtags = async (postId, hashtags) => {
 export const getPosts = async () => {
   try {
     // 1. 获取当前登录用户与身份信息
-    const { profile } = await getUserAndProfile('identity_type, role, nickname, avatar_url');
+    const { user, profile } = await getUserAndProfile('identity_type, role, nickname, avatar_url');
 
     // 2. 根据用户身份确定可见范围条件
     const visibilityCondition = buildVisibilityCondition(profile);
@@ -335,6 +343,7 @@ export const getPosts = async () => {
       .select(
         `
         id,
+        title,
         content,
         media_urls,
         visibility,
@@ -355,7 +364,7 @@ export const getPosts = async () => {
 
     // 5. 应用可见性筛选条件（如果不是管理员）
     if (visibilityCondition) {
-      query = query.or(visibilityCondition);
+      query = query.or(`${visibilityCondition},author_id.eq.${user.id}`);
     }
 
     // 6. 执行查询
@@ -366,7 +375,7 @@ export const getPosts = async () => {
     }
 
     // 7. 处理数据：格式化统计信息，处理匿名帖子
-    const processedPosts = posts.map((post) => buildProcessedPost(post, userRole));
+    const processedPosts = posts.map((post) => buildProcessedPost(post, userRole, user.id));
 
     // 8. 返回结果
     return {
@@ -792,7 +801,7 @@ export const toggleCommentLike = async (commentId) => {
  */
 export const searchPosts = async (options = {}) => {
   try {
-    const { profile } = await getUserAndProfile('identity_type, role');
+    const { user, profile } = await getUserAndProfile('identity_type, role');
 
     const keyword = options.keyword ? options.keyword.trim() : '';
     const hashtag = options.hashtag ? options.hashtag.replace('#', '').trim() : '';
@@ -804,6 +813,7 @@ export const searchPosts = async (options = {}) => {
     // 2. 搜索条件
     const orConditions = [];
     if (keyword) {
+      orConditions.push(`title.ilike.%${keyword}%`);
       orConditions.push(`content.ilike.%${keyword}%`);
     }
 
@@ -817,6 +827,7 @@ export const searchPosts = async (options = {}) => {
       .select(
         `
         id,
+        title,
         content,
         media_urls,
         visibility,
@@ -837,7 +848,7 @@ export const searchPosts = async (options = {}) => {
       .order('created_at', { ascending: false });
 
     if (visibilityCondition) {
-      query = query.or(visibilityCondition);
+      query = query.or(`${visibilityCondition},author_id.eq.${user.id}`);
     }
 
     if (orConditions.length > 0) {
@@ -850,7 +861,9 @@ export const searchPosts = async (options = {}) => {
       throw new Error(`搜索失败: ${postsError.message}`);
     }
 
-    let processedPosts = (posts || []).map((post) => buildProcessedPost(post, profile.role));
+    let processedPosts = (posts || []).map((post) =>
+      buildProcessedPost(post, profile.role, user.id)
+    );
 
     if (sortBy === 'likes') {
       processedPosts = processedPosts.sort((a, b) => b.like_count - a.like_count);
@@ -867,6 +880,159 @@ export const searchPosts = async (options = {}) => {
       success: false,
       error: error.message,
       data: [],
+    };
+  }
+};
+
+/**
+ * 删除帖子（仅作者本人）
+ * @param {string} postId - 帖子ID
+ * @returns {Promise<Object>} 操作结果
+ */
+export const deletePost = async (postId) => {
+  try {
+    if (!postId) {
+      throw new Error('帖子ID不能为空');
+    }
+
+    const user = await getAuthenticatedUser();
+
+    const { data: post, error: postError } = await supabase
+      .from('posts')
+      .select('id, author_id, media_urls')
+      .eq('id', postId)
+      .single();
+
+    if (postError || !post) {
+      throw new Error('帖子不存在');
+    }
+
+    if (post.author_id !== user.id) {
+      throw new Error('无权限删除该帖子');
+    }
+
+    const extractStoragePath = (url) => {
+      if (!url) return null;
+      try {
+        const parsed = new URL(url);
+        const marker = '/storage/v1/object/public/post-media/';
+        const signedMarker = '/storage/v1/object/sign/post-media/';
+        if (parsed.pathname.includes(marker)) {
+          return decodeURIComponent(parsed.pathname.split(marker)[1]);
+        }
+        if (parsed.pathname.includes(signedMarker)) {
+          return decodeURIComponent(parsed.pathname.split(signedMarker)[1]);
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    };
+
+    const mediaUrls = Array.isArray(post.media_urls) ? post.media_urls : [];
+    const storagePaths = mediaUrls
+      .map((url) => extractStoragePath(url))
+      .filter((path) => Boolean(path));
+
+    if (storagePaths.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from('post-media')
+        .remove(storagePaths);
+
+      if (storageError) {
+        const now = new Date().toISOString();
+        try {
+          await supabase.from('support_tickets').insert({
+            reporter_id: user.id,
+            category: 'other',
+            title: '删除帖子媒体失败',
+            description: '删除帖子时，媒体文件删除失败，请管理员处理。',
+            related_resource_type: 'post',
+            related_resource_id: postId,
+            metadata: {
+              media_urls: mediaUrls,
+              storage_error: storageError.message,
+            },
+            status: 'pending',
+            created_at: now,
+            updated_at: now,
+          });
+        } catch (ticketError) {
+          console.error('create support ticket error:', ticketError);
+        }
+
+        const mediaError = new Error('媒体删除失败');
+        mediaError.code = 'MEDIA_DELETE_FAILED';
+        throw mediaError;
+      }
+    }
+
+    const { error: deleteError } = await supabase.from('posts').delete().eq('id', postId);
+
+    if (deleteError) {
+      throw new Error(`删除帖子失败: ${deleteError.message}`);
+    }
+
+    return {
+      success: true,
+      data: { deleted: true },
+      message: '帖子已删除',
+    };
+  } catch (error) {
+    console.error('deletePost error:', error);
+    return {
+      success: false,
+      error: error.message,
+      errorCode: error.code,
+      data: null,
+    };
+  }
+};
+
+/**
+ * 删除评论（仅作者本人）
+ * @param {string} commentId - 评论ID
+ * @returns {Promise<Object>} 操作结果
+ */
+export const deleteComment = async (commentId) => {
+  try {
+    if (!commentId) {
+      throw new Error('评论ID不能为空');
+    }
+
+    const user = await getAuthenticatedUser();
+
+    const { data: comment, error: commentError } = await supabase
+      .from('comments')
+      .select('id, author_id')
+      .eq('id', commentId)
+      .single();
+
+    if (commentError || !comment) {
+      throw new Error('评论不存在');
+    }
+
+    if (comment.author_id !== user.id) {
+      throw new Error('无权限删除该评论');
+    }
+
+    const { error: deleteError } = await supabase.from('comments').delete().eq('id', commentId);
+
+    if (deleteError) {
+      throw new Error(`删除评论失败: ${deleteError.message}`);
+    }
+
+    return {
+      success: true,
+      data: { deleted: true },
+      message: '评论已删除',
+    };
+  } catch (error) {
+    console.error('deleteComment error:', error);
+    return {
+      success: false,
+      error: error.message,
+      data: null,
     };
   }
 };

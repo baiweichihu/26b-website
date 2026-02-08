@@ -7,7 +7,11 @@ const TicketCenter = () => {
   const navigate = useNavigate();
   const { targetType, targetId } = useParams();
   const [reporterName, setReporterName] = useState('');
-  const [category, setCategory] = useState(targetType === 'post' && targetId ? 'report_post' : '');
+  const [category, setCategory] = useState(() => {
+    if (targetType === 'post' && targetId) return 'report_post';
+    if (targetType === 'comment' && targetId) return 'report_comment';
+    return '';
+  });
   const [reason, setReason] = useState('');
   const [suggestion, setSuggestion] = useState('');
   const [message, setMessage] = useState(null);
@@ -59,7 +63,10 @@ const TicketCenter = () => {
       return;
     }
 
-    if (category === 'report_post' && (!targetType || !targetId)) {
+    if (
+      (category === 'report_post' || category === 'report_comment') &&
+      (!targetType || !targetId)
+    ) {
       setMessage('缺少被举报的目标信息。');
       return;
     }
@@ -75,19 +82,23 @@ const TicketCenter = () => {
       }
 
       const now = new Date().toISOString();
+      const isReportPost = category === 'report_post';
+      const isReportComment = category === 'report_comment';
       const payload = {
         reporter_id: user.id,
-        target_type: category === 'report_post' ? 'post' : null,
-        target_id: category === 'report_post' ? targetId || null : null,
-        reason: reason.trim(),
-        suggestion: suggestion.trim(),
+        category,
+        title: reason.trim(),
+        description: suggestion.trim(),
+        related_resource_type: isReportPost ? 'post' : isReportComment ? 'comment' : null,
+        related_resource_id: isReportPost || isReportComment ? targetId || null : null,
+        metadata:
+          isReportPost || isReportComment ? { target_type: targetType, target_id: targetId } : null,
         status: 'pending',
-        admin_note: null,
         created_at: now,
         updated_at: now,
       };
 
-      const { error: insertError } = await supabase.from('content_reports').insert(payload);
+      const { error: insertError } = await supabase.from('support_tickets').insert(payload);
 
       if (insertError) {
         throw new Error(insertError.message || '提交工单失败');
@@ -150,6 +161,8 @@ const TicketCenter = () => {
             >
               <option value="">--请选择--</option>
               <option value="report_post">举报帖子</option>
+              <option value="report_comment">举报评论</option>
+              <option value="other">其他问题</option>
             </select>
           </div>
           <div className="mb-3">

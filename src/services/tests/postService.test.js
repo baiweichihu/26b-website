@@ -107,6 +107,7 @@ const mockUsers = {
 const createMockPost = (id, author, visibility, isAnonymous = false) => ({
   id,
   author_id: author.id,
+  title: `这是${visibility}标题`,
   content: `这是${visibility}帖子`,
   media_urls: [],
   visibility,
@@ -152,6 +153,7 @@ describe('PostService', () => {
       const mockPostBuilder = createMockQueryBuilder({
         id: 'new-post-123',
         author_id: mockUsers.classmate.id,
+        title: '新帖子标题',
         content: '新帖子内容',
         visibility: 'public',
         is_anonymous: false,
@@ -174,6 +176,7 @@ describe('PostService', () => {
       supabase.from.mockReturnValueOnce(mockAuthorBuilder);
 
       const postData = {
+        title: '新帖子标题',
         content: '新帖子内容',
         visibility: 'public',
         is_anonymous: false,
@@ -200,7 +203,7 @@ describe('PostService', () => {
       });
       supabase.from.mockReturnValueOnce(mockProfileBuilder);
 
-      const postData = { content: '游客想发帖' };
+      const postData = { title: '游客帖子标题', content: '游客想发帖' };
       const result = await createPost(postData);
 
       expect(result.success).toBe(false);
@@ -220,11 +223,30 @@ describe('PostService', () => {
       });
       supabase.from.mockReturnValueOnce(mockProfileBuilder);
 
-      const postData = { content: '' };
+      const postData = { title: '空内容标题', content: '' };
       const result = await createPost(postData);
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('帖子内容不能为空');
+    });
+
+    test('标题为空应失败', async () => {
+      supabase.auth.getUser.mockResolvedValueOnce({
+        data: { user: { id: mockUsers.classmate.id } },
+        error: null,
+      });
+
+      const mockProfileBuilder = createMockQueryBuilder({
+        identity_type: mockUsers.classmate.identity_type,
+        role: mockUsers.classmate.role,
+      });
+      supabase.from.mockReturnValueOnce(mockProfileBuilder);
+
+      const postData = { title: '   ', content: '标题为空的内容' };
+      const result = await createPost(postData);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('帖子标题不能为空');
     });
   });
 
@@ -432,6 +454,7 @@ describe('PostService', () => {
       const mockPostBuilder = createMockQueryBuilder({
         id: 'anonymous-post-admin',
         author_id: mockUsers.alumni.id,
+        title: '管理员匿名标题',
         content: '管理员发布的匿名帖子',
         visibility: 'public',
         is_anonymous: true,
@@ -453,6 +476,7 @@ describe('PostService', () => {
       supabase.from.mockReturnValueOnce(mockAuthorBuilder);
 
       const postData = {
+        title: '管理员匿名标题',
         content: '管理员发布的匿名帖子',
         visibility: 'public',
         is_anonymous: true,
@@ -484,6 +508,7 @@ describe('PostService', () => {
       const mockPostBuilder = createMockQueryBuilder({
         id: 'anonymous-post-alumni',
         author_id: mockUsers.alumni.id,
+        title: '校友匿名标题',
         content: '校友发布的匿名帖子',
         visibility: 'public',
         is_anonymous: true,
@@ -505,6 +530,7 @@ describe('PostService', () => {
       supabase.from.mockReturnValueOnce(mockAuthorBuilder);
 
       const postData = {
+        title: '校友匿名标题',
         content: '校友发布的匿名帖子',
         visibility: 'public',
         is_anonymous: true,
@@ -553,6 +579,7 @@ describe('PostService', () => {
       const mockPostBuilder = createMockQueryBuilder({
         id: 'post-with-album-photos',
         author_id: mockUsers.classmate.id,
+        title: '相册图片标题',
         content: '带相册图片的帖子',
         media_urls: ['external1.jpg', 'external2.jpg', 'album1.jpg', 'album2.jpg', 'album3.jpg'],
         author: {
@@ -562,6 +589,7 @@ describe('PostService', () => {
       supabase.from.mockReturnValueOnce(mockPostBuilder);
 
       const postData = {
+        title: '相册图片标题',
         content: '带相册图片的帖子',
         media_urls: ['external1.jpg', 'external2.jpg'],
         selectedAlbumPhotos: ['photo-1', 'photo-2', 'photo-3'],
@@ -609,6 +637,7 @@ describe('PostService', () => {
       const mockPostBuilder = createMockQueryBuilder({
         id: 'post-with-external-only',
         author_id: mockUsers.classmate.id,
+        title: '外部图片标题',
         content: '只有外部图片的帖子',
         media_urls: ['external1.jpg', 'external2.jpg'],
         author: {
@@ -618,6 +647,7 @@ describe('PostService', () => {
       supabase.from.mockReturnValueOnce(mockPostBuilder);
 
       const postData = {
+        title: '外部图片标题',
         content: '只有外部图片的帖子',
         media_urls: ['external1.jpg', 'external2.jpg'],
         selectedAlbumPhotos: ['photo-1', 'photo-2'],
@@ -648,6 +678,7 @@ describe('PostService', () => {
       const mockPostBuilder = createMockQueryBuilder({
         id: 'post-with-hashtags',
         author_id: mockUsers.classmate.id,
+        title: 'Hashtag标题',
         content: '带#运动会 #春游 的帖子',
         author: {
           nickname: mockUsers.classmate.nickname,
@@ -697,6 +728,7 @@ describe('PostService', () => {
         .mockReturnValueOnce(mockPostTagsBuilder); // 关联"春游"标签
 
       const postData = {
+        title: 'Hashtag标题',
         content: '带#运动会 #春游 的帖子',
         hashtags: ['运动会', '春游'],
       };
@@ -724,6 +756,7 @@ describe('PostService', () => {
       const mockPostBuilder = createMockQueryBuilder({
         id: 'post-with-existing-hashtag',
         author_id: mockUsers.classmate.id,
+        title: '已有标签标题',
         content: '带已有标签#毕业照 的帖子',
         author: {
           nickname: mockUsers.classmate.nickname,
@@ -777,6 +810,7 @@ describe('PostService', () => {
       });
 
       const postData = {
+        title: '已有标签标题',
         content: '带已有标签#毕业照 的帖子',
         hashtags: ['毕业照'],
       };
@@ -801,6 +835,7 @@ describe('PostService', () => {
       const mockPostBuilder = createMockQueryBuilder({
         id: 'post-with-empty-hashtag',
         author_id: mockUsers.classmate.id,
+        title: '空标签标题',
         content: '带空标签的帖子',
         author: {
           nickname: mockUsers.classmate.nickname,
@@ -832,6 +867,7 @@ describe('PostService', () => {
         .mockReturnValueOnce(mockEmptyHashtagQueryBuilder); // 查询第三个空标签
 
       const postData = {
+        title: '空标签标题',
         content: '带空标签的帖子',
         hashtags: ['', '  ', '#'], // 空标签应该被跳过
       };

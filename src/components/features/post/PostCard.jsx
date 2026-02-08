@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import styles from './PostCard.module.css';
 
@@ -8,12 +9,15 @@ const PostCard = ({
   commentDraft,
   replyTarget,
   testLoading,
+  currentUserId,
   onToggleLike,
   onSimulateView,
   onCommentDraftChange,
   onReplyTargetChange,
   onAddComment,
   onToggleCommentLike,
+  onDeletePost,
+  onDeleteComment,
 }) => {
   const date = new Date(post.created_at);
   const formattedDate = date.toLocaleDateString('zh-CN', {
@@ -36,6 +40,7 @@ const PostCard = ({
   const viewCount = post.view_count || 0;
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeMedia, setActiveMedia] = useState(null);
   const content = post.content || '';
   const shouldTruncate = content.length > 150;
   const displayContent = useMemo(() => {
@@ -44,6 +49,17 @@ const PostCard = ({
     }
     return `${content.slice(0, 150)}...`;
   }, [content, isExpanded, shouldTruncate]);
+
+  const isVideoUrl = (url = '') => {
+    const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
+    return ['.mp4', '.webm', '.mov', '.m4v'].some((ext) => cleanUrl.endsWith(ext));
+  };
+
+  const openMedia = (url) => {
+    setActiveMedia({ url, isVideo: isVideoUrl(url) });
+  };
+
+  const closeMedia = () => setActiveMedia(null);
 
   return (
     <div className="col-12 col-md-6 col-lg-4">
@@ -71,6 +87,9 @@ const PostCard = ({
           </div>
         </div>
 
+        {/* 标题 */}
+        {post.title && <h3 className={styles.postTitle}>{post.title}</h3>}
+
         {/* 内容 */}
         <div className={`${styles.postContent} mb-3`}>
           <div>{displayContent}</div>
@@ -86,30 +105,30 @@ const PostCard = ({
           )}
         </div>
 
-        {/* 图片列表 */}
+        {/* 图片/视频列表 */}
         {post.media_urls && post.media_urls.length > 0 && (
           <div className="mb-3">
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-                gap: '8px',
-              }}
-            >
-              {post.media_urls.map((url, idx) => (
-                <img
-                  key={idx}
-                  src={url}
-                  alt={`帖子图片 ${idx + 1}`}
-                  style={{
-                    width: '100%',
-                    height: '150px',
-                    objectFit: 'cover',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                  }}
-                />
-              ))}
+            <div className={styles.mediaGrid}>
+              {post.media_urls.map((url, idx) =>
+                isVideoUrl(url) ? (
+                  <video
+                    key={idx}
+                    src={url}
+                    className={styles.mediaThumb}
+                    onClick={() => openMedia(url)}
+                    muted
+                    preload="metadata"
+                  />
+                ) : (
+                  <img
+                    key={idx}
+                    src={url}
+                    alt={`帖子图片 ${idx + 1}`}
+                    className={styles.mediaThumb}
+                    onClick={() => openMedia(url)}
+                  />
+                )
+              )}
             </div>
           </div>
         )}
@@ -121,9 +140,29 @@ const PostCard = ({
             <span className="me-3">❤️ {likeCount}</span>
             <span>💬 {commentCount}</span>
           </div>
-          <Link to={`/tickets/new/post/${post.id}`} className="btn btn-outline-danger btn-sm">
-            举报
-          </Link>
+          {post.is_owner ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#888' }}>
+                👁
+                {post.visibility === 'public' && ' 所有人可见'}
+                {post.visibility === 'alumni_only' && ' 仅校友可见'}
+                {post.visibility === 'classmate_only' && ' 仅本班同学可见'}
+                {post.visibility === 'private' && ' 仅自己可见'}
+              </span>
+              <button
+                type="button"
+                onClick={onDeletePost}
+                className="btn btn-outline-danger btn-sm"
+                disabled={testLoading}
+              >
+                删除
+              </button>
+            </div>
+          ) : (
+            <Link to={`/tickets/new/post/${post.id}`} className="btn btn-outline-danger btn-sm">
+              举报
+            </Link>
+          )}
         </div>
 
         <div style={{ marginTop: '10px' }}>
@@ -201,6 +240,26 @@ const PostCard = ({
                       ❤️
                     </button>
                     <span style={{ marginLeft: '4px' }}>{comment.like_count || 0}</span>
+                    {currentUserId && comment.author_id === currentUserId ? (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteComment(comment.id)}
+                        disabled={testLoading}
+                        className="btn btn-link btn-sm"
+                        style={{ padding: '0 4px' }}
+                      >
+                        🗑️
+                      </button>
+                    ) : (
+                      <Link
+                        to={`/tickets/new/comment/${comment.id}`}
+                        className="btn btn-link btn-sm"
+                        style={{ padding: '0 4px', color: '#9aa0a6' }}
+                        title="举报评论"
+                      >
+                        ⚠️
+                      </Link>
+                    )}
                   </div>
                 );
               })}
@@ -208,6 +267,28 @@ const PostCard = ({
           )}
         </div>
       </div>
+      {activeMedia &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className={styles.mediaOverlay} onClick={closeMedia} role="dialog" aria-modal>
+            <div className={styles.mediaDialog} onClick={(event) => event.stopPropagation()}>
+              <button
+                type="button"
+                className={styles.mediaClose}
+                onClick={closeMedia}
+                aria-label="Close"
+              >
+                X
+              </button>
+              {activeMedia.isVideo ? (
+                <video src={activeMedia.url} className={styles.mediaContent} controls autoPlay />
+              ) : (
+                <img src={activeMedia.url} alt="post media" className={styles.mediaContent} />
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

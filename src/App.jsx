@@ -21,6 +21,7 @@ import Journal from './pages/Journal';
 import Wall from './pages/Wall';
 import Contact from './pages/Contact';
 import TicketCenter from './pages/TicketCenter';
+import CreatePost from './pages/CreatePost';
 import MusicPlayer from './components/features/media/MusicPlayer';
 import EasterEgg from './components/features/media/EasterEgg'; // already imported
 
@@ -41,6 +42,7 @@ const AppLayout = () => {
           <Route path="/activities" element={<Activities />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/wall" element={<Wall />} />
+          <Route path="/posts/new" element={<CreatePost />} />
           <Route path="/tickets/new/:targetType/:targetId" element={<TicketCenter />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,30 +1,33 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import PostCard from '../components/features/post/PostCard';
 import {
-  createPost,
   getPosts,
   togglePostLike,
   getComments,
   addComment,
   toggleCommentLike,
+  deletePost,
+  deleteComment,
   searchPosts,
 } from '../services/postService';
-import { signIn } from '../services/userService';
 import styles from './Wall.module.css';
 
 const Wall = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [testLoading, setTestLoading] = useState(false);
-  const [testMessage, setTestMessage] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionMessage, setActionMessage] = useState(null);
   const [commentDrafts, setCommentDrafts] = useState({});
   const [commentsByPost, setCommentsByPost] = useState({});
   const [replyTargetByPost, setReplyTargetByPost] = useState({});
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchHashtag, setSearchHashtag] = useState('');
   const [searchSortBy, setSearchSortBy] = useState('time');
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   const loadCommentsForPosts = useCallback(async (postList) => {
     const resultMap = {};
@@ -68,207 +71,41 @@ const Wall = () => {
     refreshPosts();
   }, [refreshPosts]);
 
-  // 测试 signIn + createPost 函数
-  const handleTestCreatePost = async () => {
-    try {
-      setTestLoading(true);
-      setTestMessage(null);
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
 
-      // 1. 先登录
-      console.log('1️⃣ 开始登录...');
-      const loginResult = await signIn({
-        account: 'test@26b.dev',
-        password: 'shao26b',
-        loginType: 'password',
-      });
-
-      console.log('登录结果:', loginResult);
-
-      if (!loginResult.success) {
-        throw new Error(`登录失败: ${loginResult.error}`);
-      }
-
-      console.log('✅ 登录成功');
-
-      // 2. 然后发帖
-      console.log('2️⃣ 开始创建帖子...');
-      const testPostData = {
-        content: '这是一条测试帖子 - 测试登录+发帖流程 ' + new Date().toLocaleTimeString(),
-        visibility: 'public',
-        is_anonymous: false,
-      };
-
-      console.log('调用 createPost，参数:', testPostData);
-      const postResult = await createPost(testPostData);
-
-      console.log('createPost 返回结果:', postResult);
-
-      if (postResult.success) {
-        setTestMessage(`✅ 登录成功！帖子创建成功！ID: ${postResult.data.id}`);
-        await refreshPosts();
-      } else {
-        setTestMessage(`❌ 发帖失败: ${postResult.error}`);
-      }
-    } catch (err) {
-      console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setTestLoading(false);
-    }
-  };
-
-  // 测试带图片的发帖
-  const handleTestCreatePostWithImage = async () => {
-    try {
-      setTestLoading(true);
-      setTestMessage(null);
-
-      // 1. 先登录
-      console.log('1️⃣ 开始登录...');
-      const loginResult = await signIn({
-        account: 'test@26b.dev',
-        password: 'shao26b',
-        loginType: 'password',
-      });
-
-      console.log('登录结果:', loginResult);
-
-      if (!loginResult.success) {
-        throw new Error(`登录失败: ${loginResult.error}`);
-      }
-
-      console.log('✅ 登录成功');
-
-      // 2. 然后发帖（带图片）
-      console.log('2️⃣ 开始创建带图片的帖子...');
-      const testPostData = {
-        content: '这是一条带图片的测试帖子 ' + new Date().toLocaleTimeString(),
-        visibility: 'public',
-        is_anonymous: false,
-        media_urls: ['https://picsum.photos/400/300?random=1'],
-      };
-
-      console.log('调用 createPost，参数:', testPostData);
-      const postResult = await createPost(testPostData);
-
-      console.log('createPost 返回结果:', postResult);
-
-      if (postResult.success) {
-        setTestMessage(`✅ 登录成功！带图片帖子创建成功！ID: ${postResult.data.id}`);
-        await refreshPosts();
-      } else {
-        setTestMessage(`❌ 发帖失败: ${postResult.error}`);
-      }
-    } catch (err) {
-      console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setTestLoading(false);
-    }
-  };
-
-  // 测试匿名发帖
-  const handleTestCreateAnonymousPost = async () => {
-    try {
-      setTestLoading(true);
-      setTestMessage(null);
-
-      console.log('1️⃣ 开始登录...');
-      const loginResult = await signIn({
-        account: 'test@26b.dev',
-        password: 'shao26b',
-        loginType: 'password',
-      });
-
-      if (!loginResult.success) {
-        throw new Error(`登录失败: ${loginResult.error}`);
-      }
-
-      const testPostData = {
-        content: '这是一条匿名测试帖子 ' + new Date().toLocaleTimeString(),
-        visibility: 'public',
-        is_anonymous: true,
-      };
-
-      const postResult = await createPost(testPostData);
-
-      if (postResult.success) {
-        setTestMessage(`✅ 匿名帖子创建成功！ID: ${postResult.data.id}`);
-        await refreshPosts();
-      } else {
-        setTestMessage(`❌ 发帖失败: ${postResult.error}`);
-      }
-    } catch (err) {
-      console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setTestLoading(false);
-    }
-  };
-
-  // 测试内容缩略（约200字符）
-  const handleTestCreateLongPost = async () => {
-    try {
-      setTestLoading(true);
-      setTestMessage(null);
-
-      const loginResult = await signIn({
-        account: 'test@26b.dev',
-        password: 'shao26b',
-        loginType: 'password',
-      });
-
-      if (!loginResult.success) {
-        throw new Error(`登录失败: ${loginResult.error}`);
-      }
-
-      const longContent =
-        '这是一条用于测试内容缩略功能的长帖子。为了达到大约两百个字符的长度，这里会继续补充一些描述性的文字。内容包含若干句子，用于验证超过150字符后会显示为缩略，并且点击展开后能够完整显示。最后再添加一些补充说明，使整体长度超过限制。这是一条用于测试内容缩略功能的长帖子。为了达到大约两百个字符的长度，这里会继续补充一些描述性的文字。内容包含若干句子，用于验证超过150字符后会显示为缩略，并且点击展开后能够完整显示。最后再添加一些补充说明，使整体长度超过限制。这是一条用于测试内容缩略功能的长帖子。为了达到大约两百个字符的长度，这里会继续补充一些描述性的文字。内容包含若干句子，用于验证超过150字符后会显示为缩略，并且点击展开后能够完整显示。最后再添加一些补充说明，使整体长度超过限制。这是一条用于测试内容缩略功能的长帖子。为了达到大约两百个字符的长度，这里会继续补充一些描述性的文字。内容包含若干句子，用于验证超过150字符后会显示为缩略，并且点击展开后能够完整显示。最后再添加一些补充说明，使整体长度超过限制。';
-
-      const postResult = await createPost({
-        content: longContent,
-        visibility: 'public',
-        is_anonymous: false,
-      });
-
-      if (postResult.success) {
-        setTestMessage(`✅ 长内容帖子创建成功！ID: ${postResult.data.id}`);
-        await refreshPosts();
-      } else {
-        setTestMessage(`❌ 发帖失败: ${postResult.error}`);
-      }
-    } catch (err) {
-      console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setTestLoading(false);
-    }
-  };
+    fetchCurrentUser();
+  }, []);
 
   const handleTestTogglePostLike = async (postId) => {
     try {
-      setTestLoading(true);
-      setTestMessage(null);
+      setActionLoading(true);
+      setActionMessage(null);
 
       const result = await togglePostLike(postId);
       if (result.success) {
-        setTestMessage(`✅ 帖子${result.data.liked ? '点赞' : '取消点赞'}成功`);
+        setActionMessage(`✅ 帖子${result.data.liked ? '点赞' : '取消点赞'}成功`);
         await refreshPosts();
       } else {
-        setTestMessage(`❌ 操作失败: ${result.error}`);
+        setActionMessage(`❌ 操作失败: ${result.error}`);
       }
     } catch (err) {
       console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
     } finally {
-      setTestLoading(false);
+      setActionLoading(false);
     }
   };
 
   const handleTestGetComments = async (postId) => {
     try {
-      setTestLoading(true);
-      setTestMessage(null);
+      setActionLoading(true);
+      setActionMessage(null);
 
       const result = await getComments(postId);
       if (result.success) {
@@ -276,26 +113,26 @@ const Wall = () => {
           ...prev,
           [postId]: result.data || [],
         }));
-        setTestMessage(`✅ 获取评论成功 (${(result.data || []).length} 条)`);
+        setActionMessage(`✅ 获取评论成功 (${(result.data || []).length} 条)`);
       } else {
-        setTestMessage(`❌ 获取评论失败: ${result.error}`);
+        setActionMessage(`❌ 获取评论失败: ${result.error}`);
       }
     } catch (err) {
       console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
     } finally {
-      setTestLoading(false);
+      setActionLoading(false);
     }
   };
 
   const handleTestAddComment = async (postId, postComments = []) => {
     try {
-      setTestLoading(true);
-      setTestMessage(null);
+      setActionLoading(true);
+      setActionMessage(null);
 
       const draft = commentDrafts[postId] || '';
       if (!draft.trim()) {
-        setTestMessage('❌ 评论内容不能为空');
+        setActionMessage('❌ 评论内容不能为空');
         return;
       }
 
@@ -315,49 +152,99 @@ const Wall = () => {
           ...prev,
           [postId]: '',
         }));
-        setTestMessage('✅ 评论发布成功');
+        setActionMessage('✅ 评论发布成功');
         await handleTestGetComments(postId);
         await refreshPosts();
       } else {
-        setTestMessage(`❌ 评论失败: ${result.error}`);
+        setActionMessage(`❌ 评论失败: ${result.error}`);
       }
     } catch (err) {
       console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
     } finally {
-      setTestLoading(false);
+      setActionLoading(false);
     }
   };
 
   const handleTestToggleCommentLike = async (postId, commentId) => {
     try {
-      setTestLoading(true);
-      setTestMessage(null);
+      setActionLoading(true);
+      setActionMessage(null);
 
       if (!commentId) {
-        setTestMessage('❌ 当前没有可点赞的评论');
+        setActionMessage('❌ 当前没有可点赞的评论');
         return;
       }
 
       const result = await toggleCommentLike(commentId);
       if (result.success) {
-        setTestMessage(`✅ 评论${result.data.liked ? '点赞' : '取消点赞'}成功`);
+        setActionMessage(`✅ 评论${result.data.liked ? '点赞' : '取消点赞'}成功`);
         await handleTestGetComments(postId);
       } else {
-        setTestMessage(`❌ 操作失败: ${result.error}`);
+        setActionMessage(`❌ 操作失败: ${result.error}`);
       }
     } catch (err) {
       console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
     } finally {
-      setTestLoading(false);
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    try {
+      const confirmed = window.confirm('确认删除该帖子吗？');
+      if (!confirmed) return;
+
+      setActionLoading(true);
+      setActionMessage(null);
+
+      const result = await deletePost(postId);
+      if (result.success) {
+        setActionMessage('✅ 帖子已删除');
+        await refreshPosts();
+      } else {
+        if (result.errorCode === 'MEDIA_DELETE_FAILED') {
+          window.alert('帖子删除失败：媒体删除失败，请联系管理员。');
+        }
+        setActionMessage(`❌ 删除失败: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('删除帖子失败:', err);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteComment = async (postId, commentId) => {
+    try {
+      const confirmed = window.confirm('确认删除该评论吗？');
+      if (!confirmed) return;
+
+      setActionLoading(true);
+      setActionMessage(null);
+
+      const result = await deleteComment(commentId);
+      if (result.success) {
+        setActionMessage('✅ 评论已删除');
+        await handleTestGetComments(postId);
+        await refreshPosts();
+      } else {
+        setActionMessage(`❌ 删除失败: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('删除评论失败:', err);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleSimulateOtherView = async (post) => {
     try {
-      setTestLoading(true);
-      setTestMessage(null);
+      setActionLoading(true);
+      setActionMessage(null);
 
       const nextViewCount = (post.view_count || 0) + 1;
       const { error: updateError } = await supabase
@@ -369,20 +256,20 @@ const Wall = () => {
         throw new Error(updateError.message);
       }
 
-      setTestMessage('✅ 已模拟他人浏览（强制增加浏览量）');
+      setActionMessage('✅ 已模拟他人浏览（强制增加浏览量）');
       await refreshPosts();
     } catch (err) {
       console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
     } finally {
-      setTestLoading(false);
+      setActionLoading(false);
     }
   };
 
   const handleTestSearch = async () => {
     try {
-      setTestLoading(true);
-      setTestMessage(null);
+      setActionLoading(true);
+      setActionMessage(null);
 
       const result = await searchPosts({
         keyword: searchKeyword,
@@ -394,15 +281,15 @@ const Wall = () => {
         const nextPosts = result.data || [];
         setPosts(nextPosts);
         await loadCommentsForPosts(nextPosts);
-        setTestMessage(`✅ 搜索完成 (${(result.data || []).length} 条)`);
+        setActionMessage(`✅ 搜索完成 (${(result.data || []).length} 条)`);
       } else {
-        setTestMessage(`❌ 搜索失败: ${result.error}`);
+        setActionMessage(`❌ 搜索失败: ${result.error}`);
       }
     } catch (err) {
       console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
     } finally {
-      setTestLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -413,52 +300,57 @@ const Wall = () => {
     await refreshPosts();
   };
 
+  const handleCreatePostClick = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      window.alert('游客不能发布帖子，请联系管理员升级为校友');
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('identity_type, role')
+      .eq('id', user.id)
+      .single();
+
+    const canCreatePost =
+      profile?.identity_type === 'classmate' ||
+      profile?.identity_type === 'alumni' ||
+      profile?.role === 'admin' ||
+      profile?.role === 'superuser';
+
+    if (!canCreatePost) {
+      window.alert('游客不能发布帖子，请联系管理员升级为校友');
+      return;
+    }
+
+    navigate('/posts/new');
+  };
+
   return (
     <div className={`page-content scene-page ${styles.pageContent}`}>
       <section className={`scene-panel ${styles.wallPanel}`}>
         <div className={styles.wallHeader}>
           <p className="scene-kicker">班级留言墙</p>
-          <h1 className="scene-title">共享笔记与回响</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h1 className="scene-title">共享笔记与回响</h1>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ padding: '0.75rem 1.5rem', fontSize: '1.5rem', marginRight: '12px' }}
+              onClick={handleCreatePostClick}
+            >
+              发布帖子
+            </button>
+          </div>
           <p className="scene-subtitle">留下留言、庆祝里程碑，或为班级写下一段短短的回忆。</p>
 
-          {/* 测试按钮 */}
-          <div style={{ marginTop: '15px' }}>
-            <button
-              onClick={handleTestCreatePost}
-              disabled={testLoading}
-              className="btn btn-outline-primary btn-sm"
-              style={{ marginRight: '10px' }}
-            >
-              {testLoading ? '测试中...' : '🧪 测试登录+发帖'}
-            </button>
-            <button
-              onClick={handleTestCreatePostWithImage}
-              disabled={testLoading}
-              className="btn btn-outline-success btn-sm"
-              style={{ marginRight: '10px' }}
-            >
-              {testLoading ? '测试中...' : '🖼️ 测试发帖(带图片)'}
-            </button>
-            <button
-              onClick={handleTestCreateAnonymousPost}
-              disabled={testLoading}
-              className="btn btn-outline-secondary btn-sm"
-              style={{ marginRight: '10px' }}
-            >
-              {testLoading ? '测试中...' : '🕶️ 测试匿名发帖'}
-            </button>
-            <button
-              onClick={handleTestCreateLongPost}
-              disabled={testLoading}
-              className="btn btn-outline-dark btn-sm"
-              style={{ marginRight: '10px' }}
-            >
-              {testLoading ? '测试中...' : '📝 测试内容缩略'}
-            </button>
-            {testMessage && (
-              <span style={{ fontSize: '14px', marginLeft: '10px' }}>{testMessage}</span>
-            )}
-          </div>
+          {actionMessage && (
+            <div style={{ marginTop: '12px', fontSize: '14px' }}>{actionMessage}</div>
+          )}
 
           <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <input
@@ -488,14 +380,14 @@ const Wall = () => {
             </select>
             <button
               onClick={handleTestSearch}
-              disabled={testLoading}
+              disabled={actionLoading}
               className="btn btn-outline-primary btn-sm"
             >
-              {testLoading ? '测试中...' : '🔍 搜索'}
+              {actionLoading ? '处理中...' : '🔍 搜索'}
             </button>
             <button
               onClick={handleResetSearch}
-              disabled={testLoading}
+              disabled={actionLoading}
               className="btn btn-outline-secondary btn-sm"
             >
               重置
@@ -542,7 +434,8 @@ const Wall = () => {
                 comments={postComments}
                 commentDraft={draftValue}
                 replyTarget={replyValue}
-                testLoading={testLoading}
+                testLoading={actionLoading}
+                currentUserId={currentUserId}
                 onToggleLike={() => handleTestTogglePostLike(post.id)}
                 onSimulateView={() => handleSimulateOtherView(post)}
                 onCommentDraftChange={(value) =>
@@ -559,6 +452,8 @@ const Wall = () => {
                 }
                 onAddComment={() => handleTestAddComment(post.id, postComments)}
                 onToggleCommentLike={(commentId) => handleTestToggleCommentLike(post.id, commentId)}
+                onDeletePost={() => handleDeletePost(post.id)}
+                onDeleteComment={(commentId) => handleDeleteComment(post.id, commentId)}
               />
             );
           })}
