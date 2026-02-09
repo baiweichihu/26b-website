@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { createPost } from '../services/postService';
+import NoticeBox from '../components/widgets/NoticeBox';
 import styles from './Wall.module.css';
 
 const CreatePost = () => {
@@ -9,10 +10,11 @@ const CreatePost = () => {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
   const [mediaUrls, setMediaUrls] = useState('');
+  const [hashtagInput, setHashtagInput] = useState('');
   const [mediaFiles, setMediaFiles] = useState([]);
   const [visibility, setVisibility] = useState('public');
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [message, setMessage] = useState(null);
+  const [notice, setNotice] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -30,14 +32,29 @@ const CreatePost = () => {
     'video/quicktime',
   ]);
   const maxFileSizeBytes = 20 * 1024 * 1024;
+  const maxTitleLength = 20;
+  const maxContentLength = 2000;
+  const maxMediaCount = 5;
+  const maxHashtagCount = 10;
 
   const isFormValid = useMemo(() => {
-    return title.trim().length > 0 && content.trim().length > 0;
-  }, [title, content]);
+    const trimmedTitle = title.trim();
+    const trimmedContent = content.trim();
+    return (
+      trimmedTitle.length > 0 &&
+      trimmedTitle.length <= maxTitleLength &&
+      trimmedContent.length > 0 &&
+      trimmedContent.length <= maxContentLength
+    );
+  }, [title, content, maxTitleLength, maxContentLength]);
 
   const validateFiles = (files) => {
     const validFiles = [];
     const errors = [];
+    if (files.length > maxMediaCount) {
+      errors.push(`一次最多上传 ${maxMediaCount} 个媒体文件`);
+      return { validFiles, errors };
+    }
     for (const file of files) {
       if (!allowedTypes.has(file.type)) {
         errors.push(`文件类型不支持: ${file.name}`);
@@ -50,6 +67,42 @@ const CreatePost = () => {
       validFiles.push(file);
     }
     return { validFiles, errors };
+  };
+
+  const parseMediaUrls = (value) => {
+    return value
+      .split(/\n+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
+  const validateMediaUrls = (urls) => {
+    const invalidUrls = [];
+    const validUrls = [];
+    for (const url of urls) {
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          invalidUrls.push(url);
+          continue;
+        }
+        validUrls.push(url);
+      } catch {
+        invalidUrls.push(url);
+      }
+    }
+    return { validUrls, invalidUrls };
+  };
+
+  const parseHashtags = (value) => {
+    const rawTags = value
+      .split(/\s+/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => (item.startsWith('#') ? item.slice(1) : item))
+      .map((item) => item.toLowerCase());
+
+    return Array.from(new Set(rawTags));
   };
 
   const uploadFiles = async (files) => {
@@ -95,38 +148,62 @@ const CreatePost = () => {
     event.preventDefault();
 
     if (!isFormValid) {
-      setMessage('标题与内容不能为空。');
+      setNotice({ type: 'error', message: '标题与内容不能为空。' });
       return;
     }
 
     if (hasFileError) {
       const errorText = '请移除不符合要求的媒体文件后再提交。';
-      setMessage(errorText);
-      window.alert(errorText);
+      setNotice({ type: 'error', message: errorText });
+      return;
+    }
+
+    const { validFiles: recheckedFiles, errors: fileErrors } = validateFiles(mediaFiles);
+    if (fileErrors.length > 0) {
+      const errorText = fileErrors.join('；');
+      setNotice({ type: 'error', message: errorText });
+      return;
+    }
+
+    const parsedMediaUrls = parseMediaUrls(mediaUrls);
+    const { validUrls, invalidUrls } = validateMediaUrls(parsedMediaUrls);
+    if (invalidUrls.length > 0) {
+      const errorText = `以下链接无效: ${invalidUrls.join('；')}`;
+      setNotice({ type: 'error', message: errorText });
+      return;
+    }
+
+    const totalMediaCount = recheckedFiles.length + validUrls.length;
+    if (totalMediaCount > maxMediaCount) {
+      const errorText = `媒体总数不能超过 ${maxMediaCount} 个（当前 ${totalMediaCount} 个）`;
+      setNotice({ type: 'error', message: errorText });
+      return;
+    }
+
+    const hashtags = parseHashtags(hashtagInput);
+    if (hashtags.length > maxHashtagCount) {
+      const errorText = `Hashtag 最多 ${maxHashtagCount} 个（当前 ${hashtags.length} 个）`;
+      setNotice({ type: 'error', message: errorText });
       return;
     }
 
     try {
       setSubmitting(true);
-      setMessage(null);
+      setNotice(null);
 
       setUploading(true);
       setUploadProgress(0);
-      const uploadedUrls = await uploadFiles(mediaFiles);
+      const uploadedUrls = await uploadFiles(recheckedFiles);
       setUploading(false);
       setUploadProgress(100);
 
-      const parsedMediaUrls = mediaUrls
-        .split(/\n|,/)
-        .map((item) => item.trim())
-        .filter(Boolean);
-
-      const finalMediaUrls = [...uploadedUrls, ...parsedMediaUrls];
+      const finalMediaUrls = [...uploadedUrls, ...validUrls];
 
       const result = await createPost({
         title: title.trim(),
         content: content.trim(),
         media_urls: finalMediaUrls,
+        hashtags,
         visibility,
         is_anonymous: isAnonymous,
       });
@@ -139,7 +216,7 @@ const CreatePost = () => {
     } catch (error) {
       setUploading(false);
       setUploadProgress(0);
-      setMessage(error.message);
+      setNotice({ type: 'error', message: error.message });
     } finally {
       setSubmitting(false);
     }
@@ -176,22 +253,37 @@ const CreatePost = () => {
             <input
               type="text"
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) => setTitle(event.target.value.slice(0, maxTitleLength))}
               className="form-control"
               placeholder="请输入帖子标题"
+              maxLength={maxTitleLength}
               required
             />
+            <div className="form-text">最多 {maxTitleLength} 字</div>
           </div>
           <div className="mb-3">
             <label className="form-label">内容(*)</label>
             <textarea
               value={content}
-              onChange={(event) => setContent(event.target.value)}
+              onChange={(event) => setContent(event.target.value.slice(0, maxContentLength))}
               className="form-control"
               rows={6}
               placeholder="请输入帖子内容"
+              maxLength={maxContentLength}
               required
             />
+            <div className="form-text">最多 {maxContentLength} 字</div>
+          </div>
+          <div className="mb-3">
+            <label className="form-label">Hashtag</label>
+            <input
+              type="text"
+              value={hashtagInput}
+              onChange={(event) => setHashtagInput(event.target.value)}
+              className="form-control"
+              placeholder="#旅行 #运动会（用空格分隔）"
+            />
+            <div className="form-text">仅支持空格分隔，最多 {maxHashtagCount} 个。</div>
           </div>
           <div className="mb-3">
             <label className="form-label">媒体链接</label>
@@ -200,8 +292,9 @@ const CreatePost = () => {
               onChange={(event) => setMediaUrls(event.target.value)}
               className="form-control"
               rows={3}
-              placeholder="随机图片链接：https://picsum.photos/400/300?random=1"
+              placeholder={`多个链接请换行分开，如：\nhttps://a.com/1.jpg\nhttps://a.com/2.jpg`}
             />
+            <div className="form-text">多个链接请换行分开，最多 {maxMediaCount} 个。</div>
           </div>
           <div className="mb-3">
             <label className="form-label">上传媒体文件</label>
@@ -213,7 +306,11 @@ const CreatePost = () => {
               ref={fileInputRef}
               onChange={(event) => {
                 const files = Array.from(event.target.files || []);
+                const parsedLinks = parseMediaUrls(mediaUrls);
                 const { validFiles, errors } = validateFiles(files);
+                if (validFiles.length + parsedLinks.length > maxMediaCount) {
+                  errors.push(`媒体总数不能超过 ${maxMediaCount} 个`);
+                }
                 if (errors.length > 0) {
                   const errorText = errors.join('；');
                   setMediaFiles([]);
@@ -221,16 +318,18 @@ const CreatePost = () => {
                   if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                   }
-                  setMessage(errorText);
-                  window.alert(errorText);
+                  setNotice({ type: 'error', message: errorText });
                 } else {
                   setMediaFiles(validFiles);
                   setHasFileError(false);
-                  setMessage(null);
+                  setNotice(null);
                 }
               }}
             />
-            <div className="form-text">支持 JPG/PNG/WEBP/GIF/MP4/WEBM/MOV，单文件不超过 20MB。</div>
+            <div className="form-text">
+              支持 JPG/PNG/WEBP/GIF/MP4/WEBM/MOV，单文件不超过 20MB。一次最多上传 {maxMediaCount}{' '}
+              个。
+            </div>
           </div>
           {uploading && (
             <div className="mb-3">
@@ -292,11 +391,7 @@ const CreatePost = () => {
             </button>
           </div>
 
-          {message && (
-            <div className="alert alert-warning mt-3" role="alert">
-              {message}
-            </div>
-          )}
+          {notice && <NoticeBox type={notice.type} message={notice.message} />}
         </form>
       </section>
     </div>

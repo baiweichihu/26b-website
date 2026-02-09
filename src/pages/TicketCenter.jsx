@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import NoticeBox from '../components/widgets/NoticeBox';
 import styles from './Wall.module.css';
 
 const TicketCenter = () => {
@@ -14,7 +15,7 @@ const TicketCenter = () => {
   });
   const [reason, setReason] = useState('');
   const [suggestion, setSuggestion] = useState('');
-  const [message, setMessage] = useState(null);
+  const [notice, setNotice] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -46,7 +47,7 @@ const TicketCenter = () => {
 
         setReporterName(profile.nickname || '用户');
       } catch (error) {
-        setMessage(error.message);
+        setNotice({ type: 'error', message: error.message });
       } finally {
         setLoading(false);
       }
@@ -59,7 +60,7 @@ const TicketCenter = () => {
     event.preventDefault();
 
     if (!isFormValid) {
-      setMessage('请完整选择工单类别并填写 reason 与 suggestion。');
+      setNotice({ type: 'error', message: '请完整选择工单类别并填写 reason 与 suggestion。' });
       return;
     }
 
@@ -67,7 +68,7 @@ const TicketCenter = () => {
       (category === 'report_post' || category === 'report_comment') &&
       (!targetType || !targetId)
     ) {
-      setMessage('缺少被举报的目标信息。');
+      setNotice({ type: 'error', message: '缺少被举报的目标信息。' });
       return;
     }
 
@@ -105,9 +106,9 @@ const TicketCenter = () => {
       }
 
       setSubmitted(true);
-      setMessage('提交成功。');
+      setNotice({ type: 'success', message: '提交成功。' });
     } catch (error) {
-      setMessage(`提交失败：${error.message}`);
+      setNotice({ type: 'error', message: `提交失败：${error.message}` });
     }
   };
 
@@ -120,11 +121,7 @@ const TicketCenter = () => {
             <h1 className="scene-title">提交成功</h1>
             <p className="scene-subtitle">我们已收到你的工单。</p>
           </div>
-          {message && (
-            <div className="alert alert-success" role="alert">
-              {message}
-            </div>
-          )}
+          {notice && <NoticeBox type={notice.type} message={notice.message} />}
           <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>
             返回
           </button>
@@ -201,11 +198,7 @@ const TicketCenter = () => {
             </button>
           </div>
 
-          {message && !submitted && (
-            <div className="alert alert-warning mt-3" role="alert">
-              {message}
-            </div>
-          )}
+          {notice && !submitted && <NoticeBox type={notice.type} message={notice.message} />}
         </form>
       </section>
     </div>

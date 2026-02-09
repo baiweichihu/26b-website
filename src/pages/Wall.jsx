@@ -1,17 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import PostCard from '../components/features/post/PostCard';
-import {
-  getPosts,
-  togglePostLike,
-  getComments,
-  addComment,
-  toggleCommentLike,
-  deletePost,
-  deleteComment,
-  searchPosts,
-} from '../services/postService';
+import NoticeBox from '../components/widgets/NoticeBox';
+import { getPosts, deletePost, searchPosts } from '../services/postService';
 import styles from './Wall.module.css';
 
 const Wall = () => {
@@ -20,34 +12,16 @@ const Wall = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [actionMessage, setActionMessage] = useState(null);
-  const [commentDrafts, setCommentDrafts] = useState({});
-  const [commentsByPost, setCommentsByPost] = useState({});
-  const [replyTargetByPost, setReplyTargetByPost] = useState({});
+  const [notice, setNotice] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchHashtag, setSearchHashtag] = useState('');
   const [searchSortBy, setSearchSortBy] = useState('time');
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  const loadCommentsForPosts = useCallback(async (postList) => {
-    const resultMap = {};
-
-    await Promise.all(
-      (postList || []).map(async (post) => {
-        const result = await getComments(post.id);
-        if (result.success) {
-          resultMap[post.id] = result.data || [];
-        }
-      })
-    );
-
-    setCommentsByPost(resultMap);
-  }, []);
 
   const refreshPosts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      setNotice(null);
 
       const result = await getPosts();
       if (!result.success) {
@@ -56,140 +30,27 @@ const Wall = () => {
 
       const nextPosts = result.data || [];
       setPosts(nextPosts);
-      await loadCommentsForPosts(nextPosts);
       return true;
     } catch (err) {
       console.error('加载帖子失败:', err);
-      setError('无法加载帖子，请稍后再试。');
+      const errorMessage = err?.message || '';
+      if (errorMessage.includes('未登录') || errorMessage.includes('认证')) {
+        setPosts([]);
+        setNotice({ type: 'info', message: '你还未登录，登录后可查看完整内容。' });
+        setError(null);
+      } else {
+        setError('系统异常，无法加载帖子。');
+        setNotice({ type: 'error', message: `系统错误: ${errorMessage || '未知错误'}` });
+      }
       return false;
     } finally {
       setLoading(false);
     }
-  }, [loadCommentsForPosts]);
+  }, []);
 
   useEffect(() => {
     refreshPosts();
   }, [refreshPosts]);
-
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id || null);
-    };
-
-    fetchCurrentUser();
-  }, []);
-
-  const handleTestTogglePostLike = async (postId) => {
-    try {
-      setActionLoading(true);
-      setActionMessage(null);
-
-      const result = await togglePostLike(postId);
-      if (result.success) {
-        setActionMessage(`✅ 帖子${result.data.liked ? '点赞' : '取消点赞'}成功`);
-        await refreshPosts();
-      } else {
-        setActionMessage(`❌ 操作失败: ${result.error}`);
-      }
-    } catch (err) {
-      console.error('测试错误:', err);
-      setActionMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleTestGetComments = async (postId) => {
-    try {
-      setActionLoading(true);
-      setActionMessage(null);
-
-      const result = await getComments(postId);
-      if (result.success) {
-        setCommentsByPost((prev) => ({
-          ...prev,
-          [postId]: result.data || [],
-        }));
-        setActionMessage(`✅ 获取评论成功 (${(result.data || []).length} 条)`);
-      } else {
-        setActionMessage(`❌ 获取评论失败: ${result.error}`);
-      }
-    } catch (err) {
-      console.error('测试错误:', err);
-      setActionMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleTestAddComment = async (postId, postComments = []) => {
-    try {
-      setActionLoading(true);
-      setActionMessage(null);
-
-      const draft = commentDrafts[postId] || '';
-      if (!draft.trim()) {
-        setActionMessage('❌ 评论内容不能为空');
-        return;
-      }
-
-      const replyTargetId = replyTargetByPost[postId] || '';
-      const replyTargetComment = replyTargetId
-        ? postComments.find((comment) => comment.id === replyTargetId)
-        : null;
-      const replyToUserId = replyTargetComment?.author_id || null;
-
-      const result = await addComment(postId, draft.trim(), replyTargetId || null, replyToUserId);
-      if (result.success) {
-        setCommentDrafts((prev) => ({
-          ...prev,
-          [postId]: '',
-        }));
-        setReplyTargetByPost((prev) => ({
-          ...prev,
-          [postId]: '',
-        }));
-        setActionMessage('✅ 评论发布成功');
-        await handleTestGetComments(postId);
-        await refreshPosts();
-      } else {
-        setActionMessage(`❌ 评论失败: ${result.error}`);
-      }
-    } catch (err) {
-      console.error('测试错误:', err);
-      setActionMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleTestToggleCommentLike = async (postId, commentId) => {
-    try {
-      setActionLoading(true);
-      setActionMessage(null);
-
-      if (!commentId) {
-        setActionMessage('❌ 当前没有可点赞的评论');
-        return;
-      }
-
-      const result = await toggleCommentLike(commentId);
-      if (result.success) {
-        setActionMessage(`✅ 评论${result.data.liked ? '点赞' : '取消点赞'}成功`);
-        await handleTestGetComments(postId);
-      } else {
-        setActionMessage(`❌ 操作失败: ${result.error}`);
-      }
-    } catch (err) {
-      console.error('测试错误:', err);
-      setActionMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleDeletePost = async (postId) => {
     try {
@@ -197,70 +58,21 @@ const Wall = () => {
       if (!confirmed) return;
 
       setActionLoading(true);
-      setActionMessage(null);
+      setNotice(null);
 
       const result = await deletePost(postId);
       if (result.success) {
-        setActionMessage('✅ 帖子已删除');
+        setNotice({ type: 'success', message: '帖子已删除。' });
         await refreshPosts();
       } else {
         if (result.errorCode === 'MEDIA_DELETE_FAILED') {
           window.alert('帖子删除失败：媒体删除失败，请联系管理员。');
         }
-        setActionMessage(`❌ 删除失败: ${result.error}`);
+        setNotice({ type: 'error', message: `删除失败: ${result.error}` });
       }
     } catch (err) {
       console.error('删除帖子失败:', err);
-      setActionMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDeleteComment = async (postId, commentId) => {
-    try {
-      const confirmed = window.confirm('确认删除该评论吗？');
-      if (!confirmed) return;
-
-      setActionLoading(true);
-      setActionMessage(null);
-
-      const result = await deleteComment(commentId);
-      if (result.success) {
-        setActionMessage('✅ 评论已删除');
-        await handleTestGetComments(postId);
-        await refreshPosts();
-      } else {
-        setActionMessage(`❌ 删除失败: ${result.error}`);
-      }
-    } catch (err) {
-      console.error('删除评论失败:', err);
-      setActionMessage(`❌ 异常错误: ${err.message}`);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleSimulateOtherView = async (post) => {
-    try {
-      setActionLoading(true);
-      setActionMessage(null);
-
-      const nextViewCount = (post.view_count || 0) + 1;
-      const { error: updateError } = await supabase
-        .from('posts')
-        .update({ view_count: nextViewCount })
-        .eq('id', post.id);
-
-      if (updateError) {
-        throw new Error(updateError.message);
-      }
-
-      setActionMessage('✅ 已模拟他人浏览（强制增加浏览量）');
-      await refreshPosts();
-    } catch (err) {
-      console.error('测试错误:', err);
-      setActionMessage(`❌ 异常错误: ${err.message}`);
+      setNotice({ type: 'error', message: `系统错误: ${err.message || '未知错误'}` });
     } finally {
       setActionLoading(false);
     }
@@ -269,7 +81,7 @@ const Wall = () => {
   const handleTestSearch = async () => {
     try {
       setActionLoading(true);
-      setActionMessage(null);
+      setNotice(null);
 
       const result = await searchPosts({
         keyword: searchKeyword,
@@ -280,14 +92,23 @@ const Wall = () => {
       if (result.success) {
         const nextPosts = result.data || [];
         setPosts(nextPosts);
-        await loadCommentsForPosts(nextPosts);
-        setActionMessage(`✅ 搜索完成 (${(result.data || []).length} 条)`);
+        setNotice({ type: 'success', message: `搜索完成 (${(result.data || []).length} 条)` });
       } else {
-        setActionMessage(`❌ 搜索失败: ${result.error}`);
+        const errorMessage = result.error || '';
+        if (errorMessage.includes('未登录') || errorMessage.includes('认证')) {
+          setNotice({ type: 'info', message: '你还未登录，登录后可查看完整内容。' });
+        } else {
+          setNotice({ type: 'error', message: `搜索失败: ${result.error}` });
+        }
       }
     } catch (err) {
       console.error('测试错误:', err);
-      setActionMessage(`❌ 异常错误: ${err.message}`);
+      const errorMessage = err?.message || '';
+      if (errorMessage.includes('未登录') || errorMessage.includes('认证')) {
+        setNotice({ type: 'info', message: '你还未登录，登录后可查看完整内容。' });
+      } else {
+        setNotice({ type: 'error', message: `系统错误: ${errorMessage || '未知错误'}` });
+      }
     } finally {
       setActionLoading(false);
     }
@@ -306,7 +127,7 @@ const Wall = () => {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      window.alert('游客不能发布帖子，请联系管理员升级为校友');
+      window.alert('你还未登录，登录后可发布帖子并查看完整内容。');
       return;
     }
 
@@ -323,11 +144,54 @@ const Wall = () => {
       profile?.role === 'superuser';
 
     if (!canCreatePost) {
-      window.alert('游客不能发布帖子，请联系管理员升级为校友');
+      window.alert('你还未登录，登录后可发布帖子并查看完整内容。');
       return;
     }
 
     navigate('/posts/new');
+  };
+
+  const handleTestLogin = async () => {
+    try {
+      setActionLoading(true);
+      setNotice(null);
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: 'test@26b.dev',
+        password: 'shao26b',
+      });
+
+      if (signInError) {
+        throw new Error(signInError.message || '登录失败');
+      }
+
+      setNotice({ type: 'success', message: '测试账号登录成功。' });
+      await refreshPosts();
+    } catch (err) {
+      setNotice({ type: 'error', message: `登录失败: ${err.message}` });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTestLogout = async () => {
+    try {
+      setActionLoading(true);
+      setNotice(null);
+
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        throw new Error(signOutError.message || '退出失败');
+      }
+
+      setPosts([]);
+      setNotice({ type: 'success', message: '已退出登录。' });
+      await refreshPosts();
+    } catch (err) {
+      setNotice({ type: 'error', message: `退出失败: ${err.message}` });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -337,20 +201,36 @@ const Wall = () => {
           <p className="scene-kicker">班级留言墙</p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h1 className="scene-title">共享笔记与回响</h1>
-            <button
-              type="button"
-              className="scene-button primary"
-              style={{ padding: '0.75rem 1.5rem', fontSize: '1.5rem', marginRight: '10px' }}
-              onClick={handleCreatePostClick}
-            >
-              发布帖子 &gt;ω&lt;
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                className="scene-button ghost"
+                onClick={handleTestLogin}
+                disabled={actionLoading}
+              >
+                测试登录
+              </button>
+              <button
+                type="button"
+                className="scene-button ghost"
+                onClick={handleTestLogout}
+                disabled={actionLoading}
+              >
+                模拟退出
+              </button>
+              <button
+                type="button"
+                className="scene-button primary"
+                style={{ marginRight: '12px', padding: '1.05rem 2.1rem', fontSize: '1.2rem' }}
+                onClick={handleCreatePostClick}
+              >
+                发布帖子 &gt;ω&lt;
+              </button>
+            </div>
           </div>
           <p className="scene-subtitle">留下留言、庆祝里程碑，或为班级写下一段短短的回忆。</p>
 
-          {actionMessage && (
-            <div style={{ marginTop: '12px', fontSize: '14px' }}>{actionMessage}</div>
-          )}
+          {notice && <NoticeBox type={notice.type} message={notice.message} />}
 
           <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <input
@@ -381,14 +261,14 @@ const Wall = () => {
             <button
               onClick={handleTestSearch}
               disabled={actionLoading}
-              className="btn btn-outline-primary btn-sm"
+              className="scene-button ghost"
             >
               {actionLoading ? '处理中...' : '🔍 搜索'}
             </button>
             <button
               onClick={handleResetSearch}
               disabled={actionLoading}
-              className="btn btn-outline-secondary btn-sm"
+              className="scene-button ghost"
             >
               重置
             </button>
@@ -405,9 +285,8 @@ const Wall = () => {
         )}
 
         {error && (
-          <div className={`alert alert-danger ${styles.stateBlock}`} role="alert">
-            <i className="fas fa-exclamation-triangle me-2"></i>
-            <span>{error}</span>
+          <div className={styles.stateBlock}>
+            <NoticeBox type="error" message={error} />
           </div>
         )}
 
@@ -423,38 +302,8 @@ const Wall = () => {
 
         <div className="row g-4">
           {posts.map((post) => {
-            const postComments = commentsByPost[post.id] || [];
-            const draftValue = commentDrafts[post.id] || '';
-            const replyValue = replyTargetByPost[post.id] || '';
-
             return (
-              <PostCard
-                key={post.id}
-                post={post}
-                comments={postComments}
-                commentDraft={draftValue}
-                replyTarget={replyValue}
-                testLoading={actionLoading}
-                currentUserId={currentUserId}
-                onToggleLike={() => handleTestTogglePostLike(post.id)}
-                onSimulateView={() => handleSimulateOtherView(post)}
-                onCommentDraftChange={(value) =>
-                  setCommentDrafts((prev) => ({
-                    ...prev,
-                    [post.id]: value,
-                  }))
-                }
-                onReplyTargetChange={(value) =>
-                  setReplyTargetByPost((prev) => ({
-                    ...prev,
-                    [post.id]: value,
-                  }))
-                }
-                onAddComment={() => handleTestAddComment(post.id, postComments)}
-                onToggleCommentLike={(commentId) => handleTestToggleCommentLike(post.id, commentId)}
-                onDeletePost={() => handleDeletePost(post.id)}
-                onDeleteComment={(commentId) => handleDeleteComment(post.id, commentId)}
-              />
+              <PostCard key={post.id} post={post} onDeletePost={() => handleDeletePost(post.id)} />
             );
           })}
         </div>

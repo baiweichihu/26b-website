@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const Contact = () => {
   useEffect(() => {
@@ -15,6 +16,15 @@ const Contact = () => {
             对网站内容，UI的改进建议，或想参与网站开发，都可以留言哦QwQ
           </p>
           <div className="scene-actions">
+            <Link className="scene-button ghost" to="/register">
+              注册
+            </Link>
+            <Link className="scene-button ghost" to="/login">
+              登录
+            </Link>
+            <Link className="scene-button ghost" to="/profile">
+              个人档案
+            </Link>
             <a className="scene-button primary" href="mailto:lilinfeng200801@gmail.com">
               <i className="fas fa-envelope"></i>
               发送邮件
