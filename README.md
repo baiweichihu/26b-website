@@ -75,6 +75,8 @@ src/
 │   ├── Home.jsx               # 首页
 │   ├── Wall.jsx               # 班级墙
 │   ├── Wall.module.css
+│   ├── CreatePost.jsx          # 发布帖子
+│   ├── TicketCenter.jsx        # 工单中心
 │   ├── Activities.jsx         # 活动相册
 │   ├── Journal.jsx            # 班级日志
 │   ├── Introduction.jsx       # 班级介绍

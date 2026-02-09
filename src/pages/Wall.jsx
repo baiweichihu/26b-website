@@ -1,209 +1,333 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import PostCard from '../components/features/post/PostCard';
-import { createPost } from '../services/postService';
-import { signIn } from '../services/userService';
+import {
+  getPosts,
+  togglePostLike,
+  getComments,
+  addComment,
+  toggleCommentLike,
+  deletePost,
+  deleteComment,
+  searchPosts,
+} from '../services/postService';
 import styles from './Wall.module.css';
 
 const Wall = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [testLoading, setTestLoading] = useState(false);
-  const [testMessage, setTestMessage] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionMessage, setActionMessage] = useState(null);
+  const [commentDrafts, setCommentDrafts] = useState({});
+  const [commentsByPost, setCommentsByPost] = useState({});
+  const [replyTargetByPost, setReplyTargetByPost] = useState({});
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchHashtag, setSearchHashtag] = useState('');
+  const [searchSortBy, setSearchSortBy] = useState('time');
+  const [currentUserId, setCurrentUserId] = useState(null);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const loadCommentsForPosts = useCallback(async (postList) => {
+    const resultMap = {};
 
-        const { data, error: fetchError } = await supabase
-          .from('posts')
-          .select(
-            `
-            *,
-            author:profiles!posts_author_id_fkey(
-              nickname,
-              avatar_url,
-              identity_type
-            ),
-            post_likes:post_likes(count),
-            comments:comments(count)
-          `
-          )
-          .order('created_at', { ascending: false });
+    await Promise.all(
+      (postList || []).map(async (post) => {
+        const result = await getComments(post.id);
+        if (result.success) {
+          resultMap[post.id] = result.data || [];
+        }
+      })
+    );
 
-        if (fetchError) throw fetchError;
-
-        // 格式化数据
-        const processedPosts = (data || []).map((post) => ({
-          ...post,
-          like_count: post.post_likes?.[0]?.count || 0,
-          comment_count: post.comments?.[0]?.count || 0,
-        }));
-
-        setPosts(processedPosts);
-      } catch (err) {
-        console.error('加载帖子失败:', err);
-        setError('无法加载帖子，请稍后再试。');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPosts();
+    setCommentsByPost(resultMap);
   }, []);
 
-  // 测试 signIn + createPost 函数
-  const handleTestCreatePost = async () => {
+  const refreshPosts = useCallback(async () => {
     try {
-      setTestLoading(true);
-      setTestMessage(null);
+      setLoading(true);
+      setError(null);
 
-      // 1. 先登录
-      console.log('1️⃣ 开始登录...');
-      const loginResult = await signIn({
-        account: 'test@26b.dev',
-        password: 'shao26b',
-        loginType: 'password',
-      });
-
-      console.log('登录结果:', loginResult);
-
-      if (!loginResult.success) {
-        throw new Error(`登录失败: ${loginResult.error}`);
+      const result = await getPosts();
+      if (!result.success) {
+        throw new Error(result.error || '无法加载帖子');
       }
 
-      console.log('✅ 登录成功');
+      const nextPosts = result.data || [];
+      setPosts(nextPosts);
+      await loadCommentsForPosts(nextPosts);
+      return true;
+    } catch (err) {
+      console.error('加载帖子失败:', err);
+      setError('无法加载帖子，请稍后再试。');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [loadCommentsForPosts]);
 
-      // 2. 然后发帖
-      console.log('2️⃣ 开始创建帖子...');
-      const testPostData = {
-        content: '这是一条测试帖子 - 测试登录+发帖流程 ' + new Date().toLocaleTimeString(),
-        visibility: 'public',
-        is_anonymous: false,
-      };
+  useEffect(() => {
+    refreshPosts();
+  }, [refreshPosts]);
 
-      console.log('调用 createPost，参数:', testPostData);
-      const postResult = await createPost(testPostData);
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id || null);
+    };
 
-      console.log('createPost 返回结果:', postResult);
+    fetchCurrentUser();
+  }, []);
 
-      if (postResult.success) {
-        setTestMessage(`✅ 登录成功！帖子创建成功！ID: ${postResult.data.id}`);
-        // 刷新帖子列表
-        setTimeout(() => {
-          const fetchPosts = async () => {
-            const { data } = await supabase
-              .from('posts')
-              .select(
-                `
-                *,
-                author:profiles!posts_author_id_fkey(
-                  nickname,
-                  avatar_url,
-                  identity_type
-                ),
-                post_likes:post_likes(count),
-                comments:comments(count)
-              `
-              )
-              .order('created_at', { ascending: false });
-            const processedPosts = (data || []).map((post) => ({
-              ...post,
-              like_count: post.post_likes?.[0]?.count || 0,
-              comment_count: post.comments?.[0]?.count || 0,
-            }));
-            setPosts(processedPosts);
-          };
-          fetchPosts();
-        }, 500);
+  const handleTestTogglePostLike = async (postId) => {
+    try {
+      setActionLoading(true);
+      setActionMessage(null);
+
+      const result = await togglePostLike(postId);
+      if (result.success) {
+        setActionMessage(`✅ 帖子${result.data.liked ? '点赞' : '取消点赞'}成功`);
+        await refreshPosts();
       } else {
-        setTestMessage(`❌ 发帖失败: ${postResult.error}`);
+        setActionMessage(`❌ 操作失败: ${result.error}`);
       }
     } catch (err) {
       console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
     } finally {
-      setTestLoading(false);
+      setActionLoading(false);
     }
   };
 
-  // 测试带图片的发帖
-  const handleTestCreatePostWithImage = async () => {
+  const handleTestGetComments = async (postId) => {
     try {
-      setTestLoading(true);
-      setTestMessage(null);
+      setActionLoading(true);
+      setActionMessage(null);
 
-      // 1. 先登录
-      console.log('1️⃣ 开始登录...');
-      const loginResult = await signIn({
-        account: 'test@26b.dev',
-        password: 'shao26b',
-        loginType: 'password',
-      });
-
-      console.log('登录结果:', loginResult);
-
-      if (!loginResult.success) {
-        throw new Error(`登录失败: ${loginResult.error}`);
-      }
-
-      console.log('✅ 登录成功');
-
-      // 2. 然后发帖（带图片）
-      console.log('2️⃣ 开始创建带图片的帖子...');
-      const testPostData = {
-        content: '这是一条带图片的测试帖子 ' + new Date().toLocaleTimeString(),
-        visibility: 'public',
-        is_anonymous: false,
-        media_urls: ['https://picsum.photos/400/300?random=1'],
-      };
-
-      console.log('调用 createPost，参数:', testPostData);
-      const postResult = await createPost(testPostData);
-
-      console.log('createPost 返回结果:', postResult);
-
-      if (postResult.success) {
-        setTestMessage(`✅ 登录成功！带图片帖子创建成功！ID: ${postResult.data.id}`);
-        // 刷新帖子列表
-        setTimeout(() => {
-          const fetchPosts = async () => {
-            const { data } = await supabase
-              .from('posts')
-              .select(
-                `
-                *,
-                author:profiles!posts_author_id_fkey(
-                  nickname,
-                  avatar_url,
-                  identity_type
-                ),
-                post_likes:post_likes(count),
-                comments:comments(count)
-              `
-              )
-              .order('created_at', { ascending: false });
-            const processedPosts = (data || []).map((post) => ({
-              ...post,
-              like_count: post.post_likes?.[0]?.count || 0,
-              comment_count: post.comments?.[0]?.count || 0,
-            }));
-            setPosts(processedPosts);
-          };
-          fetchPosts();
-        }, 500);
+      const result = await getComments(postId);
+      if (result.success) {
+        setCommentsByPost((prev) => ({
+          ...prev,
+          [postId]: result.data || [],
+        }));
+        setActionMessage(`✅ 获取评论成功 (${(result.data || []).length} 条)`);
       } else {
-        setTestMessage(`❌ 发帖失败: ${postResult.error}`);
+        setActionMessage(`❌ 获取评论失败: ${result.error}`);
       }
     } catch (err) {
       console.error('测试错误:', err);
-      setTestMessage(`❌ 异常错误: ${err.message}`);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
     } finally {
-      setTestLoading(false);
+      setActionLoading(false);
     }
+  };
+
+  const handleTestAddComment = async (postId, postComments = []) => {
+    try {
+      setActionLoading(true);
+      setActionMessage(null);
+
+      const draft = commentDrafts[postId] || '';
+      if (!draft.trim()) {
+        setActionMessage('❌ 评论内容不能为空');
+        return;
+      }
+
+      const replyTargetId = replyTargetByPost[postId] || '';
+      const replyTargetComment = replyTargetId
+        ? postComments.find((comment) => comment.id === replyTargetId)
+        : null;
+      const replyToUserId = replyTargetComment?.author_id || null;
+
+      const result = await addComment(postId, draft.trim(), replyTargetId || null, replyToUserId);
+      if (result.success) {
+        setCommentDrafts((prev) => ({
+          ...prev,
+          [postId]: '',
+        }));
+        setReplyTargetByPost((prev) => ({
+          ...prev,
+          [postId]: '',
+        }));
+        setActionMessage('✅ 评论发布成功');
+        await handleTestGetComments(postId);
+        await refreshPosts();
+      } else {
+        setActionMessage(`❌ 评论失败: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('测试错误:', err);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTestToggleCommentLike = async (postId, commentId) => {
+    try {
+      setActionLoading(true);
+      setActionMessage(null);
+
+      if (!commentId) {
+        setActionMessage('❌ 当前没有可点赞的评论');
+        return;
+      }
+
+      const result = await toggleCommentLike(commentId);
+      if (result.success) {
+        setActionMessage(`✅ 评论${result.data.liked ? '点赞' : '取消点赞'}成功`);
+        await handleTestGetComments(postId);
+      } else {
+        setActionMessage(`❌ 操作失败: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('测试错误:', err);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    try {
+      const confirmed = window.confirm('确认删除该帖子吗？');
+      if (!confirmed) return;
+
+      setActionLoading(true);
+      setActionMessage(null);
+
+      const result = await deletePost(postId);
+      if (result.success) {
+        setActionMessage('✅ 帖子已删除');
+        await refreshPosts();
+      } else {
+        if (result.errorCode === 'MEDIA_DELETE_FAILED') {
+          window.alert('帖子删除失败：媒体删除失败，请联系管理员。');
+        }
+        setActionMessage(`❌ 删除失败: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('删除帖子失败:', err);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteComment = async (postId, commentId) => {
+    try {
+      const confirmed = window.confirm('确认删除该评论吗？');
+      if (!confirmed) return;
+
+      setActionLoading(true);
+      setActionMessage(null);
+
+      const result = await deleteComment(commentId);
+      if (result.success) {
+        setActionMessage('✅ 评论已删除');
+        await handleTestGetComments(postId);
+        await refreshPosts();
+      } else {
+        setActionMessage(`❌ 删除失败: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('删除评论失败:', err);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSimulateOtherView = async (post) => {
+    try {
+      setActionLoading(true);
+      setActionMessage(null);
+
+      const nextViewCount = (post.view_count || 0) + 1;
+      const { error: updateError } = await supabase
+        .from('posts')
+        .update({ view_count: nextViewCount })
+        .eq('id', post.id);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      setActionMessage('✅ 已模拟他人浏览（强制增加浏览量）');
+      await refreshPosts();
+    } catch (err) {
+      console.error('测试错误:', err);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTestSearch = async () => {
+    try {
+      setActionLoading(true);
+      setActionMessage(null);
+
+      const result = await searchPosts({
+        keyword: searchKeyword,
+        hashtag: searchHashtag,
+        sortBy: searchSortBy,
+      });
+
+      if (result.success) {
+        const nextPosts = result.data || [];
+        setPosts(nextPosts);
+        await loadCommentsForPosts(nextPosts);
+        setActionMessage(`✅ 搜索完成 (${(result.data || []).length} 条)`);
+      } else {
+        setActionMessage(`❌ 搜索失败: ${result.error}`);
+      }
+    } catch (err) {
+      console.error('测试错误:', err);
+      setActionMessage(`❌ 异常错误: ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResetSearch = async () => {
+    setSearchKeyword('');
+    setSearchHashtag('');
+    setSearchSortBy('time');
+    await refreshPosts();
+  };
+
+  const handleCreatePostClick = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      window.alert('游客不能发布帖子，请联系管理员升级为校友');
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('identity_type, role')
+      .eq('id', user.id)
+      .single();
+
+    const canCreatePost =
+      profile?.identity_type === 'classmate' ||
+      profile?.identity_type === 'alumni' ||
+      profile?.role === 'admin' ||
+      profile?.role === 'superuser';
+
+    if (!canCreatePost) {
+      window.alert('游客不能发布帖子，请联系管理员升级为校友');
+      return;
+    }
+
+    navigate('/posts/new');
   };
 
   return (
@@ -211,30 +335,63 @@ const Wall = () => {
       <section className={`scene-panel ${styles.wallPanel}`}>
         <div className={styles.wallHeader}>
           <p className="scene-kicker">班级留言墙</p>
-          <h1 className="scene-title">共享笔记与回响</h1>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h1 className="scene-title">共享笔记与回响</h1>
+            <button
+              type="button"
+              className="scene-button primary"
+              style={{ padding: '0.75rem 1.5rem', fontSize: '1.5rem', marginRight: '10px' }}
+              onClick={handleCreatePostClick}
+            >
+              发布帖子 &gt;ω&lt;
+            </button>
+          </div>
           <p className="scene-subtitle">留下留言、庆祝里程碑，或为班级写下一段短短的回忆。</p>
 
-          {/* 测试按钮 */}
-          <div style={{ marginTop: '15px' }}>
+          {actionMessage && (
+            <div style={{ marginTop: '12px', fontSize: '14px' }}>{actionMessage}</div>
+          )}
+
+          <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              value={searchKeyword}
+              onChange={(event) => setSearchKeyword(event.target.value)}
+              placeholder="搜索关键词"
+              className="form-control form-control-sm"
+              style={{ maxWidth: '180px' }}
+            />
+            <input
+              type="text"
+              value={searchHashtag}
+              onChange={(event) => setSearchHashtag(event.target.value)}
+              placeholder="标签(#可选)"
+              className="form-control form-control-sm"
+              style={{ maxWidth: '180px' }}
+            />
+            <select
+              value={searchSortBy}
+              onChange={(event) => setSearchSortBy(event.target.value)}
+              className="form-select form-select-sm"
+              style={{ maxWidth: '140px' }}
+            >
+              <option value="time">按时间</option>
+              <option value="likes">按点赞</option>
+            </select>
             <button
-              onClick={handleTestCreatePost}
-              disabled={testLoading}
+              onClick={handleTestSearch}
+              disabled={actionLoading}
               className="btn btn-outline-primary btn-sm"
-              style={{ marginRight: '10px' }}
             >
-              {testLoading ? '测试中...' : '🧪 测试登录+发帖'}
+              {actionLoading ? '处理中...' : '🔍 搜索'}
             </button>
             <button
-              onClick={handleTestCreatePostWithImage}
-              disabled={testLoading}
-              className="btn btn-outline-success btn-sm"
-              style={{ marginRight: '10px' }}
+              onClick={handleResetSearch}
+              disabled={actionLoading}
+              className="btn btn-outline-secondary btn-sm"
             >
-              {testLoading ? '测试中...' : '🖼️ 测试发帖(带图片)'}
+              重置
             </button>
-            {testMessage && (
-              <span style={{ fontSize: '14px', marginLeft: '10px' }}>{testMessage}</span>
-            )}
           </div>
         </div>
 
@@ -265,9 +422,41 @@ const Wall = () => {
         )}
 
         <div className="row g-4">
-          {posts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
+          {posts.map((post) => {
+            const postComments = commentsByPost[post.id] || [];
+            const draftValue = commentDrafts[post.id] || '';
+            const replyValue = replyTargetByPost[post.id] || '';
+
+            return (
+              <PostCard
+                key={post.id}
+                post={post}
+                comments={postComments}
+                commentDraft={draftValue}
+                replyTarget={replyValue}
+                testLoading={actionLoading}
+                currentUserId={currentUserId}
+                onToggleLike={() => handleTestTogglePostLike(post.id)}
+                onSimulateView={() => handleSimulateOtherView(post)}
+                onCommentDraftChange={(value) =>
+                  setCommentDrafts((prev) => ({
+                    ...prev,
+                    [post.id]: value,
+                  }))
+                }
+                onReplyTargetChange={(value) =>
+                  setReplyTargetByPost((prev) => ({
+                    ...prev,
+                    [post.id]: value,
+                  }))
+                }
+                onAddComment={() => handleTestAddComment(post.id, postComments)}
+                onToggleCommentLike={(commentId) => handleTestToggleCommentLike(post.id, commentId)}
+                onDeletePost={() => handleDeletePost(post.id)}
+                onDeleteComment={(commentId) => handleDeleteComment(post.id, commentId)}
+              />
+            );
+          })}
         </div>
       </section>
     </div>

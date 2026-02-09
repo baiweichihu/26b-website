@@ -11,16 +11,18 @@ const activeChannels = new Map();
 export async function createWelcomeNotification(userId) {
   const { data, error } = await supabase
     .from('notifications')
-    .insert([{
-      recipient_id: userId,
-      type: 'system_announcement',
-      title: '标题',
-      content: '这是一个welcomenotification',
-      related_resource_type: null,
-      related_resource_id: null,
-      is_read: false,
-      created_at: new Date().toISOString()
-    }])
+    .insert([
+      {
+        recipient_id: userId,
+        type: 'system_announcement',
+        title: '标题',
+        content: '这是一个welcomenotification',
+        related_resource_type: null,
+        related_resource_id: null,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      },
+    ])
     .select();
 
   return { data, error };
@@ -34,22 +36,29 @@ export async function createWelcomeNotification(userId) {
  * @param {string} relatedResourceId - 相关资源ID
  * @returns {Promise<Object>}
  */
-export async function createAuditResultNotification(userId, status, requestType, relatedResourceId) {
+export async function createAuditResultNotification(
+  userId,
+  status,
+  requestType,
+  relatedResourceId
+) {
   const title = status === 'approved' ? '申请已批准' : '申请已驳回';
   const content = `你的${requestType}申请已${status === 'approved' ? '被批准' : '被驳回'}`;
 
   const { data, error } = await supabase
     .from('notifications')
-    .insert([{
-      recipient_id: userId,
-      type: 'audit_result',
-      title: title,
-      content: content,
-      related_resource_type: 'admin_request',
-      related_resource_id: relatedResourceId,
-      is_read: false,
-      created_at: new Date().toISOString()
-    }])
+    .insert([
+      {
+        recipient_id: userId,
+        type: 'audit_result',
+        title: title,
+        content: content,
+        related_resource_type: 'admin_request',
+        related_resource_id: relatedResourceId,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      },
+    ])
     .select();
 
   return { data, error };
@@ -64,22 +73,25 @@ export async function createAuditResultNotification(userId, status, requestType,
  */
 export async function createReportFeedbackNotification(userId, status, targetType) {
   const title = status === 'resolved' ? '举报已处理' : '举报已驳回';
-  const content = status === 'resolved' 
-    ? `感谢你的举报，我们已对违规${targetType === 'post' ? '帖子' : '评论'}进行处理`
-    : `感谢你的举报，我们审核后认为该${targetType === 'post' ? '帖子' : '评论'}无违规，已驳回举报`;
+  const content =
+    status === 'resolved'
+      ? `感谢你的举报，我们已对违规${targetType === 'post' ? '帖子' : '评论'}进行处理`
+      : `感谢你的举报，我们审核后认为该${targetType === 'post' ? '帖子' : '评论'}无违规，已驳回举报`;
 
   const { data, error } = await supabase
     .from('notifications')
-    .insert([{
-      recipient_id: userId,
-      type: 'report_feedback',
-      title: title,
-      content: content,
-      related_resource_type: 'content_reports',
-      related_resource_id: null,
-      is_read: false,
-      created_at: new Date().toISOString()
-    }])
+    .insert([
+      {
+        recipient_id: userId,
+        type: 'report_feedback',
+        title: title,
+        content: content,
+        related_resource_type: 'support_tickets',
+        related_resource_id: null,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      },
+    ])
     .select();
 
   return { data, error };
@@ -94,25 +106,33 @@ export async function createReportFeedbackNotification(userId, status, targetTyp
  * @param {string} targetId - 目标ID
  * @returns {Promise<Object>}
  */
-export async function createInteractionNotification(userId, actionType, actorName, targetType, targetId) {
+export async function createInteractionNotification(
+  userId,
+  actionType,
+  actorName,
+  targetType,
+  targetId
+) {
   const actionText = actionType === 'like' ? '点赞了你的' : '评论了你的';
   const targetText = targetType === 'post' ? '帖子' : '评论';
-  
+
   const title = `${actorName}${actionText}${targetText}`;
   const content = `${actorName}${actionText}${targetText}`;
 
   const { data, error } = await supabase
     .from('notifications')
-    .insert([{
-      recipient_id: userId,
-      type: 'interaction',
-      title: title,
-      content: content,
-      related_resource_type: targetType,
-      related_resource_id: targetId,
-      is_read: false,
-      created_at: new Date().toISOString()
-    }])
+    .insert([
+      {
+        recipient_id: userId,
+        type: 'interaction',
+        title: title,
+        content: content,
+        related_resource_type: targetType,
+        related_resource_id: targetId,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      },
+    ])
     .select();
 
   return { data, error };
@@ -126,19 +146,19 @@ export async function createInteractionNotification(userId, actionType, actorNam
  */
 export async function subscribeToNotifications(userId, onNotification) {
   if (!userId || !onNotification) {
-    return { 
-      channel: null, 
-      error: '缺少必要参数：userId 或 onNotification'
+    return {
+      channel: null,
+      error: '缺少必要参数：userId 或 onNotification',
     };
   }
 
   const channelName = `notifications:${userId}`;
-  
+
   // 检查是否已有活跃的订阅
   if (activeChannels.has(channelName)) {
-    return { 
-      channel: activeChannels.get(channelName), 
-      error: null 
+    return {
+      channel: activeChannels.get(channelName),
+      error: null,
     };
   }
 
@@ -152,13 +172,13 @@ export async function subscribeToNotifications(userId, onNotification) {
           event: 'INSERT',
           schema: 'public',
           table: 'notifications',
-          filter: `recipient_id=eq.${userId}`
+          filter: `recipient_id=eq.${userId}`,
         },
         (payload) => {
           // 新通知到达时触发回调
           onNotification({
             type: 'INSERT',
-            data: payload.new
+            data: payload.new,
           });
         }
       )
@@ -168,13 +188,13 @@ export async function subscribeToNotifications(userId, onNotification) {
           event: 'UPDATE',
           schema: 'public',
           table: 'notifications',
-          filter: `recipient_id=eq.${userId}`
+          filter: `recipient_id=eq.${userId}`,
         },
         (payload) => {
           // 通知更新时触发回调（例如标记为已读）
           onNotification({
             type: 'UPDATE',
-            data: payload.new
+            data: payload.new,
           });
         }
       )
@@ -192,9 +212,9 @@ export async function subscribeToNotifications(userId, onNotification) {
 
     return { channel, error: null };
   } catch (error) {
-    return { 
-      channel: null, 
-      error: error.message || '订阅失败' 
+    return {
+      channel: null,
+      error: error.message || '订阅失败',
     };
   }
 }
@@ -210,14 +230,14 @@ export async function unsubscribeFromNotifications(userId) {
   }
 
   const channelName = `notifications:${userId}`;
-  
+
   try {
     const channel = activeChannels.get(channelName);
-    
+
     if (!channel) {
-      return { 
-        success: false, 
-        error: '该用户没有活跃的订阅' 
+      return {
+        success: false,
+        error: '该用户没有活跃的订阅',
       };
     }
 
@@ -227,9 +247,9 @@ export async function unsubscribeFromNotifications(userId) {
 
     return { success: true, error: null };
   } catch (error) {
-    return { 
-      success: false, 
-      error: error.message || '取消订阅失败' 
+    return {
+      success: false,
+      error: error.message || '取消订阅失败',
     };
   }
 }
@@ -241,9 +261,9 @@ export async function unsubscribeFromNotifications(userId) {
  */
 export async function getUnreadNotifications(userId) {
   if (!userId) {
-    return { 
-      data: null, 
-      error: '缺少必要参数：userId' 
+    return {
+      data: null,
+      error: '缺少必要参数：userId',
     };
   }
 
@@ -264,9 +284,9 @@ export async function getUnreadNotifications(userId) {
  */
 export async function markNotificationAsRead(notificationId) {
   if (!notificationId) {
-    return { 
-      data: null, 
-      error: '缺少必要参数：notificationId' 
+    return {
+      data: null,
+      error: '缺少必要参数：notificationId',
     };
   }
 
@@ -286,9 +306,9 @@ export async function markNotificationAsRead(notificationId) {
  */
 export async function markAllNotificationsAsRead(userId) {
   if (!userId) {
-    return { 
-      data: null, 
-      error: '缺少必要参数：userId' 
+    return {
+      data: null,
+      error: '缺少必要参数：userId',
     };
   }
 
