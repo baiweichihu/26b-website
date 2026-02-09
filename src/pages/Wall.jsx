@@ -339,11 +339,11 @@ const Wall = () => {
             <h1 className="scene-title">共享笔记与回响</h1>
             <button
               type="button"
-              className="btn btn-primary"
-              style={{ padding: '0.75rem 1.5rem', fontSize: '1.5rem', marginRight: '12px' }}
+              className="scene-button primary"
+              style={{ padding: '0.75rem 1.5rem', fontSize: '1.5rem', marginRight: '10px' }}
               onClick={handleCreatePostClick}
             >
-              发布帖子
+              发布帖子 &gt;ω&lt;
             </button>
           </div>
           <p className="scene-subtitle">留下留言、庆祝里程碑，或为班级写下一段短短的回忆。</p>
