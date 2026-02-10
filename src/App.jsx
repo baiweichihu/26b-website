@@ -11,6 +11,7 @@ import IntroScreen from './components/landing/IntroScreen';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import CornerNav from './components/layout/CornerNav';
+import UserDock from './components/layout/UserDock';
 import BackgroundParticles from './components/layout/BackgroundParticles';
 import IrisTransition from './components/ui/IrisTransition';
 import Lobby from './pages/Lobby';
@@ -25,7 +26,8 @@ import CreatePost from './pages/CreatePost';
 import PostDetail from './pages/PostDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Profile from './pages/Profile';
+import GuestUpdateIdentity from './pages/GuestUpdateIdentity';
+import UserManagement from './pages/UserManagement';
 import MusicPlayer from './components/features/media/MusicPlayer';
 import EasterEgg from './components/features/media/EasterEgg'; // already imported
 
@@ -37,6 +39,7 @@ const AppLayout = () => {
     <>
       {!isLobby && <CornerNav />}
       {!isLobby && <Header />}
+      {!isLobby && <UserDock />}
       <main className={isLobby ? 'lobby-main' : 'scene-main'}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -46,13 +49,14 @@ const AppLayout = () => {
           <Route path="/activities" element={<Activities />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/wall" element={<Wall />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/profile" element={<Profile />} />
           <Route path="/posts/new" element={<CreatePost />} />
           <Route path="/posts/:postId" element={<PostDetail />} />
           <Route path="/tickets/new/:targetType/:targetId" element={<TicketCenter />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/guest-update-identity" element={<GuestUpdateIdentity />} />
+          <Route path="/user/manage" element={<UserManagement />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

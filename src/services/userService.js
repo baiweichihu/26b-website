@@ -13,6 +13,17 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
   try {
     let email = account;
 
+    const updateProfileOnSignIn = async (user) => {
+      if (!user?.id) return;
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ email: user.email })
+        .eq('id', user.id);
+      if (profileError) {
+        console.warn('Profile update on sign-in failed:', profileError);
+      }
+    };
+
     //password login
     if (loginType === 'password') {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -20,6 +31,7 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
         password: password,
       });
       if (error) throw error;
+      await updateProfileOnSignIn(data?.user);
       return { success: true, data };
     }
     //otp login
@@ -30,6 +42,7 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
         type: 'email',
       });
       if (error) throw error;
+      await updateProfileOnSignIn(data?.user);
       return { success: true, data };
     }
   } catch (error) {
