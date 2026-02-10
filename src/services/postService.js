@@ -29,7 +29,36 @@ const getUserAndProfile = async (profileFields = 'identity_type, role') => {
   return { user, profile };
 };
 
+const getOptionalUserAndProfile = async (profileFields = 'identity_type, role, nickname') => {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return {
+      user: null,
+      profile: null,
+    };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select(profileFields)
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error('获取用户信息失败');
+  }
+
+  return { user, profile };
+};
+
 const buildVisibilityCondition = (profile) => {
+  if (!profile) {
+    return null;
+  }
   if (profile.role === 'admin' || profile.role === 'superuser') {
     return '';
   }
@@ -120,9 +149,14 @@ const buildDetailAuthor = (post, role) => {
 };
 
 const canViewPost = (post, user, profile) => {
+  if (!profile || !user) {
+    return false;
+  }
   if (profile.role === 'admin' || profile.role === 'superuser') {
     return true;
   }
+
+  const userId = user?.id;
 
   switch (post.visibility) {
     case 'public':
@@ -132,7 +166,7 @@ const canViewPost = (post, user, profile) => {
     case 'classmate_only':
       return profile.identity_type === 'classmate';
     case 'private':
-      return post.author_id === user.id;
+      return Boolean(userId) && post.author_id === userId;
     default:
       return false;
   }
@@ -171,8 +205,32 @@ export const createPost = async (postData) => {
       throw new Error('帖子标题不能为空');
     }
 
+    if (postData.title.trim().length > 20) {
+      throw new Error('帖子标题不能超过20字');
+    }
+
     if (!postData.content || postData.content.trim() === '') {
       throw new Error('帖子内容不能为空');
+    }
+
+    if (postData.content.trim().length > 2000) {
+      throw new Error('帖子内容不能超过2000字');
+    }
+
+    const mediaUrls = Array.isArray(postData.media_urls) ? postData.media_urls : [];
+    if (mediaUrls.length > 5) {
+      throw new Error('帖子媒体数量不能超过5个');
+    }
+
+    for (const url of mediaUrls) {
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          throw new Error('invalid');
+        }
+      } catch {
+        throw new Error('媒体链接无效');
+      }
     }
 
     // 5. 准备插入数据
@@ -187,12 +245,12 @@ export const createPost = async (postData) => {
     };
 
     // 6. 处理媒体文件
-    if (postData.media_urls && Array.isArray(postData.media_urls)) {
-      postPayload.media_urls = postData.media_urls;
+    if (mediaUrls.length > 0) {
+      postPayload.media_urls = mediaUrls;
     }
 
     // 7. 处理从相册选择的图片（如果有）
-    let finalMediaUrls = [...(postData.media_urls || [])];
+    let finalMediaUrls = [...mediaUrls];
     if (postData.selectedAlbumPhotos && postData.selectedAlbumPhotos.length > 0) {
       // 查询相册图片的URL
       const { data: albumPhotos, error: albumError } = await supabase
@@ -204,6 +262,10 @@ export const createPost = async (postData) => {
         const albumUrls = albumPhotos.map((photo) => photo.url);
         finalMediaUrls = [...finalMediaUrls, ...albumUrls];
       }
+    }
+
+    if (finalMediaUrls.length > 5) {
+      throw new Error('帖子媒体数量不能超过5个');
     }
 
     if (finalMediaUrls.length > 0) {
@@ -330,7 +392,13 @@ const processHashtags = async (postId, hashtags) => {
 export const getPosts = async () => {
   try {
     // 1. 获取当前登录用户与身份信息
-    const { user, profile } = await getUserAndProfile('identity_type, role, nickname, avatar_url');
+    const { user, profile } = await getOptionalUserAndProfile(
+      'identity_type, role, nickname, avatar_url'
+    );
+
+    if (!user || !profile) {
+      throw new Error('用户未登录或认证失败');
+    }
 
     // 2. 根据用户身份确定可见范围条件
     const visibilityCondition = buildVisibilityCondition(profile);
@@ -357,7 +425,8 @@ export const getPosts = async () => {
           identity_type
         ),
         post_likes:post_likes(count),
-        comments:comments(count)
+        comments:comments(count),
+        hashtags:hashtags(name)
       `
       )
       .order('created_at', { ascending: false });
@@ -412,7 +481,10 @@ export const getPostById = async (postId) => {
 
     // 1. 获取当前登录用户与身份信息
     console.log('[getPostById] 获取用户信息...');
-    const { user, profile } = await getUserAndProfile('identity_type, role');
+    const { user, profile } = await getOptionalUserAndProfile('identity_type, role');
+    if (!user || !profile) {
+      throw new Error('用户未登录或认证失败');
+    }
     console.log('[getPostById] 用户身份信息:', { profile });
 
     console.log('[getPostById] 用户角色和身份:', {
@@ -457,7 +529,7 @@ export const getPostById = async (postId) => {
     }
 
     // 5. 增加浏览量（如果是第一次查看）
-    if (user.id !== post.author_id) {
+    if (!user?.id || user.id !== post.author_id) {
       // 不增加作者自己的浏览量
       const nextViewCount = (post.view_count || 0) + 1;
       await supabase.from('posts').update({ view_count: nextViewCount }).eq('id', postId);
@@ -468,6 +540,7 @@ export const getPostById = async (postId) => {
     const processedPost = {
       ...post,
       author: buildDetailAuthor(post, userRole),
+      is_owner: user?.id ? post.author_id === user.id : false,
     };
 
     // 7. 格式化统计信息
@@ -576,7 +649,10 @@ export const getComments = async (postId) => {
       throw new Error('帖子ID不能为空');
     }
 
-    const { user, profile } = await getUserAndProfile('identity_type, role');
+    const { user, profile } = await getOptionalUserAndProfile('identity_type, role');
+    if (!user || !profile) {
+      throw new Error('用户未登录或认证失败');
+    }
 
     const { data: post, error: postError } = await supabase
       .from('posts')
@@ -665,6 +741,10 @@ export const addComment = async (postId, content, parentId = null, replyToUserId
     }
     if (!content || content.trim() === '') {
       throw new Error('评论内容不能为空');
+    }
+
+    if (content.trim().length > 200) {
+      throw new Error('评论内容不能超过200字');
     }
 
     const user = await getAuthenticatedUser();
@@ -801,7 +881,10 @@ export const toggleCommentLike = async (commentId) => {
  */
 export const searchPosts = async (options = {}) => {
   try {
-    const { user, profile } = await getUserAndProfile('identity_type, role');
+    const { user, profile } = await getOptionalUserAndProfile('identity_type, role');
+    if (!user || !profile) {
+      throw new Error('用户未登录或认证失败');
+    }
 
     const keyword = options.keyword ? options.keyword.trim() : '';
     const hashtag = options.hashtag ? options.hashtag.replace('#', '').trim() : '';
@@ -848,7 +931,11 @@ export const searchPosts = async (options = {}) => {
       .order('created_at', { ascending: false });
 
     if (visibilityCondition) {
-      query = query.or(`${visibilityCondition},author_id.eq.${user.id}`);
+      if (user?.id) {
+        query = query.or(`${visibilityCondition},author_id.eq.${user.id}`);
+      } else {
+        query = query.or(visibilityCondition);
+      }
     }
 
     if (orConditions.length > 0) {

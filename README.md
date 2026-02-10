@@ -69,6 +69,10 @@ src/
 │       ├── ThemeToggle.jsx    # 切换亮暗模式
 │       ├── IrisTransition.jsx  # 转场
 │       └── IrisTransition.module.css
+│
+│   └── widgets/               # 小型提示组件
+│       ├── NoticeBox.jsx
+│       └── NoticeBox.module.css
 
 │
 ├── pages/                     # 路由页面
@@ -77,6 +81,10 @@ src/
 │   ├── Wall.module.css
 │   ├── CreatePost.jsx          # 发布帖子
 │   ├── TicketCenter.jsx        # 工单中心
+│   ├── PostDetail.jsx          # 帖子详情
+│   ├── Login.jsx               # 登录
+│   ├── Register.jsx            # 注册
+│   ├── Profile.jsx             # 个人档案
 │   ├── Activities.jsx         # 活动相册
 │   ├── Journal.jsx            # 班级日志
 │   ├── Introduction.jsx       # 班级介绍
