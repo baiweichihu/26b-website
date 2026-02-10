@@ -96,11 +96,11 @@ const Wall = () => {
   }, [loadAuthStatus]);
 
   useEffect(() => {
-    if (authStatus === 'member') {
+    if (authStatus === 'member' || authStatus === 'guest') {
       refreshPosts();
       return;
     }
-    if (authStatus === 'anonymous' || authStatus === 'guest') {
+    if (authStatus === 'anonymous') {
       setLoading(false);
       setPosts([]);
       setError(null);
@@ -249,7 +249,7 @@ const Wall = () => {
   //   }
   // };
 
-  const isLocked = authStatus === 'anonymous' || authStatus === 'guest';
+  const isLocked = authStatus === 'anonymous';
   const gateCopy =
     authStatus === 'guest'
       ? {

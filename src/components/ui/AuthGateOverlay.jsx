@@ -47,14 +47,14 @@ const AuthGateOverlay = ({ mode = 'anonymous', title, message }) => {
                 className="scene-button primary"
                 onClick={(event) => triggerIris?.(event, '/guest-update-identity')}
               >
-                Upgrade identity
+                验证校友身份
               </Link>
               <Link
                 to="/"
                 className="scene-button ghost"
                 onClick={(event) => triggerIris?.(event, '/')}
               >
-                Back home
+                返回首页
               </Link>
             </>
           ) : (
@@ -65,7 +65,7 @@ const AuthGateOverlay = ({ mode = 'anonymous', title, message }) => {
                 state={{ from: fromPath }}
                 onClick={(event) => triggerIris?.(event, '/login', { state: { from: fromPath } })}
               >
-                Sign in
+                登录
               </Link>
               <Link
                 to="/register"
@@ -75,7 +75,7 @@ const AuthGateOverlay = ({ mode = 'anonymous', title, message }) => {
                   triggerIris?.(event, '/register', { state: { from: fromPath } })
                 }
               >
-                Register
+                注册
               </Link>
             </>
           )}

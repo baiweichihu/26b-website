@@ -133,7 +133,7 @@ const UserManagement = () => {
       <div className="page-content scene-page">
         <section className={`scene-panel ${styles.managePanel}`} ref={panelRef}>
           <div className={styles.manageHeader}>
-            <p className="scene-kicker">User center</p>
+            <p className="scene-kicker">用户中心</p>
             <h1 className="scene-title">加载中...</h1>
             <p className="scene-subtitle">正在读取你的账号信息。</p>
           </div>
@@ -147,7 +147,7 @@ const UserManagement = () => {
       <div className="page-content scene-page">
         <section className={`scene-panel ${styles.managePanel}`} ref={panelRef}>
           <div className={styles.manageHeader} data-animate="item">
-            <p className="scene-kicker">User center</p>
+            <p className="scene-kicker">用户中心</p>
             <h1 className="scene-title">需要登录</h1>
             <p className="scene-subtitle">请先登录以管理你的账号。</p>
           </div>
@@ -178,7 +178,7 @@ const UserManagement = () => {
     <div className={`page-content scene-page ${styles.pageContent}`}>
       <section className={`scene-panel ${styles.managePanel}`} ref={panelRef}>
         <div className={styles.manageHeader} data-animate="item">
-          <p className="scene-kicker">User center</p>
+          <p className="scene-kicker">用户中心</p>
           <h1 className="scene-title">账号管理</h1>
           <p className="scene-subtitle">查看你的身份信息并管理访问权限。</p>
         </div>

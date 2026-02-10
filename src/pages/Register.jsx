@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { sendRegisterOtp, signUpVerifyAndSetInfo } from '../services/userService';
 import NoticeBox from '../components/widgets/NoticeBox';
 import { useIrisTransition } from '../components/ui/IrisTransition';
@@ -24,6 +24,7 @@ const Register = () => {
   const glowSecondaryRef = useRef(null);
   const { triggerIris } = useIrisTransition();
   const location = useLocation();
+  const navigate = useNavigate();
   const fromPath = useMemo(() => {
     const rawFrom = location.state?.from;
     if (!rawFrom) return '/';
@@ -145,7 +146,7 @@ const Register = () => {
     });
 
     if (result.success) {
-      setNotice({ type: 'success', message: 'Registration complete. You can sign in now.' });
+      setNotice({ type: 'success', message: '注册成功！您可以可返回首页' });
       setFormData({
         email: formData.email.trim(),
         otp: '',
@@ -153,6 +154,13 @@ const Register = () => {
         confirmPassword: '',
         nickname: '',
       });
+      setSubmitting(false);
+      if (triggerIris) {
+        triggerIris(null, '/');
+      } else {
+        navigate('/');
+      }
+      return;
     } else {
       setNotice({ type: 'error', message: result.error || 'Registration failed.' });
     }
