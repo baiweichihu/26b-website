@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import NoticeBox from '../components/widgets/NoticeBox';
 import { useIrisTransition } from '../components/ui/IrisTransition';
+import { submitGuestIdentityUpgradeRequest } from '../services/userService';
 
 const GuestUpdateIdentity = () => {
   const { triggerIris } = useIrisTransition();
@@ -17,7 +18,6 @@ const GuestUpdateIdentity = () => {
   const [status, setStatus] = useState('loading');
   const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({
-    desiredIdentity: 'alumni',
     evidence: '',
   });
   const [notice, setNotice] = useState(null);
@@ -88,38 +88,17 @@ const GuestUpdateIdentity = () => {
       setSubmitting(true);
       setNotice(null);
 
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
+      const result = await submitGuestIdentityUpgradeRequest({
+        evidence: formData.evidence,
+        nickname: profile?.nickname || null,
+      });
 
-      if (authError || !user) {
-        throw new Error('You are not signed in.');
-      }
-
-      const now = new Date().toISOString();
-      const payload = {
-        requester_id: user.id,
-        request_type: 'upgrade_identity',
-        target_id: null,
-        evidence: JSON.stringify({
-          desired_identity: formData.desiredIdentity,
-          message: formData.evidence.trim(),
-          nickname: profile?.nickname || null,
-        }),
-        requested_permissions: null,
-        status: 'pending',
-        created_at: now,
-      };
-
-      const { error: insertError } = await supabase.from('admin_requests').insert(payload);
-
-      if (insertError) {
-        throw new Error(insertError.message || 'Failed to submit request.');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to submit request.');
       }
 
       setSubmitted(true);
-      setNotice({ type: 'success', message: 'Request submitted. Please wait for review.' });
+      setNotice({ type: 'success', message: '您的申请已上交，请等待审核' });
       setFormData((prev) => ({ ...prev, evidence: '' }));
     } catch (error) {
       setNotice({ type: 'error', message: error.message || 'Failed to submit request.' });
@@ -132,9 +111,9 @@ const GuestUpdateIdentity = () => {
     return (
       <div className="page-content scene-page">
         <section className="scene-panel" style={{ padding: '2rem' }}>
-          <p className="scene-kicker">Identity upgrade</p>
-          <h1 className="scene-title">Checking access</h1>
-          <p className="scene-subtitle">Please wait while we verify your account.</p>
+          <p className="scene-kicker">校友身份核验</p>
+          <h1 className="scene-title">我们正在努力处理中&lt;&gt;</h1>
+          <p className="scene-subtitle">请耐心等待我们的审核处理完毕哦，注意查看消息提示AwA</p>
         </section>
       </div>
     );
@@ -144,9 +123,9 @@ const GuestUpdateIdentity = () => {
     return (
       <div className="page-content scene-page">
         <section className="scene-panel" style={{ padding: '2rem' }}>
-          <p className="scene-kicker">Identity upgrade</p>
-          <h1 className="scene-title">Sign in required</h1>
-          <p className="scene-subtitle">Please sign in to request an identity upgrade.</p>
+          <p className="scene-kicker">校友身份核验</p>
+          <h1 className="scene-title">需要登录</h1>
+          <p className="scene-subtitle">请先登录，再进行校友身份核验</p>
           <div className="scene-actions">
             <Link
               to="/login"
@@ -174,10 +153,10 @@ const GuestUpdateIdentity = () => {
     return (
       <div className="page-content scene-page">
         <section className="scene-panel" style={{ padding: '2rem' }}>
-          <p className="scene-kicker">Identity upgrade</p>
-          <h1 className="scene-title">Already verified</h1>
+          <p className="scene-kicker">校友身份核验</p>
+          <h1 className="scene-title">您已为校友</h1>
           <p className="scene-subtitle">
-            Your account is already verified. You can access journals and the class wall.
+            您的校友身份已经通过！您可以申请班级日志查看，并访问班级墙了！
           </p>
           <div className="scene-actions">
             <Link
@@ -185,14 +164,14 @@ const GuestUpdateIdentity = () => {
               className="scene-button primary"
               onClick={(event) => triggerIris?.(event, '/journal')}
             >
-              Open journals
+              班级日志
             </Link>
             <Link
               to="/wall"
               className="scene-button ghost"
               onClick={(event) => triggerIris?.(event, '/wall')}
             >
-              Go to wall
+              班级墙
             </Link>
           </div>
         </section>
@@ -203,42 +182,25 @@ const GuestUpdateIdentity = () => {
   return (
     <div className="page-content scene-page">
       <section className="scene-panel" style={{ padding: 'clamp(1.8rem, 4vw, 3rem)' }}>
-        <p className="scene-kicker">Identity upgrade</p>
-        <h1 className="scene-title">Request alumni access</h1>
-        <p className="scene-subtitle">
-          Tell us about your connection to Class 26B and share any proof we can verify.
-        </p>
+        <p className="scene-kicker">身份验证</p>
+        <h1 className="scene-title">校友身份核验</h1>
+        <p className="scene-subtitle">请证明您的少儿班/八中校友身份</p>
 
         {notice && <NoticeBox type={notice.type} message={notice.message} />}
 
         {!submitted && (
           <form onSubmit={handleSubmit} style={{ maxWidth: '560px', marginTop: '1.2rem' }}>
             <div className="mb-3">
-              <label className="form-label">Desired identity</label>
-              <select
-                name="desiredIdentity"
-                value={formData.desiredIdentity}
-                onChange={handleChange}
-                className="form-select"
-              >
-                <option value="alumni">Alumni</option>
-                <option value="classmate">Classmate</option>
-              </select>
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Evidence</label>
+              <label className="form-label">描述</label>
               <textarea
                 name="evidence"
                 value={formData.evidence}
                 onChange={handleChange}
                 className="form-control"
                 rows={6}
-                placeholder="Include graduation year, class, and any proof links."
+                placeholder="您可以注明您的毕业年份、班级，也可附上一切可证明您八中校友的链接。当然，如果您事先与我们的开发人员沟通过，也可仅注明沟通对象"
                 required
               />
-              <div className="form-text">
-                Share links to photos, yearbook pages, or other references.
-              </div>
             </div>
             <div className="d-flex gap-2 flex-wrap">
               <button
@@ -246,15 +208,8 @@ const GuestUpdateIdentity = () => {
                 className="scene-button primary"
                 disabled={!canSubmit || submitting}
               >
-                {submitting ? 'Submitting...' : 'Submit request'}
+                {submitting ? '提交中...' : '提交申请'}
               </button>
-              <Link
-                to="/wall"
-                className="scene-button ghost"
-                onClick={(event) => triggerIris?.(event, '/wall')}
-              >
-                Back to wall
-              </Link>
             </div>
           </form>
         )}

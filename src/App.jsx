@@ -21,7 +21,6 @@ import Activities from './pages/Activities';
 import Journal from './pages/Journal';
 import Wall from './pages/Wall';
 import Contact from './pages/Contact';
-import TicketCenter from './pages/TicketCenter';
 import CreatePost from './pages/CreatePost';
 import PostDetail from './pages/PostDetail';
 import Login from './pages/Login';
@@ -51,7 +50,6 @@ const AppLayout = () => {
           <Route path="/wall" element={<Wall />} />
           <Route path="/posts/new" element={<CreatePost />} />
           <Route path="/posts/:postId" element={<PostDetail />} />
-          <Route path="/tickets/new/:targetType/:targetId" element={<TicketCenter />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -85,7 +83,7 @@ const IntroGate = () => {
 function App() {
   return (
     <>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <BackgroundParticles />
         <div className="app-shell">
           <IrisTransition>

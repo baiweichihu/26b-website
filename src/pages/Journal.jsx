@@ -303,7 +303,7 @@ const Journal = () => {
     if (authStatus === 'guest') {
       return {
         title: '抱歉，游客不能浏览此页面',
-        message: '请验证校友身份，浏览班级日志',
+        message: '请验证校友身份，并进行班级日志查档申请',
       };
     }
     return {

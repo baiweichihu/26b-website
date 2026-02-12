@@ -45,6 +45,13 @@
   background: linear-gradient(120deg, var(--scene-accent), var(--scene-accent-2));
 }
 
+.profileAvatarImg {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .profileName {
   font-size: 1.1rem;
   font-weight: 600;

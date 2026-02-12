@@ -188,13 +188,21 @@ const UserManagement = () => {
         <div className={styles.manageGrid}>
           <div className={styles.card} data-animate="item">
             <div className={styles.profileRow}>
-              <span className={styles.profileAvatar}>{avatarText}</span>
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={displayName}
+                  className={styles.profileAvatarImg}
+                />
+              ) : (
+                <span className={styles.profileAvatar}>{avatarText}</span>
+              )}
               <div>
                 <div className={styles.profileName}>{displayName}</div>
                 <div className={styles.profileMeta}>{displayRole}</div>
               </div>
             </div>
-            <p className={styles.sectionTitle}>Account</p>
+            <p className={styles.sectionTitle}>账户信息</p>
             <ul className={styles.metaList}>
               <li className={styles.metaItem}>
                 <span>邮箱</span>
@@ -214,22 +222,6 @@ const UserManagement = () => {
           <div className={styles.card} data-animate="item">
             <p className={styles.sectionTitle}>管理选项</p>
             <div className={styles.actionList}>
-              <Link
-                to="/wall"
-                className={styles.actionItem}
-                onClick={(event) => triggerIris?.(event, '/wall')}
-              >
-                <span>进入班级墙</span>
-                <span className={styles.actionMeta}>Wall</span>
-              </Link>
-              <Link
-                to="/journal"
-                className={`${styles.actionItem} ${styles.actionGhost}`}
-                onClick={(event) => triggerIris?.(event, '/journal')}
-              >
-                <span>查看班日志</span>
-                <span className={styles.actionMeta}>Journal</span>
-              </Link>
               {status === 'guest' && (
                 <Link
                   to="/guest-update-identity"

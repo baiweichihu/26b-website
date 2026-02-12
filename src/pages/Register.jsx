@@ -1,9 +1,11 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { sendRegisterOtp, signUpVerifyAndSetInfo } from '../services/userService';
 import NoticeBox from '../components/widgets/NoticeBox';
 import { useIrisTransition } from '../components/ui/IrisTransition';
 import styles from './Auth.module.css';
+import RegisterHero from '../components/features/user/RegisterHero';
+import RegisterForm from '../components/features/user/RegisterForm';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -173,42 +175,12 @@ const Register = () => {
         <div className={styles.glow} ref={glowRef} aria-hidden="true" />
         <div className={styles.glowSecondary} ref={glowSecondaryRef} aria-hidden="true" />
         <div className={styles.authLayout}>
-          <div className={styles.hero} ref={heroRef}>
-            <p className="scene-kicker" data-animate="hero">
-              注册账户
-            </p>
-            <h1 className="scene-title" data-animate="hero">
-              加入26B班专属档案
-            </h1>
-            <p className="scene-subtitle" data-animate="hero">
-              验证邮箱，解锁班级墙/班日志！
-            </p>
-            <div className={styles.heroBadges} data-animate="hero">
-              <div className={styles.heroBadge}>
-                <span className={styles.heroBadgeTitle}>Stay connected！</span>
-                <p className={styles.heroBadgeText}>不要错过26B班的新动态！</p>
-              </div>
-            </div>
-            <div className="scene-actions" data-animate="hero">
-              <Link
-                to="/"
-                className="scene-button ghost"
-                onClick={(event) => triggerIris?.(event, '/')}
-              >
-                <i className="fas fa-house"></i>
-                返回首页
-              </Link>
-              <Link
-                to="/login"
-                className="scene-button primary"
-                state={{ from: fromPath }}
-                onClick={(event) => triggerIris?.(event, '/login', { state: { from: fromPath } })}
-              >
-                <i className="fas fa-arrow-right-to-bracket"></i>
-                转至登录页
-              </Link>
-            </div>
-          </div>
+          <RegisterHero
+            heroRef={heroRef}
+            fromPath={fromPath}
+            triggerIris={triggerIris}
+            styles={styles}
+          />
 
           <div className={styles.formCard} ref={formRef}>
             <div className={styles.formHeader} data-animate="form">
@@ -218,135 +190,19 @@ const Register = () => {
 
             {notice && <NoticeBox type={notice.type} message={notice.message} />}
 
-            <form onSubmit={handleSubmit}>
-              <div className={styles.sectionTitle} data-animate="form">
-                第一步 · 验证邮箱
-              </div>
-
-              <div className={styles.field} data-animate="form">
-                <label className="form-label" htmlFor="register-email">
-                  Email
-                </label>
-                <input
-                  id="register-email"
-                  name="email"
-                  type="email"
-                  className="form-control"
-                  value={formData.email}
-                  onChange={handleChange}
-                  autoComplete="email"
-                  placeholder="name@example.com"
-                  required
-                />
-              </div>
-
-              <div className={styles.field} data-animate="form">
-                <div className={styles.otpRow}>
-                  <div>
-                    <label className="form-label" htmlFor="register-otp">
-                      验证码
-                    </label>
-                    <input
-                      id="register-otp"
-                      name="otp"
-                      type="text"
-                      className="form-control"
-                      value={formData.otp}
-                      onChange={handleChange}
-                      autoComplete="one-time-code"
-                      placeholder="8位验证码"
-                      required
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    className={`scene-button ghost ${styles.compactButton}`}
-                    onClick={handleSendOtp}
-                    disabled={sendingOtp}
-                  >
-                    {sendingOtp ? '发送中...' : '发送验证码'}
-                  </button>
-                </div>
-                <span className={styles.helperText}>我们会向您的邮箱发送验证码</span>
-              </div>
-
-              <div className={styles.divider} data-animate="form" />
-
-              <div className={styles.sectionTitle} data-animate="form">
-                第二步 · 取一个昵称吧
-              </div>
-
-              <div className={styles.field} data-animate="form">
-                <label className="form-label" htmlFor="register-nickname">
-                  昵称
-                </label>
-                <input
-                  id="register-nickname"
-                  name="nickname"
-                  type="text"
-                  className="form-control"
-                  value={formData.nickname}
-                  onChange={handleChange}
-                  autoComplete="username"
-                  placeholder="请问先生如何称呼"
-                  required
-                />
-              </div>
-
-              <div className={styles.field} data-animate="form">
-                <label className="form-label" htmlFor="register-password">
-                  密码
-                </label>
-                <input
-                  id="register-password"
-                  name="password"
-                  type="password"
-                  className="form-control"
-                  value={formData.password}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                  placeholder="设置密码"
-                  required
-                />
-              </div>
-
-              <div className={styles.field} data-animate="form">
-                <label className="form-label" htmlFor="register-confirm-password">
-                  确认密码
-                </label>
-                <input
-                  id="register-confirm-password"
-                  name="confirmPassword"
-                  type="password"
-                  className={`form-control ${confirmPasswordMismatch ? styles.inputError : ''}`}
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                  placeholder="重新输入密码"
-                  aria-invalid={confirmPasswordMismatch}
-                  required
-                />
-                {confirmPasswordMismatch && <span className={styles.helperText}>密码输错了哦</span>}
-              </div>
-
-              <div className={styles.formActions} data-animate="form">
-                <button
-                  type="submit"
-                  className="scene-button primary"
-                  disabled={!canSubmit || submitting}
-                >
-                  {submitting ? '创建中...' : '创建账户'}
-                </button>
-                <Link
-                  to="/login"
-                  className={styles.altLink}
-                  state={{ from: fromPath }}
-                  onClick={(event) => triggerIris?.(event, '/login', { state: { from: fromPath } })}
-                >
-                  已有账户？请登录
-                </Link>
-              </div>
-            </form>
+            <RegisterForm
+              formData={formData}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              handleSendOtp={handleSendOtp}
+              sendingOtp={sendingOtp}
+              confirmPasswordMismatch={confirmPasswordMismatch}
+              canSubmit={canSubmit}
+              submitting={submitting}
+              fromPath={fromPath}
+              triggerIris={triggerIris}
+              styles={styles}
+            />
           </div>
         </div>
       </section>

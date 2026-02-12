@@ -24,6 +24,7 @@ const UserDock = () => {
   const buttonRef = useRef(null);
   const { triggerIris } = useIrisTransition();
   const location = useLocation();
+  const baseUrl = import.meta.env.BASE_URL || '/';
 
   const fromPath = `${location.pathname}${location.search || ''}${location.hash || ''}`;
   const open = openKey === location.key;
@@ -154,8 +155,14 @@ const UserDock = () => {
   }, [open]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setOpenKey(null);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setOpenKey(null);
+      window.location.assign(`${baseUrl}home`);
+    } catch (error) {
+      console.error('UserDock sign out error:', error);
+    }
   };
 
   const displayName = useMemo(() => {

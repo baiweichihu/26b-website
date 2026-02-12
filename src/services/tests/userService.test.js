@@ -6,7 +6,9 @@ import {
   signUpVerifyAndSetInfo,
   signOut,
   resetPasswordConfirm,
+  submitGuestIdentityUpgradeRequest,
 } from '../userService';
+import { generateIdenticonAvatarUrl } from '../../utils/avatarUtils';
 import { supabase } from '../../lib/supabase';
 
 // mock the supabase client
@@ -18,6 +20,7 @@ jest.mock('../../lib/supabase', () => ({
       signInWithOtp: jest.fn(),
       resetPasswordForEmail: jest.fn(),
       updateUser: jest.fn(),
+      getUser: jest.fn(),
       signOut: jest.fn(),
     },
     from: jest.fn(),
@@ -104,10 +107,18 @@ describe('login-register-reset', () => {
   describe('sendRegisterOtp', () => {
     test('Should send registration OTP to email', async () => {
       // prepare mock data
+      const mockLimit = jest.fn().mockResolvedValue({ data: [], error: null });
+      const mockEq = jest.fn().mockReturnValue({ limit: mockLimit });
+      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      supabase.from.mockReturnValue({ select: mockSelect });
       supabase.auth.signInWithOtp.mockResolvedValue({ error: null });
       // call the backend function
       const result = await sendRegisterOtp('new@example.com');
       // assert the expected result
+      expect(supabase.from).toHaveBeenCalledWith('profiles');
+      expect(mockSelect).toHaveBeenCalledWith('id');
+      expect(mockEq).toHaveBeenCalledWith('email', 'new@example.com');
+      expect(mockLimit).toHaveBeenCalledWith(1);
       expect(supabase.auth.signInWithOtp).toHaveBeenCalledWith({
         email: 'new@example.com',
         options: {
@@ -116,6 +127,19 @@ describe('login-register-reset', () => {
         },
       });
       expect(result.success).toBe(true);
+    });
+
+    test('Should return error when account already exists', async () => {
+      const mockLimit = jest.fn().mockResolvedValue({ data: [{ id: 'user-1' }], error: null });
+      const mockEq = jest.fn().mockReturnValue({ limit: mockLimit });
+      const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+      supabase.from.mockReturnValue({ select: mockSelect });
+
+      const result = await sendRegisterOtp('existing@example.com');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Account already exists. Please log in.');
+      expect(supabase.auth.signInWithOtp).not.toHaveBeenCalled();
     });
   });
   // ================== end sendRegisterOtp Test ====================
@@ -180,6 +204,7 @@ describe('login-register-reset', () => {
       const password = 'newpassword';
       const nickname = 'NewUser';
       const userId = 'user-123';
+      const expectedAvatarUrl = generateIdenticonAvatarUrl(userId);
 
       // mock verifyOtp response
       supabase.auth.verifyOtp.mockResolvedValue({
@@ -211,7 +236,10 @@ describe('login-register-reset', () => {
         password: password,
       });
       expect(supabase.from).toHaveBeenCalledWith('profiles');
-      expect(mockUpdate).toHaveBeenCalledWith({ nickname: nickname });
+      expect(mockUpdate).toHaveBeenCalledWith({
+        nickname: nickname,
+        avatar_url: expectedAvatarUrl,
+      });
       expect(mockEq).toHaveBeenCalledWith('id', userId);
       expect(result.success).toBe(true);
     });
@@ -245,4 +273,49 @@ describe('login-register-reset', () => {
     });
   });
   //================= end signOut Test========================
+
+  //================= submitGuestIdentityUpgradeRequest Test========================
+  describe('submitGuestIdentityUpgradeRequest', () => {
+    test('Should insert admin request for identity upgrade', async () => {
+      const mockUser = { id: 'user-777' };
+      supabase.auth.getUser.mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+      const mockInsert = jest.fn().mockResolvedValue({ error: null });
+      supabase.from.mockReturnValue({ insert: mockInsert });
+
+      const result = await submitGuestIdentityUpgradeRequest({
+        evidence: 'Class of 2010, Section B',
+        nickname: 'Alex',
+      });
+
+      expect(supabase.auth.getUser).toHaveBeenCalled();
+      expect(supabase.from).toHaveBeenCalledWith('admin_requests');
+      expect(mockInsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          requester_id: mockUser.id,
+          request_type: 'upgrade_identity',
+          status: 'pending',
+        })
+      );
+      expect(result.success).toBe(true);
+    });
+
+    test('Should return error when user is not signed in', async () => {
+      supabase.auth.getUser.mockResolvedValue({
+        data: { user: null },
+        error: null,
+      });
+
+      const result = await submitGuestIdentityUpgradeRequest({
+        evidence: 'Class of 2010',
+        nickname: null,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('You are not signed in.');
+    });
+  });
+  //================= end submitGuestIdentityUpgradeRequest Test========================
 });

@@ -4,6 +4,7 @@ import { sendLoginOtp, signIn } from '../services/userService';
 import NoticeBox from '../components/widgets/NoticeBox';
 import { useIrisTransition } from '../components/ui/IrisTransition';
 import styles from './Auth.module.css';
+import LoginHero from '../components/features/user/LoginHero';
 
 const Login = () => {
   const [loginType, setLoginType] = useState('password');
@@ -120,7 +121,7 @@ const Login = () => {
     setNotice(null);
     const result = await sendLoginOtp(formData.account.trim());
     if (result.success) {
-      setNotice({ type: 'success', message: `OTP sent to ${formData.account.trim()}.` });
+      setNotice({ type: 'success', message: `验证码已发送至${formData.account.trim()}.` });
     } else {
       setNotice({ type: 'error', message: result.error || 'Failed to send OTP.' });
     }
@@ -158,49 +159,12 @@ const Login = () => {
         <div className={styles.glow} ref={glowRef} aria-hidden="true" />
         <div className={styles.glowSecondary} ref={glowSecondaryRef} aria-hidden="true" />
         <div className={styles.authLayout}>
-          <div className={styles.hero} ref={heroRef}>
-            <p className="scene-kicker" data-animate="hero">
-              登录
-            </p>
-            <h1 className="scene-title" data-animate="hero">
-              欢迎回家！
-            </h1>
-            <p className="scene-subtitle" data-animate="hero">
-              登录并验证身份，解锁26B班的专属回忆
-            </p>
-            <div className={styles.heroBadges} data-animate="hero">
-              <div className={styles.heroBadge}>
-                <span className={styles.heroBadgeTitle}>登录/注册账号</span>
-                <p className={styles.heroBadgeText}>解锁班级墙公开内容</p>
-              </div>
-              <div className={styles.heroBadge}>
-                <span className={styles.heroBadgeTitle}>验证校友身份</span>
-                <p className={styles.heroBadgeText}>解锁班日志与班级墙校友可见内容</p>
-              </div>
-            </div>
-            <div className="scene-actions" data-animate="hero">
-              <Link
-                to="/"
-                className="scene-button ghost"
-                onClick={(event) => triggerIris?.(event, '/')}
-              >
-                <i className="fas fa-house"></i>
-                返回首页
-              </Link>
-              <Link
-                to="/register"
-                className="scene-button primary"
-                state={{ from: fromPath }}
-                onClick={(event) =>
-                  triggerIris?.(event, '/register', { state: { from: fromPath } })
-                }
-              >
-                <i className="fas fa-user-plus"></i>
-                前往注册
-              </Link>
-            </div>
-          </div>
-
+          <LoginHero
+            heroRef={heroRef}
+            fromPath={fromPath}
+            triggerIris={triggerIris}
+            styles={styles}
+          />
           <div className={styles.formCard} ref={formRef}>
             <div className={styles.formHeader} data-animate="form">
               <h2>请登录</h2>
@@ -295,7 +259,7 @@ const Login = () => {
                       {otpSending ? '发送中...' : '发送验证码'}
                     </button>
                   </div>
-                  <span className={styles.helperText}>我们会向你的邮箱发送6位验证码</span>
+                  <span className={styles.helperText}>我们会向你的邮箱发送8位验证码</span>
                 </div>
               )}
 
@@ -305,7 +269,7 @@ const Login = () => {
                   className="scene-button primary"
                   disabled={!canSubmit || loading}
                 >
-                  {loading ? 'Signing in...' : 'Sign in'}
+                  {loading ? '登录中...' : '登录'}
                 </button>
                 <Link
                   to="/register"

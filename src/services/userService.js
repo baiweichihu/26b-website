@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase.js';
+import { generateIdenticonAvatarUrl } from '../utils/avatarUtils.js';
 
 // ================== User Registration / Login / Password Reset / Logout ===========================
 /**
@@ -56,8 +57,19 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
  * @param {string} email
  */
 export const sendRegisterOtp = async (email) => {
+  const normalizedEmail = email?.trim();
+  const { data: existingProfiles, error: existingProfileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', normalizedEmail)
+    .limit(1);
+  if (existingProfileError) return { success: false, error: existingProfileError.message };
+  if (existingProfiles?.length) {
+    return { success: false, error: '用户已经存在，请登录' };
+  }
+
   const { error } = await supabase.auth.signInWithOtp({
-    email,
+    email: normalizedEmail,
     options: {
       shouldCreateUser: true,
       data: {},
@@ -144,10 +156,12 @@ export const signUpVerifyAndSetInfo = async ({ email, otp, password, nickname })
       if (pwdError) throw pwdError;
     }
 
+    const avatarUrl = generateIdenticonAvatarUrl(user?.id || email);
+
     // update profile
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ nickname: nickname })
+      .update({ nickname: nickname, avatar_url: avatarUrl })
       .eq('id', user.id); // update the nickname of the user whose id is equal to the current user id
 
     if (profileError) throw profileError;
@@ -167,4 +181,47 @@ export const signOut = async () => {
 // ================== END OF User Registration / Login / Password Reset / Logout ===========================
 
 // ================== User Profile Management ===========================
+/**
+ * Submit guest identity upgrade request
+ * @param {Object} params
+ * @param {string} params.evidence
+ * @param {string|null} params.nickname
+ */
+export const submitGuestIdentityUpgradeRequest = async ({ evidence, nickname }) => {
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error('You are not signed in.');
+    }
+
+    const now = new Date().toISOString();
+    const payload = {
+      requester_id: user.id,
+      request_type: 'upgrade_identity',
+      target_id: null,
+      evidence: JSON.stringify({
+        message: evidence?.trim() || '',
+        nickname: nickname || null,
+      }),
+      requested_permissions: null,
+      status: 'pending',
+      created_at: now,
+    };
+
+    const { error: insertError } = await supabase.from('admin_requests').insert(payload);
+
+    if (insertError) {
+      throw new Error(insertError.message || 'Failed to submit request.');
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Guest identity upgrade request error:', error);
+    return { success: false, error: error.message };
+  }
+};
 // ================== END OF User Profile Management ===========================
