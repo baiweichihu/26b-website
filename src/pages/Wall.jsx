@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import PostCard from '../components/features/post/PostCard';
 import NoticeBox from '../components/widgets/NoticeBox';
+import AuthGateOverlay from '../components/ui/AuthGateOverlay';
+import gateStyles from '../components/ui/AuthGateOverlay.module.css';
 import { getPosts, deletePost, searchPosts } from '../services/postService';
 import styles from './Wall.module.css';
 
@@ -16,6 +18,47 @@ const Wall = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchHashtag, setSearchHashtag] = useState('');
   const [searchSortBy, setSearchSortBy] = useState('time');
+  const [authStatus, setAuthStatus] = useState('loading');
+
+  const loadAuthStatus = useCallback(async () => {
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        setAuthStatus('anonymous');
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('identity_type, role')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile) {
+        setAuthStatus('anonymous');
+        return;
+      }
+
+      if (profile.role === 'admin' || profile.role === 'superuser') {
+        setAuthStatus('member');
+        return;
+      }
+
+      if (profile.identity_type === 'guest') {
+        setAuthStatus('guest');
+        return;
+      }
+
+      setAuthStatus('member');
+    } catch (error) {
+      console.error('Wall auth check failed:', error);
+      setAuthStatus('anonymous');
+    }
+  }, []);
 
   const refreshPosts = useCallback(async () => {
     try {
@@ -49,8 +92,20 @@ const Wall = () => {
   }, []);
 
   useEffect(() => {
-    refreshPosts();
-  }, [refreshPosts]);
+    loadAuthStatus();
+  }, [loadAuthStatus]);
+
+  useEffect(() => {
+    if (authStatus === 'member' || authStatus === 'guest') {
+      refreshPosts();
+      return;
+    }
+    if (authStatus === 'anonymous') {
+      setLoading(false);
+      setPosts([]);
+      setError(null);
+    }
+  }, [authStatus, refreshPosts]);
 
   const handleDeletePost = async (postId) => {
     try {
@@ -151,58 +206,74 @@ const Wall = () => {
     navigate('/posts/new');
   };
 
-  const handleTestLogin = async () => {
-    try {
-      setActionLoading(true);
-      setNotice(null);
+  // const handleTestLogin = async () => {
+  //   try {
+  //     setActionLoading(true);
+  //     setNotice(null);
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: 'test@26b.dev',
-        password: 'shao26b',
-      });
+  //     const { error: signInError } = await supabase.auth.signInWithPassword({
+  //       email: 'test@26b.dev',
+  //       password: 'shao26b',
+  //     });
 
-      if (signInError) {
-        throw new Error(signInError.message || '登录失败');
-      }
+  //     if (signInError) {
+  //       throw new Error(signInError.message || '登录失败');
+  //     }
 
-      setNotice({ type: 'success', message: '测试账号登录成功。' });
-      await refreshPosts();
-    } catch (err) {
-      setNotice({ type: 'error', message: `登录失败: ${err.message}` });
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  //     setNotice({ type: 'success', message: '测试账号登录成功。' });
+  //     await loadAuthStatus();
+  //   } catch (err) {
+  //     setNotice({ type: 'error', message: `登录失败: ${err.message}` });
+  //   } finally {
+  //     setActionLoading(false);
+  //   }
+  // };
 
-  const handleTestLogout = async () => {
-    try {
-      setActionLoading(true);
-      setNotice(null);
+  // const handleTestLogout = async () => {
+  //   try {
+  //     setActionLoading(true);
+  //     setNotice(null);
 
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) {
-        throw new Error(signOutError.message || '退出失败');
-      }
+  //     const { error: signOutError } = await supabase.auth.signOut();
+  //     if (signOutError) {
+  //       throw new Error(signOutError.message || '退出失败');
+  //     }
 
-      setPosts([]);
-      setNotice({ type: 'success', message: '已退出登录。' });
-      await refreshPosts();
-    } catch (err) {
-      setNotice({ type: 'error', message: `退出失败: ${err.message}` });
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  //     setPosts([]);
+  //     setNotice({ type: 'success', message: '已退出登录。' });
+  //     await loadAuthStatus();
+  //   } catch (err) {
+  //     setNotice({ type: 'error', message: `退出失败: ${err.message}` });
+  //   } finally {
+  //     setActionLoading(false);
+  //   }
+  // };
+
+  const isLocked = authStatus === 'anonymous';
+  const gateCopy =
+    authStatus === 'guest'
+      ? {
+          title: '抱歉，游客不能浏览该页面',
+          message: '请验证校友身份，浏览班级墙',
+        }
+      : {
+          title: '请登录',
+          message: '登录即可浏览班级墙',
+        };
 
   return (
     <div className={`page-content scene-page ${styles.pageContent}`}>
-      <section className={`scene-panel ${styles.wallPanel}`}>
-        <div className={styles.wallHeader}>
-          <p className="scene-kicker">班级留言墙</p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h1 className="scene-title">共享笔记与回响</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button
+      <section className={`scene-panel ${styles.wallPanel} ${gateStyles.lockedContainer}`}>
+        <div
+          className={`${gateStyles.lockedContent} ${isLocked ? gateStyles.isLocked : ''}`}
+          aria-hidden={isLocked}
+        >
+          <div className={styles.wallHeader}>
+            <p className="scene-kicker">班级留言墙</p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h1 className="scene-title">共享笔记与回响</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {/* <button
                 type="button"
                 className="scene-button ghost"
                 onClick={handleTestLogin}
@@ -217,96 +288,104 @@ const Wall = () => {
                 disabled={actionLoading}
               >
                 模拟退出
+              </button> */}
+                <button
+                  type="button"
+                  className="scene-button primary"
+                  style={{ marginRight: '12px', padding: '1.05rem 2.1rem', fontSize: '1.2rem' }}
+                  onClick={handleCreatePostClick}
+                >
+                  发布帖子 &gt;ω&lt;
+                </button>
+              </div>
+            </div>
+            <p className="scene-subtitle">留下留言、庆祝里程碑，或为班级写下一段短短的回忆。</p>
+
+            {notice && <NoticeBox type={notice.type} message={notice.message} />}
+
+            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <input
+                type="text"
+                value={searchKeyword}
+                onChange={(event) => setSearchKeyword(event.target.value)}
+                placeholder="搜索关键词"
+                className="form-control form-control-sm"
+                style={{ maxWidth: '180px' }}
+              />
+              <input
+                type="text"
+                value={searchHashtag}
+                onChange={(event) => setSearchHashtag(event.target.value)}
+                placeholder="标签(#可选)"
+                className="form-control form-control-sm"
+                style={{ maxWidth: '180px' }}
+              />
+              <select
+                value={searchSortBy}
+                onChange={(event) => setSearchSortBy(event.target.value)}
+                className="form-select form-select-sm"
+                style={{ maxWidth: '140px' }}
+              >
+                <option value="time">按时间</option>
+                <option value="likes">按点赞</option>
+              </select>
+              <button
+                onClick={handleTestSearch}
+                disabled={actionLoading}
+                className="scene-button ghost"
+              >
+                {actionLoading ? '处理中...' : '🔍 搜索'}
               </button>
               <button
-                type="button"
-                className="scene-button primary"
-                style={{ marginRight: '12px', padding: '1.05rem 2.1rem', fontSize: '1.2rem' }}
-                onClick={handleCreatePostClick}
+                onClick={handleResetSearch}
+                disabled={actionLoading}
+                className="scene-button ghost"
               >
-                发布帖子 &gt;ω&lt;
+                重置
               </button>
             </div>
           </div>
-          <p className="scene-subtitle">留下留言、庆祝里程碑，或为班级写下一段短短的回忆。</p>
 
-          {notice && <NoticeBox type={notice.type} message={notice.message} />}
+          {loading && (
+            <div className={styles.stateBlock}>
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">加载中...</span>
+              </div>
+              <p className={styles.stateText}>正在加载帖子...</p>
+            </div>
+          )}
 
-          <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <input
-              type="text"
-              value={searchKeyword}
-              onChange={(event) => setSearchKeyword(event.target.value)}
-              placeholder="搜索关键词"
-              className="form-control form-control-sm"
-              style={{ maxWidth: '180px' }}
-            />
-            <input
-              type="text"
-              value={searchHashtag}
-              onChange={(event) => setSearchHashtag(event.target.value)}
-              placeholder="标签(#可选)"
-              className="form-control form-control-sm"
-              style={{ maxWidth: '180px' }}
-            />
-            <select
-              value={searchSortBy}
-              onChange={(event) => setSearchSortBy(event.target.value)}
-              className="form-select form-select-sm"
-              style={{ maxWidth: '140px' }}
-            >
-              <option value="time">按时间</option>
-              <option value="likes">按点赞</option>
-            </select>
-            <button
-              onClick={handleTestSearch}
-              disabled={actionLoading}
-              className="scene-button ghost"
-            >
-              {actionLoading ? '处理中...' : '🔍 搜索'}
-            </button>
-            <button
-              onClick={handleResetSearch}
-              disabled={actionLoading}
-              className="scene-button ghost"
-            >
-              重置
-            </button>
+          {error && (
+            <div className={styles.stateBlock}>
+              <NoticeBox type="error" message={error} />
+            </div>
+          )}
+
+          {!loading && !error && posts.length === 0 && (
+            <div className={styles.stateBlock}>
+              <div className={styles.emptyState}>
+                <i className="fas fa-comment-slash fa-3x mb-3"></i>
+                <h4>暂无帖子</h4>
+                <p>成为第一个为 26B 班留言的人。</p>
+              </div>
+            </div>
+          )}
+
+          <div className="row g-4">
+            {posts.map((post) => {
+              return (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onDeletePost={() => handleDeletePost(post.id)}
+                />
+              );
+            })}
           </div>
         </div>
-
-        {loading && (
-          <div className={styles.stateBlock}>
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">加载中...</span>
-            </div>
-            <p className={styles.stateText}>正在加载帖子...</p>
-          </div>
+        {isLocked && (
+          <AuthGateOverlay mode={authStatus} title={gateCopy.title} message={gateCopy.message} />
         )}
-
-        {error && (
-          <div className={styles.stateBlock}>
-            <NoticeBox type="error" message={error} />
-          </div>
-        )}
-
-        {!loading && !error && posts.length === 0 && (
-          <div className={styles.stateBlock}>
-            <div className={styles.emptyState}>
-              <i className="fas fa-comment-slash fa-3x mb-3"></i>
-              <h4>暂无帖子</h4>
-              <p>成为第一个为 26B 班留言的人。</p>
-            </div>
-          </div>
-        )}
-
-        <div className="row g-4">
-          {posts.map((post) => {
-            return (
-              <PostCard key={post.id} post={post} onDeletePost={() => handleDeletePost(post.id)} />
-            );
-          })}
-        </div>
       </section>
     </div>
   );

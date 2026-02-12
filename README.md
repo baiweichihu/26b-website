@@ -46,6 +46,9 @@ src/
 │   │   │   └── EasterEgg.module.css
 │   │   ├── album/             # 相册相关 (对应 AlbumService)
 │   │   ├── user/              # 用户相关 (对应 UserService)
+|   |   |   ├── LoginHero.jsx  # 登录页的图组件
+|   |   |   ├── RegisterHero.jsx  # 注册页的图组件
+|   |   |   └── RegisterForm.jsx  # 注册页的表单组件
 │   │   ├── inbox/             # 通知相关 (对应 InboxService)
 │   │   ├── tag/               # 标签相关 (对应 TagService)
 │   │   └── admin/             # 管理相关 (对应 AdminService)
@@ -80,11 +83,11 @@ src/
 │   ├── Wall.jsx               # 班级墙
 │   ├── Wall.module.css
 │   ├── CreatePost.jsx          # 发布帖子
-│   ├── TicketCenter.jsx        # 工单中心
 │   ├── PostDetail.jsx          # 帖子详情
 │   ├── Login.jsx               # 登录
+│   ├── Auth.module.css
 │   ├── Register.jsx            # 注册
-│   ├── Profile.jsx             # 个人档案
+│   ├── UserManagement.jsx     # 用户管理
 │   ├── Activities.jsx         # 活动相册
 │   ├── Journal.jsx            # 班级日志
 │   ├── Introduction.jsx       # 班级介绍

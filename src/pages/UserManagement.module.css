@@ -1,0 +1,150 @@
+.pageContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.managePanel {
+  padding: clamp(1.8rem, 4vw, 3rem);
+}
+
+.manageHeader {
+  margin-bottom: 1.6rem;
+}
+
+.manageGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: clamp(1.2rem, 3vw, 2.4rem);
+}
+
+.card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  box-shadow: 0 18px 32px rgba(18, 32, 60, 0.12);
+  padding: 1.4rem;
+}
+
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.profileAvatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #132238;
+  background: linear-gradient(120deg, var(--scene-accent), var(--scene-accent-2));
+}
+
+.profileAvatarImg {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profileName {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profileMeta {
+  color: var(--muted-color);
+  font-size: 0.88rem;
+}
+
+.metaList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted-color);
+}
+
+.metaItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.8rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted-color);
+  font-weight: 600;
+}
+
+.actionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.actionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.9rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 600;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.actionItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 18px rgba(18, 32, 60, 0.12);
+}
+
+.actionGhost {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.actionButton {
+  border: none;
+  cursor: pointer;
+}
+
+.actionMeta {
+  font-size: 0.78rem;
+  color: var(--muted-color);
+}
+
+@media (max-width: 960px) {
+  .manageGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+[data-theme='dark'] .card {
+  background: rgba(12, 18, 32, 0.88);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .actionItem {
+  background: rgba(16, 24, 44, 0.7);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .actionGhost {
+  background: rgba(16, 24, 44, 0.45);
+}
