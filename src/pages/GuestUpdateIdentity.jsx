@@ -23,6 +23,7 @@ const GuestUpdateIdentity = () => {
   const [notice, setNotice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [hasUpgradeRequest, setHasUpgradeRequest] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -49,6 +50,25 @@ const GuestUpdateIdentity = () => {
         }
 
         setProfile(profileData);
+
+        let upgradeRequestExists = false;
+        if (profileData.identity_type === 'guest') {
+          const { data: requestData, error: requestError } = await supabase
+            .from('admin_requests')
+            .select('id')
+            .eq('requester_id', user.id)
+            .eq('request_type', 'upgrade_identity')
+            .eq('status', 'pending')
+            .limit(1);
+
+          if (requestError) {
+            console.error('Failed to load admin request:', requestError);
+          } else {
+            upgradeRequestExists = Boolean(requestData?.length);
+          }
+        }
+
+        setHasUpgradeRequest(upgradeRequestExists);
 
         if (profileData.role === 'admin' || profileData.role === 'superuser') {
           setStatus('member');
@@ -98,6 +118,7 @@ const GuestUpdateIdentity = () => {
       }
 
       setSubmitted(true);
+      setHasUpgradeRequest(true);
       setNotice({ type: 'success', message: '您的申请已上交，请等待审核' });
       setFormData((prev) => ({ ...prev, evidence: '' }));
     } catch (error) {
@@ -108,6 +129,10 @@ const GuestUpdateIdentity = () => {
   };
 
   if (status === 'loading') {
+    return null;
+  }
+
+  if (hasUpgradeRequest) {
     return (
       <div className="page-content scene-page">
         <section className="scene-panel" style={{ padding: '2rem' }}>
