@@ -112,6 +112,14 @@ const UserManagement = () => {
     }
   };
 
+  const handleResetPasswordNav = (event) => {
+    if (triggerIris) {
+      triggerIris(event, '/user/reset-password');
+    } else {
+      navigate('/user/reset-password');
+    }
+  };
+
   const displayName = useMemo(() => {
     if (status === 'anonymous') return '访客';
     return profile?.nickname || profile?.email || 'User';
@@ -215,6 +223,19 @@ const UserManagement = () => {
               <li className={styles.metaItem}>
                 <span>角色</span>
                 <span>{roleLabels[profile?.role] || '普通用户'}</span>
+              </li>
+              <li className={styles.metaItem}>
+                <span>密码</span>
+                <span className={styles.passwordAction}>
+                  <span className={styles.passwordDots}>........</span>
+                  <button
+                    type="button"
+                    className={styles.passwordButton}
+                    onClick={handleResetPasswordNav}
+                  >
+                    重置密码
+                  </button>
+                </span>
               </li>
             </ul>
           </div>

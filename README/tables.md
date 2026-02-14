@@ -38,21 +38,6 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
   - `granted_at`: 授权时间
   - `updated_at`: 最后更新时间
 
-#### **`profile_change_requests`**
-
-用于处理"用户修改头像和昵称需要审核"的需求。
-
-- **主键 (PK):** `id` (UUID)
-- **外键 (FK):** `user_id` (关联 `profiles.id`)
-- **重要字段:**
-  - `new_nickname`: 申请的新昵称
-  - `new_avatar_url`: 申请的新头像
-  - `new_bio`: 申请的新简介
-  - `status`: 状态 (pending/approved/rejected)
-  - `reviewed_by`: 审核人ID (关联管理员的 `profiles.id`)
-
----
-
 ### 2. PostService
 
 #### **`posts`**
@@ -135,30 +120,7 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 
 ---
 
-### 4. **TagService**
-
-为了实现"支持Hashtag搜索"的最佳性能，建议使用多对多关系设计。
-
-#### **`hashtags`**
-
-存储所有唯一的标签名。
-
-- **主键 (PK):** `id` (Integer 或 UUID)
-- **重要字段:**
-  - `name`: 标签文本 (例如 "运动会", 唯一索引)
-  - `usage_count`: 使用次数 (用于热门排序)
-
-#### **`post_tags`**
-
-- **主键 (PK):** 联合主键 (`post_id`, `tag_id`)
-
-#### **`photo_tags`**
-
-- **主键 (PK):** 联合主键 (`photo_id`, `tag_id`)
-
----
-
-### 5. **AdminService**
+### 4. **AdminService**
 
 为了处理复杂的审核流程（升级校友、删除图片申请、举报、管理员任免），建议设立通用的请求/工单表。
 
@@ -208,7 +170,7 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 
 ---
 
-### 6. **InboxService**
+### 5. **InboxService**
 
 #### **`notifications`**
 

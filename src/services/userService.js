@@ -178,6 +178,15 @@ export const signOut = async () => {
   if (error) throw error;
   return { success: true };
 };
+
+/**
+ * Get current signed-in user
+ */
+export const getCurrentUser = async () => {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return { success: false, error: error.message };
+  return { success: true, user: data?.user || null };
+};
 // ================== END OF User Registration / Login / Password Reset / Logout ===========================
 
 // ================== User Profile Management ===========================

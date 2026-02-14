@@ -27,6 +27,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import GuestUpdateIdentity from './pages/GuestUpdateIdentity';
 import UserManagement from './pages/UserManagement';
+import ResetPassword from './pages/ResetPassword';
 import MusicPlayer from './components/features/media/MusicPlayer';
 import EasterEgg from './components/features/media/EasterEgg'; // already imported
 
@@ -54,6 +55,7 @@ const AppLayout = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/guest-update-identity" element={<GuestUpdateIdentity />} />
+          <Route path="/user/reset-password" element={<ResetPassword />} />
           <Route path="/user/manage" element={<UserManagement />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

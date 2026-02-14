@@ -78,6 +78,41 @@
   gap: 1rem;
 }
 
+.passwordAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.passwordDots {
+  letter-spacing: 0.18em;
+  color: var(--muted-color);
+}
+
+.passwordButton {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-color);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.passwordButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(18, 32, 60, 0.12);
+}
+
+.passwordButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .sectionTitle {
   margin: 0 0 0.8rem;
   font-size: 0.85rem;
@@ -147,4 +182,9 @@
 
 [data-theme='dark'] .actionGhost {
   background: rgba(16, 24, 44, 0.45);
+}
+
+[data-theme='dark'] .passwordButton {
+  background: rgba(16, 24, 44, 0.7);
+  border-color: rgba(255, 255, 255, 0.12);
 }
