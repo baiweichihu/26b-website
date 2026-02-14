@@ -159,7 +159,7 @@ const UserDock = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       setOpenKey(null);
-      window.location.assign(`${baseUrl}home`);
+      window.location.assign(`${baseUrl}`);
     } catch (error) {
       console.error('UserDock sign out error:', error);
     }
