@@ -41,7 +41,7 @@ const UserManagement = () => {
 
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('nickname, avatar_url, identity_type, role, email, created_at')
+        .select('nickname, avatar_url, identity_type, role, email, bio, created_at')
         .eq('id', user.id)
         .single();
 
@@ -117,6 +117,14 @@ const UserManagement = () => {
       triggerIris(event, '/user/reset-password');
     } else {
       navigate('/user/reset-password');
+    }
+  };
+
+  const handleProfileEditNav = (event) => {
+    if (triggerIris) {
+      triggerIris(event, '/user/edit-profile');
+    } else {
+      navigate('/user/edit-profile');
     }
   };
 
@@ -217,6 +225,10 @@ const UserManagement = () => {
                 <span>{profile?.email || '—'}</span>
               </li>
               <li className={styles.metaItem}>
+                <span>个人简介</span>
+                <span>{profile?.bio || '-'}</span>
+              </li>
+              <li className={styles.metaItem}>
                 <span>身份类型</span>
                 <span>{identityLabels[profile?.identity_type] || '—'}</span>
               </li>
@@ -253,6 +265,10 @@ const UserManagement = () => {
                   <span className={styles.actionMeta}>Upgrade</span>
                 </Link>
               )}
+              <button type="button" className={styles.actionItem} onClick={handleProfileEditNav}>
+                <span>修改资料</span>
+                <span className={styles.actionMeta}>Edit</span>
+              </button>
               <button
                 type="button"
                 className={`${styles.actionItem} ${styles.actionButton}`}
