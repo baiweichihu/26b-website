@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import NoticeBox from '../components/widgets/NoticeBox';
-import { useIrisTransition } from '../components/ui/IrisTransition';
+import { supabase } from '../../lib/supabase';
+import NoticeBox from '../../components/widgets/NoticeBox';
+import { useIrisTransition } from '../../components/ui/IrisTransition';
 import styles from './UserManagement.module.css';
 
 const identityLabels = {
@@ -41,7 +41,7 @@ const UserManagement = () => {
 
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('nickname, avatar_url, identity_type, role, email, created_at')
+        .select('nickname, avatar_url, identity_type, role, email, bio, created_at')
         .eq('id', user.id)
         .single();
 
@@ -109,6 +109,22 @@ const UserManagement = () => {
       navigate('/');
     } catch (error) {
       setNotice({ type: 'error', message: error.message || '退出失败。' });
+    }
+  };
+
+  const handleResetPasswordNav = (event) => {
+    if (triggerIris) {
+      triggerIris(event, '/user/reset-password');
+    } else {
+      navigate('/user/reset-password');
+    }
+  };
+
+  const handleProfileEditNav = (event) => {
+    if (triggerIris) {
+      triggerIris(event, '/user/edit-profile');
+    } else {
+      navigate('/user/edit-profile');
     }
   };
 
@@ -209,12 +225,29 @@ const UserManagement = () => {
                 <span>{profile?.email || '—'}</span>
               </li>
               <li className={styles.metaItem}>
+                <span>个人简介</span>
+                <span>{profile?.bio || '-'}</span>
+              </li>
+              <li className={styles.metaItem}>
                 <span>身份类型</span>
                 <span>{identityLabels[profile?.identity_type] || '—'}</span>
               </li>
               <li className={styles.metaItem}>
                 <span>角色</span>
                 <span>{roleLabels[profile?.role] || '普通用户'}</span>
+              </li>
+              <li className={styles.metaItem}>
+                <span>密码</span>
+                <span className={styles.passwordAction}>
+                  <span className={styles.passwordDots}>........</span>
+                  <button
+                    type="button"
+                    className={styles.passwordButton}
+                    onClick={handleResetPasswordNav}
+                  >
+                    重置密码
+                  </button>
+                </span>
               </li>
             </ul>
           </div>
@@ -232,6 +265,10 @@ const UserManagement = () => {
                   <span className={styles.actionMeta}>Upgrade</span>
                 </Link>
               )}
+              <button type="button" className={styles.actionItem} onClick={handleProfileEditNav}>
+                <span>修改资料</span>
+                <span className={styles.actionMeta}>Edit</span>
+              </button>
               <button
                 type="button"
                 className={`${styles.actionItem} ${styles.actionButton}`}

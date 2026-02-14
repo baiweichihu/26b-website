@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import {
   getPostById,
   getComments,
@@ -10,10 +10,10 @@ import {
   toggleCommentLike,
   deletePost,
   deleteComment,
-} from '../services/postService';
-import NoticeBox from '../components/widgets/NoticeBox';
+} from '../../services/postService';
+import NoticeBox from '../../components/widgets/NoticeBox';
 import styles from './Wall.module.css';
-import postStyles from '../components/features/post/PostCard.module.css';
+import postStyles from '../../components/features/post/PostCard.module.css';
 
 const PostDetail = () => {
   const { postId } = useParams();
@@ -285,16 +285,6 @@ const PostDetail = () => {
           <div className={postStyles.postContent} style={{ whiteSpace: 'pre-wrap' }}>
             {post.content}
           </div>
-
-          {post.hashtags && post.hashtags.length > 0 && (
-            <div className={postStyles.postTags} style={{ marginBottom: '12px' }}>
-              {post.hashtags.map((tag) => (
-                <span key={tag} className={postStyles.postTag}>
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
 
           {post.media_urls && post.media_urls.length > 0 && (
             <div className="mb-3">

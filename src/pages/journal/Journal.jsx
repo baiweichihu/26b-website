@@ -1,11 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { supabase } from '../lib/supabase';
-import PDFViewer from '../components/features/journal/PDFViewer';
-import MDViewer from '../components/features/journal/MDViewer';
-import TableOfContents from '../components/features/journal/TableOfContents';
-import JournalLayout from '../components/features/journal/JournalLayout';
-import AuthGateOverlay from '../components/ui/AuthGateOverlay';
-import gateStyles from '../components/ui/AuthGateOverlay.module.css';
+import { supabase } from '../../lib/supabase';
+import PDFViewer from '../../components/features/journal/PDFViewer';
+import MDViewer from '../../components/features/journal/MDViewer';
+import TableOfContents from '../../components/features/journal/TableOfContents';
+import JournalLayout from '../../components/features/journal/JournalLayout';
+import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
+import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
 import styles from './Journal.module.css';
 
 const Journal = () => {

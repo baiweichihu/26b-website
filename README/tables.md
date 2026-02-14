@@ -15,7 +15,6 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 - **重要字段:**
   - `email`: 邮箱
   - `nickname`: 昵称
-  - `real_name`: 真实姓名（可选）
   - `avatar_url`: 头像链接
   - `bio`: 简介
   - `identity_type`: 枚举类型 (enum)。取值：`classmate`(本班同学), `alumni`(校友), `guest`(游客)
@@ -23,35 +22,18 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
   - `is_banned`: 布尔值。是否被禁言
   - `created_at`: 注册时间
 
-#### **`admin_permissions`**
+#### **`upgrade_requests`**
 
-用于记录每个管理员的具体权限范围。
-
-- **主键 (PK):** `id` (UUID)
-- **外键 (FK):** `admin_id` (关联 `profiles.id`，且该用户的 `role` 必须为 `admin` 或 `superuser`)
-- **重要字段:**
-  - `can_manage_user_info`: 布尔值。是否有"用户信息管理"权限（审核注册、审核头像昵称修改）
-  - `can_manage_user_permissions`: 布尔值。是否有"用户权限管理"权限（审核升级校友、禁言用户）
-  - `can_manage_content`: 布尔值。是否有"内容管理"权限（处理举报、删除违规内容）
-  - `can_manage_album`: 布尔值。是否有"相册管理"权限（增删照片、管理文件夹）
-  - `granted_by`: 授予该权限的superuser ID (关联 `profiles.id`)
-  - `granted_at`: 授权时间
-  - `updated_at`: 最后更新时间
-
-#### **`profile_change_requests`**
-
-用于处理"用户修改头像和昵称需要审核"的需求。
+用于游客升级校友申请。
 
 - **主键 (PK):** `id` (UUID)
-- **外键 (FK):** `user_id` (关联 `profiles.id`)
+- **外键 (FK):** `requester_id` (发起人，关联 `profiles.id`)
 - **重要字段:**
-  - `new_nickname`: 申请的新昵称
-  - `new_avatar_url`: 申请的新头像
-  - `new_bio`: 申请的新简介
-  - `status`: 状态 (pending/approved/rejected)
-  - `reviewed_by`: 审核人ID (关联管理员的 `profiles.id`)
-
----
+  - `evidence`: 文本，提交相关证据
+  - `status`: 枚举类型，取值：`pending`, `approved`, `rejected`
+  - `handled_by`: 处理该请求的管理员ID
+  - `created_at`: 申请时间
+  - `handled_at`: 处理时间
 
 ### 2. PostService
 
@@ -95,103 +77,6 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 
 - **主键 (PK):** 联合主键 (`comment_id`, `user_id`)
 
----
-
-### 3. **AlbumService**
-
-#### **`album_folders`**
-
-用于管理员对相册进行文件夹层级管理。
-
-- **主键 (PK):** `id` (UUID)
-- **外键 (FK):** `parent_id` (自关联 `album_folders.id`，用于创建子文件夹，为空则为根文件夹)
-- **重要字段:**
-  - `name`: 文件夹名称
-  - `description`: 文件夹描述 (可选)
-  - `sort_order`: 整数。用于排序显示
-  - `created_by`: 创建该文件夹的管理员ID (关联 `profiles.id`)
-  - `created_at`: 创建时间
-  - `updated_at`: 最后修改时间
-
-#### **`album_photos`**
-
-仅限本班同学上传的公共资源池。
-
-- **主键 (PK):** `id` (UUID)
-- **外键 (FK):**
-  - `uploader_id` (关联 `profiles.id`)
-  - `folder_id` (关联 `album_folders.id`，可为空表示未分类)
-- **重要字段:**
-  - `url`: 图片存储地址
-  - `description`: 描述 (可选)
-  - `width`: 图片宽 (优化前端展示)
-  - `height`: 图片高
-  - `created_at`: 上传时间
-  - `moved_at`: 最后移动到文件夹的时间
-
-#### **`album_likes`**
-
-- **主键 (PK):** 联合主键 (`photo_id`, `user_id`)
-
----
-
-### 4. **TagService**
-
-为了实现"支持Hashtag搜索"的最佳性能，建议使用多对多关系设计。
-
-#### **`hashtags`**
-
-存储所有唯一的标签名。
-
-- **主键 (PK):** `id` (Integer 或 UUID)
-- **重要字段:**
-  - `name`: 标签文本 (例如 "运动会", 唯一索引)
-  - `usage_count`: 使用次数 (用于热门排序)
-
-#### **`post_tags`**
-
-- **主键 (PK):** 联合主键 (`post_id`, `tag_id`)
-
-#### **`photo_tags`**
-
-- **主键 (PK):** 联合主键 (`photo_id`, `tag_id`)
-
----
-
-### 5. **AdminService**
-
-为了处理复杂的审核流程（升级校友、删除图片申请、举报、管理员任免），建议设立通用的请求/工单表。
-
-#### **`admin_requests`**
-
-用于处理以下业务：游客升级校友申请、相册图片添加申请、管理员申请提升权限。
-
-- **主键 (PK):** `id` (UUID)
-- **外键 (FK):** `requester_id` (发起人)
-- **重要字段:**
-  - `request_type`: 枚举。取值：`upgrade_identity`, `add_photo`, `change_permissions`
-  - `target_id`: UUID (可选)。例如如果想要申请添加某张照片，这里就填 `album_photos.id`
-  - `evidence`: 文本/JSON列表。例如"提交相关证据升级为校友"的证据描述或图片链接
-  - `requested_permissions`: JSONB (仅用于 `change_permissions` 类型)。记录申请的新权限配置，例如 `{"can_manage_album": true}`
-  - `status`: `pending`, `approved`, `rejected`
-  - `handled_by`: 处理该请求的管理员/superuser ID
-  - `created_at`: 申请时间
-  - `handled_at`: 处理时间
-
-#### **`admin_appointments` (管理员任免记录表)**
-
-用于superuser任免管理员的历史记录。
-
-- **主键 (PK):** `id` (UUID)
-- **外键 (FK):**
-  - `user_id` (被任免的用户，关联 `profiles.id`)
-  - `appointed_by` (执行任免操作的superuser，关联 `profiles.id`)
-- **重要字段:**
-  - `action`: 枚举。取值：`appoint` (任命), `dismiss` (免职)
-  - `permissions_granted`: JSONB。任命时授予的权限配置（对应 `admin_permissions` 表的各字段）
-  - `reason`: 任免原因说明 (可选)
-  - `created_at`: 操作时间
-
 #### **`content_reports` (内容举报表)**
 
 用于处理帖子和评论的举报。
@@ -207,6 +92,81 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
   - `admin_note`: 管理员处理备注
 
 ---
+
+### 3. **AlbumService**
+
+暂且不需要动态的albums了，如果是静态的albums，直接建表存储图片信息即可，不需要后端再有上传和删除照片的api了；但是还是需要一个移动文件夹的api。链接先都存在本地，之后可以开一个阿里云OSS的bucket存储图片，表里只存储图片的URL。
+
+#### **`album_photos`**
+
+公共资源池。
+
+- **主键 (PK):** `id` (UUID)
+- **外键 (FK):**
+  - `uploader_id` (关联 `profiles.id`)
+- **重要字段:**
+  - `url`: 图片存储地址
+  - `description`: 描述 (可选)
+  - `width`: 图片宽 (优化前端展示)
+  - `height`: 图片高
+  - `created_at`: 上传时间
+  - `moved_at`: 最后移动到文件夹的时间
+
+#### **`album_likes`**
+
+- **主键 (PK):** 联合主键 (`photo_id`, `user_id`)
+
+---
+
+### 4. **AdminService**
+
+#### **`admin_permissions`**
+
+用于记录每个管理员的具体权限范围。
+
+- **主键 (PK):** `id` (UUID)
+- **外键 (FK):** `admin_id` (关联 `profiles.id`，且该用户的 `role` 必须为 `admin` 或 `superuser`)
+- **重要字段:**
+  - `can_manage_journal`: 布尔值。是否有"班日志查档审批"权限
+  - `can_manage_user_permissions`: 布尔值。是否有"审核升级校友"权限
+  - `can_ban_users`: 布尔值。是否有"禁言用户"权限
+  - `can_manage_content`: 布尔值。是否有"内容管理"权限（处理举报、删除违规内容）
+  - `granted_by`: 授予该权限的superuser ID (关联 `profiles.id`)
+  - `granted_at`: 授权时间
+  - `updated_at`: 最后更新时间
+
+#### **`admin_requests`**
+
+用于处理管理员申请权限变更向superuser提交的请求。
+
+- **主键 (PK):** `id` (UUID)
+- **外键 (FK):** `requester_id` (申请人，关联 `profiles.id`)
+- **重要字段:**
+  - `requested_permissions`: JSONB。记录申请的新权限配置，例如 `{"can_manage_album": true}`
+  - `reason`: 申请理由
+  - `status`: 枚举。取值：`pending`, `approved`, `rejected`
+  - `handled_by`: 处理该请求的superuser ID (关联 `profiles.id`)
+  - `created_at`: 申请时间
+  - `handled_at`: 处理时间
+
+---
+
+### 5. **JournalService**
+
+#### **`journal_access_requests`**
+
+用于处理校友申请班日志查档的请求。
+
+- **主键 (PK):** `id` (UUID)
+- **外键 (FK):** `requester_id` (申请人，关联 `profiles.id`)
+- **重要字段:**
+  - `requested_access_start_time`: 申请的查档起始时间
+  - `requested_access_end_time`: 申请的查档结束时间
+  - `reason`: 申请理由
+  - `status`: `pending`, `approved`, `rejected`
+  - `handled_by`: 处理该请求的管理员/superuser ID
+  - `created_at`: 申请时间
+  - `handled_at`: 处理时间
 
 ### 6. **InboxService**
 

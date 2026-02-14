@@ -115,7 +115,6 @@ const buildProcessedPost = (post, role, userId) => ({
   created_at: post.created_at,
   like_count: post.post_likes?.[0]?.count || 0,
   comment_count: post.comments?.[0]?.count || 0,
-  hashtags: post.hashtags?.map((tag) => tag.name) || [],
   author: buildListAuthor(post, role),
   is_owner: userId ? post.author_id === userId : false,
 });
@@ -180,7 +179,6 @@ const canViewPost = (post, user, profile) => {
  * @param {string[]} postData.media_urls - 图片/视频链接数组（可选）
  * @param {string} postData.visibility - 可见范围: 'private'|'classmate_only'|'alumni_only'|'public'（默认：'public'）
  * @param {boolean} postData.is_anonymous - 是否匿名发布（默认：false）
- * @param {string[]} postData.hashtags - 标签数组（可选）
  * @param {string[]} postData.selectedAlbumPhotos - 从相册选择的图片ID数组（可选）
  * @returns {Promise<Object>} 创建的帖子或错误信息
  */
@@ -292,11 +290,6 @@ export const createPost = async (postData) => {
       .single();
     postWithAuthor.author = author;
 
-    // 9. 处理Hashtag（如果有）
-    if (postData.hashtags && postData.hashtags.length > 0) {
-      await processHashtags(postWithAuthor.id, postData.hashtags);
-    }
-
     // 10. 返回创建的帖子（处理匿名）
     const responsePost = { ...postWithAuthor };
 
@@ -324,64 +317,6 @@ export const createPost = async (postData) => {
       error: error.message,
       data: null,
     };
-  }
-};
-
-/**
- * 处理帖子的Hashtag标签
- * @param {string} postId - 帖子ID
- * @param {string[]} hashtags - 标签数组
- */
-const processHashtags = async (postId, hashtags) => {
-  try {
-    for (const tagName of hashtags) {
-      // 清理标签（移除#，去空格，转小写）
-      const cleanTag = tagName.replace('#', '').trim().toLowerCase();
-      if (!cleanTag) continue;
-
-      // 1. 查找或创建标签
-      let tagId;
-      const { data: existingTag } = await supabase
-        .from('hashtags')
-        .select('id, usage_count')
-        .eq('name', cleanTag)
-        .single();
-
-      if (existingTag) {
-        // 更新使用次数
-        tagId = existingTag.id;
-        await supabase
-          .from('hashtags')
-          .update({
-            usage_count: existingTag.usage_count + 1,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', tagId);
-      } else {
-        // 创建新标签
-        const { data: newTag } = await supabase
-          .from('hashtags')
-          .insert({
-            name: cleanTag,
-            usage_count: 1,
-            created_at: new Date().toISOString(),
-          })
-          .select('id')
-          .single();
-
-        tagId = newTag.id;
-      }
-
-      // 2. 关联帖子与标签
-      await supabase.from('post_tags').insert({
-        post_id: postId,
-        tag_id: tagId,
-        created_at: new Date().toISOString(),
-      });
-    }
-  } catch (error) {
-    console.error('处理Hashtag失败:', error);
-    // 不影响主流程
   }
 };
 
@@ -425,8 +360,7 @@ export const getPosts = async () => {
           identity_type
         ),
         post_likes:post_likes(count),
-        comments:comments(count),
-        hashtags:hashtags(name)
+        comments:comments(count)
       `
       )
       .order('created_at', { ascending: false });
@@ -506,8 +440,7 @@ export const getPostById = async (postId) => {
           bio
         ),
         post_likes:post_likes(count),
-        comments:comments(count),
-        hashtags:hashtags(name)
+        comments:comments(count)
       `
       )
       .eq('id', postId)
@@ -546,7 +479,6 @@ export const getPostById = async (postId) => {
     // 7. 格式化统计信息
     processedPost.like_count = post.post_likes?.[0]?.count || 0;
     processedPost.comment_count = post.comments?.[0]?.count || 0;
-    processedPost.hashtags = post.hashtags?.map((tag) => tag.name) || [];
 
     // 8. 移除原始数据中的冗余字段
     delete processedPost.post_likes;
@@ -875,7 +807,6 @@ export const toggleCommentLike = async (commentId) => {
  * 搜索帖子
  * @param {Object} options - 搜索选项
  * @param {string} options.keyword - 搜索关键词（内容搜索）
- * @param {string} options.hashtag - 标签搜索
  * @param {string} options.sortBy - 排序方式: 'time'|'likes'
  * @returns {Promise<Array>} 搜索结果
  */
@@ -887,7 +818,6 @@ export const searchPosts = async (options = {}) => {
     }
 
     const keyword = options.keyword ? options.keyword.trim() : '';
-    const hashtag = options.hashtag ? options.hashtag.replace('#', '').trim() : '';
     const sortBy = options.sortBy === 'likes' ? 'likes' : 'time';
 
     // 1. 可见性条件
@@ -898,10 +828,6 @@ export const searchPosts = async (options = {}) => {
     if (keyword) {
       orConditions.push(`title.ilike.%${keyword}%`);
       orConditions.push(`content.ilike.%${keyword}%`);
-    }
-
-    if (hashtag) {
-      orConditions.push(`hashtags.name.ilike.%${hashtag}%`);
     }
 
     // 3. 构建查询
@@ -924,8 +850,7 @@ export const searchPosts = async (options = {}) => {
           identity_type
         ),
         post_likes:post_likes(count),
-        comments:comments(count),
-        hashtags:hashtags(name)
+        comments:comments(count)
       `
       )
       .order('created_at', { ascending: false });

@@ -14,19 +14,21 @@ import CornerNav from './components/layout/CornerNav';
 import UserDock from './components/layout/UserDock';
 import BackgroundParticles from './components/layout/BackgroundParticles';
 import IrisTransition from './components/ui/IrisTransition';
-import Lobby from './pages/Lobby';
-import Home from './pages/Home';
-import Introduction from './pages/Introduction';
-import Activities from './pages/Activities';
-import Journal from './pages/Journal';
-import Wall from './pages/Wall';
-import Contact from './pages/Contact';
-import CreatePost from './pages/CreatePost';
-import PostDetail from './pages/PostDetail';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import GuestUpdateIdentity from './pages/GuestUpdateIdentity';
-import UserManagement from './pages/UserManagement';
+import Lobby from './pages/static/Lobby';
+import Home from './pages/static/Home';
+import Introduction from './pages/static/Introduction';
+import Activities from './pages/static/Activities';
+import Journal from './pages/journal/Journal';
+import Wall from './pages/post/Wall';
+import Contact from './pages/static/Contact';
+import CreatePost from './pages/post/CreatePost';
+import PostDetail from './pages/post/PostDetail';
+import Login from './pages/user/Login';
+import Register from './pages/user/Register';
+import GuestUpdateIdentity from './pages/user/GuestUpdateIdentity';
+import UserManagement from './pages/user/UserManagement';
+import ResetPassword from './pages/user/ResetPassword';
+import EditProfile from './pages/user/EditProfile';
 import MusicPlayer from './components/features/media/MusicPlayer';
 import EasterEgg from './components/features/media/EasterEgg'; // already imported
 
@@ -54,7 +56,9 @@ const AppLayout = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/guest-update-identity" element={<GuestUpdateIdentity />} />
+          <Route path="/user/reset-password" element={<ResetPassword />} />
           <Route path="/user/manage" element={<UserManagement />} />
+          <Route path="/user/edit-profile" element={<EditProfile />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

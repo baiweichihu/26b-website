@@ -33,6 +33,31 @@
   margin-bottom: 1.1rem;
 }
 
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.profileInput {
+  max-width: 280px;
+}
+
+.profileTextarea {
+  max-width: 320px;
+  resize: vertical;
+}
+
+.profileMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  max-width: 320px;
+}
+
 .profileAvatar {
   width: 54px;
   height: 54px;
@@ -76,6 +101,76 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.charHint {
+  font-size: 0.75rem;
+  color: var(--muted-color);
+}
+
+.profileActions {
+  margin-top: 0.8rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.profileSaveButton {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-color);
+  border-radius: 999px;
+  padding: 0.35rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.profileSaveButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(18, 32, 60, 0.12);
+}
+
+.profileSaveButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.passwordAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.passwordDots {
+  letter-spacing: 0.18em;
+  color: var(--muted-color);
+}
+
+.passwordButton {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-color);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.passwordButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(18, 32, 60, 0.12);
+}
+
+.passwordButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .sectionTitle {
@@ -147,4 +242,14 @@
 
 [data-theme='dark'] .actionGhost {
   background: rgba(16, 24, 44, 0.45);
+}
+
+[data-theme='dark'] .passwordButton {
+  background: rgba(16, 24, 44, 0.7);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .profileSaveButton {
+  background: rgba(16, 24, 44, 0.7);
+  border-color: rgba(255, 255, 255, 0.12);
 }

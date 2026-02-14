@@ -1,10 +1,10 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { sendLoginOtp, signIn } from '../services/userService';
-import NoticeBox from '../components/widgets/NoticeBox';
-import { useIrisTransition } from '../components/ui/IrisTransition';
+import { sendLoginOtp, signIn } from '../../services/userService';
+import NoticeBox from '../../components/widgets/NoticeBox';
+import { useIrisTransition } from '../../components/ui/IrisTransition';
 import styles from './Auth.module.css';
-import LoginHero from '../components/features/user/LoginHero';
+import LoginHero from '../../components/features/user/LoginHero';
 
 const Login = () => {
   const [loginType, setLoginType] = useState('password');
@@ -168,7 +168,7 @@ const Login = () => {
           <div className={styles.formCard} ref={formRef}>
             <div className={styles.formHeader} data-animate="form">
               <h2>请登录</h2>
-              <p>可以用邮箱+密码/验证码登录哦</p>
+              <p>可以用邮箱+密码/验证链接登录哦</p>
             </div>
 
             {notice && <NoticeBox type={notice.type} message={notice.message} />}
@@ -192,7 +192,7 @@ const Login = () => {
                 aria-pressed={loginType === 'otp'}
                 onClick={() => handleLoginTypeChange('otp')}
               >
-                验证码登录
+                验证链接登录
               </button>
             </div>
 
@@ -236,19 +236,8 @@ const Login = () => {
                   <div className={styles.otpRow}>
                     <div>
                       <label className="form-label" htmlFor="login-otp">
-                        验证码
+                        验证链接
                       </label>
-                      <input
-                        id="login-otp"
-                        name="otp"
-                        type="text"
-                        className="form-control"
-                        value={formData.otp}
-                        onChange={handleChange}
-                        autoComplete="one-time-code"
-                        placeholder="8位验证码"
-                        required
-                      />
                     </div>
                     <button
                       type="button"
@@ -256,21 +245,25 @@ const Login = () => {
                       onClick={handleSendOtp}
                       disabled={otpSending}
                     >
-                      {otpSending ? '发送中...' : '发送验证码'}
+                      {otpSending ? '发送中...' : '发送验证链接'}
                     </button>
                   </div>
-                  <span className={styles.helperText}>我们会向你的邮箱发送8位验证码</span>
+                  <span className={styles.helperText}>
+                    点击发送至邮箱的链接可以登录，在发送成功后，你可以关闭此网页
+                  </span>
                 </div>
               )}
 
               <div className={styles.formActions} data-animate="form">
-                <button
-                  type="submit"
-                  className="scene-button primary"
-                  disabled={!canSubmit || loading}
-                >
-                  {loading ? '登录中...' : '登录'}
-                </button>
+                {loginType === 'password' && (
+                  <button
+                    type="submit"
+                    className="scene-button primary"
+                    disabled={!canSubmit || loading}
+                  >
+                    {loading ? '登录中...' : '登录'}
+                  </button>
+                )}
                 <Link
                   to="/register"
                   className={styles.altLink}

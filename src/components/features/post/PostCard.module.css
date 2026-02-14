@@ -51,22 +51,6 @@
   color: var(--muted-color);
 }
 
-.postTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 0.35rem;
-}
-
-.postTag {
-  font-size: 0.75rem;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(124, 197, 255, 0.18);
-  color: #1a4a7a;
-  border: 1px solid rgba(124, 197, 255, 0.35);
-}
-
 .postTitle {
   color: var(--text-color);
   margin-bottom: 0.2rem;

@@ -156,7 +156,7 @@ export const signUpVerifyAndSetInfo = async ({ email, otp, password, nickname })
       if (pwdError) throw pwdError;
     }
 
-    const avatarUrl = generateIdenticonAvatarUrl(user?.id || email);
+    const avatarUrl = generateIdenticonAvatarUrl(email);
 
     // update profile
     const { error: profileError } = await supabase
@@ -178,6 +178,16 @@ export const signOut = async () => {
   if (error) throw error;
   return { success: true };
 };
+
+/**
+ * Get current signed-in user
+ */
+export const getCurrentUser = async () => {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return { success: false, error: error.message };
+  return { success: true, user: data?.user || null };
+};
+
 // ================== END OF User Registration / Login / Password Reset / Logout ===========================
 
 // ================== User Profile Management ===========================
@@ -201,18 +211,15 @@ export const submitGuestIdentityUpgradeRequest = async ({ evidence, nickname }) 
     const now = new Date().toISOString();
     const payload = {
       requester_id: user.id,
-      request_type: 'upgrade_identity',
-      target_id: null,
       evidence: JSON.stringify({
         message: evidence?.trim() || '',
         nickname: nickname || null,
       }),
-      requested_permissions: null,
       status: 'pending',
       created_at: now,
     };
 
-    const { error: insertError } = await supabase.from('admin_requests').insert(payload);
+    const { error: insertError } = await supabase.from('upgrade_requests').insert(payload);
 
     if (insertError) {
       throw new Error(insertError.message || 'Failed to submit request.');
@@ -221,6 +228,68 @@ export const submitGuestIdentityUpgradeRequest = async ({ evidence, nickname }) 
     return { success: true };
   } catch (error) {
     console.error('Guest identity upgrade request error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Get current user's profile details
+ */
+export const getProfileDetails = async () => {
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('You are not signed in.');
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('nickname, bio, email')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      throw new Error(profileError.message || 'Failed to load profile.');
+    }
+
+    return { success: true, profile };
+  } catch (error) {
+    console.error('Fetch profile error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update current user's profile fields
+ * @param {Object} params
+ * @param {string} params.nickname
+ * @param {string} params.bio
+ */
+export const updateProfileDetails = async ({ nickname, bio }) => {
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('You are not signed in.');
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ nickname, bio })
+      .eq('id', user.id);
+
+    if (updateError) {
+      throw new Error(updateError.message || 'Failed to update profile.');
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Update profile error:', error);
     return { success: false, error: error.message };
   }
 };

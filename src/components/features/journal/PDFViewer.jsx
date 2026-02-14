@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import styles from '../../../pages/Journal.module.css';
+import styles from '../../../pages/journal/Journal.module.css';
 
 // Vite 需要显式设置 worker
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
