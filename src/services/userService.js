@@ -211,18 +211,15 @@ export const submitGuestIdentityUpgradeRequest = async ({ evidence, nickname }) 
     const now = new Date().toISOString();
     const payload = {
       requester_id: user.id,
-      request_type: 'upgrade_identity',
-      target_id: null,
       evidence: JSON.stringify({
         message: evidence?.trim() || '',
         nickname: nickname || null,
       }),
-      requested_permissions: null,
       status: 'pending',
       created_at: now,
     };
 
-    const { error: insertError } = await supabase.from('admin_requests').insert(payload);
+    const { error: insertError } = await supabase.from('upgrade_requests').insert(payload);
 
     if (insertError) {
       throw new Error(insertError.message || 'Failed to submit request.');

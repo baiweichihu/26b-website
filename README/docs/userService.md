@@ -62,7 +62,7 @@
 
 - **用途**：游客身份升级申请
 - **签名**：`submitGuestIdentityUpgradeRequest({ evidence, nickname })`
-- **说明**：写入 `admin_requests` 表，状态默认为 `pending`。
+- **说明**：写入 `upgrade_requests` 表，状态默认为 `pending`。
 
 ### 10) getProfileDetails
 
