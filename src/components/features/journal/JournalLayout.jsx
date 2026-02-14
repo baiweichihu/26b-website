@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '../../../pages/Journal.module.css';
+import styles from '../../../pages/journal/Journal.module.css';
 
 const JournalLayout = ({ children }) => {
   // 确保只有两个子元素（PDF 和 MD）

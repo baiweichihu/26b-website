@@ -1,11 +1,11 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { sendRegisterOtp, signUpVerifyAndSetInfo } from '../services/userService';
-import NoticeBox from '../components/widgets/NoticeBox';
-import { useIrisTransition } from '../components/ui/IrisTransition';
+import { sendRegisterOtp, signUpVerifyAndSetInfo } from '../../services/userService';
+import NoticeBox from '../../components/widgets/NoticeBox';
+import { useIrisTransition } from '../../components/ui/IrisTransition';
 import styles from './Auth.module.css';
-import RegisterHero from '../components/features/user/RegisterHero';
-import RegisterForm from '../components/features/user/RegisterForm';
+import RegisterHero from '../../components/features/user/RegisterHero';
+import RegisterForm from '../../components/features/user/RegisterForm';
 
 const Register = () => {
   const [formData, setFormData] = useState({

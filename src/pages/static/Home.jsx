@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useIrisTransition } from '../components/ui/IrisTransition';
+import { useIrisTransition } from '../../components/ui/IrisTransition';
 
 const Home = () => {
   const { triggerIris } = useIrisTransition();

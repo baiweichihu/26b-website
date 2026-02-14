@@ -6,9 +6,9 @@ import {
   sendPasswordResetOtp,
   signIn,
   signOut,
-} from '../services/userService';
-import NoticeBox from '../components/widgets/NoticeBox';
-import { useIrisTransition } from '../components/ui/IrisTransition';
+} from '../../services/userService';
+import NoticeBox from '../../components/widgets/NoticeBox';
+import { useIrisTransition } from '../../components/ui/IrisTransition';
 import styles from './Auth.module.css';
 
 const ResetPassword = () => {

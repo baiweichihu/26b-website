@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import PostCard from '../components/features/post/PostCard';
-import NoticeBox from '../components/widgets/NoticeBox';
-import AuthGateOverlay from '../components/ui/AuthGateOverlay';
-import gateStyles from '../components/ui/AuthGateOverlay.module.css';
-import { getPosts, deletePost, searchPosts } from '../services/postService';
+import { supabase } from '../../lib/supabase';
+import PostCard from '../../components/features/post/PostCard';
+import NoticeBox from '../../components/widgets/NoticeBox';
+import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
+import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
+import { getPosts, deletePost, searchPosts } from '../../services/postService';
 import styles from './Wall.module.css';
 
 const Wall = () => {
@@ -16,7 +16,6 @@ const Wall = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [notice, setNotice] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState('');
-  const [searchHashtag, setSearchHashtag] = useState('');
   const [searchSortBy, setSearchSortBy] = useState('time');
   const [authStatus, setAuthStatus] = useState('loading');
 
@@ -140,7 +139,6 @@ const Wall = () => {
 
       const result = await searchPosts({
         keyword: searchKeyword,
-        hashtag: searchHashtag,
         sortBy: searchSortBy,
       });
 
@@ -171,7 +169,6 @@ const Wall = () => {
 
   const handleResetSearch = async () => {
     setSearchKeyword('');
-    setSearchHashtag('');
     setSearchSortBy('time');
     await refreshPosts();
   };
@@ -309,14 +306,6 @@ const Wall = () => {
                 value={searchKeyword}
                 onChange={(event) => setSearchKeyword(event.target.value)}
                 placeholder="搜索关键词"
-                className="form-control form-control-sm"
-                style={{ maxWidth: '180px' }}
-              />
-              <input
-                type="text"
-                value={searchHashtag}
-                onChange={(event) => setSearchHashtag(event.target.value)}
-                placeholder="标签(#可选)"
                 className="form-control form-control-sm"
                 style={{ maxWidth: '180px' }}
               />

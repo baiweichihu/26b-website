@@ -1,8 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getCurrentUser, getProfileDetails, updateProfileDetails } from '../services/userService';
-import NoticeBox from '../components/widgets/NoticeBox';
-import { useIrisTransition } from '../components/ui/IrisTransition';
+import {
+  getCurrentUser,
+  getProfileDetails,
+  updateProfileDetails,
+} from '../../services/userService';
+import NoticeBox from '../../components/widgets/NoticeBox';
+import { useIrisTransition } from '../../components/ui/IrisTransition';
 import styles from './Auth.module.css';
 
 const NAME_LIMIT = 10;

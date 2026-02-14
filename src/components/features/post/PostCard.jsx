@@ -95,16 +95,6 @@ const PostCard = ({ post, onDeletePost }) => {
           </h3>
         )}
 
-        {post.hashtags && post.hashtags.length > 0 && (
-          <div className={styles.postTags}>
-            {post.hashtags.map((tag) => (
-              <span key={tag} className={styles.postTag}>
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-
         {/* 内容缩略 */}
         <div className={styles.postBody}>
           <div

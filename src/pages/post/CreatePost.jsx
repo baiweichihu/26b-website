@@ -1,8 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { createPost } from '../services/postService';
-import NoticeBox from '../components/widgets/NoticeBox';
+import { supabase } from '../../lib/supabase';
+import { createPost } from '../../services/postService';
+import NoticeBox from '../../components/widgets/NoticeBox';
 import styles from './Wall.module.css';
 
 const CreatePost = () => {
@@ -10,7 +10,6 @@ const CreatePost = () => {
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
   const [mediaUrls, setMediaUrls] = useState('');
-  const [hashtagInput, setHashtagInput] = useState('');
   const [mediaFiles, setMediaFiles] = useState([]);
   const [visibility, setVisibility] = useState('public');
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -35,7 +34,6 @@ const CreatePost = () => {
   const maxTitleLength = 20;
   const maxContentLength = 2000;
   const maxMediaCount = 5;
-  const maxHashtagCount = 10;
 
   const isFormValid = useMemo(() => {
     const trimmedTitle = title.trim();
@@ -92,17 +90,6 @@ const CreatePost = () => {
       }
     }
     return { validUrls, invalidUrls };
-  };
-
-  const parseHashtags = (value) => {
-    const rawTags = value
-      .split(/\s+/)
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map((item) => (item.startsWith('#') ? item.slice(1) : item))
-      .map((item) => item.toLowerCase());
-
-    return Array.from(new Set(rawTags));
   };
 
   const uploadFiles = async (files) => {
@@ -180,13 +167,6 @@ const CreatePost = () => {
       return;
     }
 
-    const hashtags = parseHashtags(hashtagInput);
-    if (hashtags.length > maxHashtagCount) {
-      const errorText = `Hashtag 最多 ${maxHashtagCount} 个（当前 ${hashtags.length} 个）`;
-      setNotice({ type: 'error', message: errorText });
-      return;
-    }
-
     try {
       setSubmitting(true);
       setNotice(null);
@@ -203,7 +183,6 @@ const CreatePost = () => {
         title: title.trim(),
         content: content.trim(),
         media_urls: finalMediaUrls,
-        hashtags,
         visibility,
         is_anonymous: isAnonymous,
       });
@@ -273,17 +252,6 @@ const CreatePost = () => {
               required
             />
             <div className="form-text">最多 {maxContentLength} 字</div>
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Hashtag</label>
-            <input
-              type="text"
-              value={hashtagInput}
-              onChange={(event) => setHashtagInput(event.target.value)}
-              className="form-control"
-              placeholder="#旅行 #运动会（用空格分隔）"
-            />
-            <div className="form-text">仅支持空格分隔，最多 {maxHashtagCount} 个。</div>
           </div>
           <div className="mb-3">
             <label className="form-label">媒体链接</label>

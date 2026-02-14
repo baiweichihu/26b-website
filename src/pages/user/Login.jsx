@@ -1,10 +1,10 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { sendLoginOtp, signIn } from '../services/userService';
-import NoticeBox from '../components/widgets/NoticeBox';
-import { useIrisTransition } from '../components/ui/IrisTransition';
+import { sendLoginOtp, signIn } from '../../services/userService';
+import NoticeBox from '../../components/widgets/NoticeBox';
+import { useIrisTransition } from '../../components/ui/IrisTransition';
 import styles from './Auth.module.css';
-import LoginHero from '../components/features/user/LoginHero';
+import LoginHero from '../../components/features/user/LoginHero';
 
 const Login = () => {
   const [loginType, setLoginType] = useState('password');

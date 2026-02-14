@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import NoticeBox from '../components/widgets/NoticeBox';
-import { useIrisTransition } from '../components/ui/IrisTransition';
-import { submitGuestIdentityUpgradeRequest } from '../services/userService';
+import { supabase } from '../../lib/supabase';
+import NoticeBox from '../../components/widgets/NoticeBox';
+import { useIrisTransition } from '../../components/ui/IrisTransition';
+import { submitGuestIdentityUpgradeRequest } from '../../services/userService';
 
 const GuestUpdateIdentity = () => {
   const { triggerIris } = useIrisTransition();

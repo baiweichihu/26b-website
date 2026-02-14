@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 // Security note: This plugin allows arbitrary HTML rendering. Only use with trusted markdown sources.
 // All markdown files in this project are stored in the repository and are trusted content.
 import rehypeRaw from 'rehype-raw';
-import styles from '../../../pages/Journal.module.css';
+import styles from '../../../pages/journal/Journal.module.css';
 
 const MDViewer = React.forwardRef(
   (
