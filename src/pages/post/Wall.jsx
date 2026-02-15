@@ -5,7 +5,7 @@ import PostCard from '../../components/features/post/PostCard';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
-import { getPosts, deletePost, searchPosts } from '../../services/postService';
+import { getPosts, deletePost, searchPosts, togglePostLike } from '../../services/postService';
 import styles from './Wall.module.css';
 
 const Wall = () => {
@@ -18,6 +18,8 @@ const Wall = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchSortBy, setSearchSortBy] = useState('time');
   const [authStatus, setAuthStatus] = useState('loading');
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [likeLoadingPostId, setLikeLoadingPostId] = useState(null);
 
   const loadAuthStatus = useCallback(async () => {
     try {
@@ -27,6 +29,7 @@ const Wall = () => {
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
+        setCurrentUserId(null);
         setAuthStatus('anonymous');
         return;
       }
@@ -38,9 +41,12 @@ const Wall = () => {
         .single();
 
       if (profileError || !profile) {
+        setCurrentUserId(null);
         setAuthStatus('anonymous');
         return;
       }
+
+      setCurrentUserId(user.id);
 
       if (profile.role === 'admin' || profile.role === 'superuser') {
         setAuthStatus('member');
@@ -55,6 +61,7 @@ const Wall = () => {
       setAuthStatus('member');
     } catch (error) {
       console.error('Wall auth check failed:', error);
+      setCurrentUserId(null);
       setAuthStatus('anonymous');
     }
   }, []);
@@ -171,6 +178,83 @@ const Wall = () => {
     setSearchKeyword('');
     setSearchSortBy('time');
     await refreshPosts();
+  };
+
+  const handleToggleLike = async (postId) => {
+    if (!currentUserId) {
+      setNotice({ type: 'info', message: '你还未登录，登录后可点赞。' });
+      return;
+    }
+
+    let previousState = null;
+
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id !== postId) {
+          return post;
+        }
+
+        previousState = {
+          liked: Boolean(post.liked),
+          like_count: post.like_count || 0,
+        };
+
+        const nextLiked = !post.liked;
+        const delta = nextLiked ? 1 : -1;
+        const nextLikeCount = Math.max(0, (post.like_count || 0) + delta);
+
+        return {
+          ...post,
+          liked: nextLiked,
+          like_count: nextLikeCount,
+        };
+      })
+    );
+
+    setLikeLoadingPostId(postId);
+    setNotice(null);
+
+    const result = await togglePostLike(postId);
+    if (result.success) {
+      const serverLiked = result.data?.liked;
+      if (typeof serverLiked === 'boolean') {
+        setPosts((prevPosts) =>
+          prevPosts.map((post) => {
+            if (post.id !== postId) {
+              return post;
+            }
+
+            if (post.liked === serverLiked) {
+              return post;
+            }
+
+            const delta = serverLiked ? 1 : -1;
+            return {
+              ...post,
+              liked: serverLiked,
+              like_count: Math.max(0, (post.like_count || 0) + delta),
+            };
+          })
+        );
+      }
+    } else {
+      if (previousState) {
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === postId
+              ? {
+                  ...post,
+                  liked: previousState.liked,
+                  like_count: previousState.like_count,
+                }
+              : post
+          )
+        );
+      }
+      setNotice({ type: 'error', message: result.error || '点赞失败' });
+    }
+
+    setLikeLoadingPostId(null);
   };
 
   const handleCreatePostClick = async () => {
@@ -367,6 +451,8 @@ const Wall = () => {
                   key={post.id}
                   post={post}
                   onDeletePost={() => handleDeletePost(post.id)}
+                  onToggleLike={handleToggleLike}
+                  likeLoading={likeLoadingPostId === post.id}
                 />
               );
             })}
