@@ -104,7 +104,7 @@ const buildListAuthor = (post, role) => {
   };
 };
 
-const buildProcessedPost = (post, role, userId) => ({
+const buildProcessedPost = (post, role, userId, liked = false) => ({
   id: post.id,
   title: post.title,
   content: post.content,
@@ -117,6 +117,7 @@ const buildProcessedPost = (post, role, userId) => ({
   comment_count: post.comments?.[0]?.count || 0,
   author: buildListAuthor(post, role),
   is_owner: userId ? post.author_id === userId : false,
+  liked: Boolean(liked),
 });
 
 const buildDetailAuthor = (post, role) => {
@@ -377,8 +378,28 @@ export const getPosts = async () => {
       throw new Error(`获取帖子列表失败: ${postsError.message}`);
     }
 
-    // 7. 处理数据：格式化统计信息，处理匿名帖子
-    const processedPosts = posts.map((post) => buildProcessedPost(post, userRole, user.id));
+    // 7. 获取用户点赞记录
+    const postIds = posts.map((post) => post.id);
+    let likedPostIds = new Set();
+
+    if (user?.id && postIds.length > 0) {
+      const { data: likedRows, error: likedError } = await supabase
+        .from('post_likes')
+        .select('post_id')
+        .eq('user_id', user.id)
+        .in('post_id', postIds);
+
+      if (likedError) {
+        throw new Error(`获取点赞状态失败: ${likedError.message}`);
+      }
+
+      likedPostIds = new Set((likedRows || []).map((row) => row.post_id));
+    }
+
+    // 8. 处理数据：格式化统计信息，处理匿名帖子
+    const processedPosts = posts.map((post) =>
+      buildProcessedPost(post, userRole, user.id, likedPostIds.has(post.id))
+    );
 
     // 8. 返回结果
     return {
@@ -407,11 +428,13 @@ export const getPosts = async () => {
  * @param {string} postId - 帖子ID
  * @returns {Promise<Object>} 帖子详情或错误信息
  */
-export const getPostById = async (postId) => {
+export const getPostById = async (postId, options = {}) => {
   try {
     if (!postId) {
       throw new Error('帖子ID不能为空');
     }
+
+    const { incrementView = true } = options;
 
     // 1. 获取当前登录用户与身份信息
     console.log('[getPostById] 获取用户信息...');
@@ -461,26 +484,44 @@ export const getPostById = async (postId) => {
       throw new Error('您没有权限查看此帖子');
     }
 
-    // 5. 增加浏览量（如果是第一次查看）
-    if (!user?.id || user.id !== post.author_id) {
+    // 5. 增加浏览量（首次进入详情时）
+    if (incrementView && (!user?.id || user.id !== post.author_id)) {
       // 不增加作者自己的浏览量
       const nextViewCount = (post.view_count || 0) + 1;
       await supabase.from('posts').update({ view_count: nextViewCount }).eq('id', postId);
       post.view_count = nextViewCount;
     }
 
-    // 6. 处理匿名帖子的作者信息
+    // 6. 获取点赞状态
+    let liked = false;
+    if (user?.id) {
+      const { data: existingLike, error: likeError } = await supabase
+        .from('post_likes')
+        .select('post_id')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (likeError && likeError.code !== 'PGRST116') {
+        throw new Error(`查询点赞状态失败: ${likeError.message}`);
+      }
+
+      liked = Boolean(existingLike);
+    }
+
+    // 7. 处理匿名帖子的作者信息
     const processedPost = {
       ...post,
       author: buildDetailAuthor(post, userRole),
       is_owner: user?.id ? post.author_id === user.id : false,
+      liked,
     };
 
-    // 7. 格式化统计信息
+    // 8. 格式化统计信息
     processedPost.like_count = post.post_likes?.[0]?.count || 0;
     processedPost.comment_count = post.comments?.[0]?.count || 0;
 
-    // 8. 移除原始数据中的冗余字段
+    // 9. 移除原始数据中的冗余字段
     delete processedPost.post_likes;
     delete processedPost.comments;
     delete processedPost.author_id;
@@ -873,8 +914,25 @@ export const searchPosts = async (options = {}) => {
       throw new Error(`搜索失败: ${postsError.message}`);
     }
 
+    const postIds = (posts || []).map((post) => post.id);
+    let likedPostIds = new Set();
+
+    if (user?.id && postIds.length > 0) {
+      const { data: likedRows, error: likedError } = await supabase
+        .from('post_likes')
+        .select('post_id')
+        .eq('user_id', user.id)
+        .in('post_id', postIds);
+
+      if (likedError) {
+        throw new Error(`获取点赞状态失败: ${likedError.message}`);
+      }
+
+      likedPostIds = new Set((likedRows || []).map((row) => row.post_id));
+    }
+
     let processedPosts = (posts || []).map((post) =>
-      buildProcessedPost(post, profile.role, user.id)
+      buildProcessedPost(post, profile.role, user.id, likedPostIds.has(post.id))
     );
 
     if (sortBy === 'likes') {

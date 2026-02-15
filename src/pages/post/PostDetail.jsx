@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
@@ -25,8 +25,10 @@ const PostDetail = () => {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
   const [notice, setNotice] = useState(null);
   const [activeMedia, setActiveMedia] = useState(null);
+  const hasCountedViewRef = useRef(false);
 
   const formattedDate = post?.created_at
     ? new Date(post.created_at).toLocaleDateString('zh-CN', {
@@ -41,6 +43,8 @@ const PostDetail = () => {
   const likeCount = post?.like_count || 0;
   const commentCount = post?.comment_count || 0;
   const viewCount = post?.view_count || 0;
+  const isLiked = Boolean(post?.liked);
+  const likeColor = isLiked ? '#e53935' : '#9aa0a6';
 
   const isVideoUrl = (url = '') => {
     const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
@@ -53,12 +57,16 @@ const PostDetail = () => {
 
   const closeMedia = () => setActiveMedia(null);
 
-  const loadPostDetail = async () => {
+  const loadPostDetail = async (options = {}) => {
     if (!postId) return;
     setLoading(true);
     setNotice(null);
 
-    const result = await getPostById(postId);
+    const { incrementView } = options;
+    const shouldIncrementView =
+      typeof incrementView === 'boolean' ? incrementView : !hasCountedViewRef.current;
+
+    const result = await getPostById(postId, { incrementView: shouldIncrementView });
     if (!result.success) {
       setNotice({ type: 'error', message: result.error || '无法加载帖子详情' });
       setLoading(false);
@@ -66,6 +74,9 @@ const PostDetail = () => {
     }
 
     setPost(result.data);
+    if (shouldIncrementView) {
+      hasCountedViewRef.current = true;
+    }
     setLoading(false);
   };
 
@@ -91,8 +102,9 @@ const PostDetail = () => {
   }, []);
 
   useEffect(() => {
+    hasCountedViewRef.current = false;
     const timer = setTimeout(() => {
-      loadPostDetail();
+      loadPostDetail({ incrementView: true });
       loadComments();
     }, 0);
 
@@ -105,17 +117,56 @@ const PostDetail = () => {
       return;
     }
 
-    setActionLoading(true);
+    if (!post) {
+      return;
+    }
+
+    const nextLiked = !post.liked;
+    const delta = nextLiked ? 1 : -1;
+    const nextLikeCount = Math.max(0, (post.like_count || 0) + delta);
+
+    setPost((prevPost) =>
+      prevPost
+        ? {
+            ...prevPost,
+            liked: nextLiked,
+            like_count: nextLikeCount,
+          }
+        : prevPost
+    );
+
+    setLikeLoading(true);
     setNotice(null);
 
     const result = await togglePostLike(postId);
     if (result.success) {
-      await loadPostDetail();
+      const serverLiked = result.data?.liked;
+      if (typeof serverLiked === 'boolean' && serverLiked !== nextLiked) {
+        const serverDelta = serverLiked ? 1 : -1;
+        setPost((prevPost) =>
+          prevPost
+            ? {
+                ...prevPost,
+                liked: serverLiked,
+                like_count: Math.max(0, (prevPost.like_count || 0) + serverDelta),
+              }
+            : prevPost
+        );
+      }
     } else {
+      setPost((prevPost) =>
+        prevPost
+          ? {
+              ...prevPost,
+              liked: !nextLiked,
+              like_count: Math.max(0, (prevPost.like_count || 0) - delta),
+            }
+          : prevPost
+      );
       setNotice({ type: 'error', message: result.error || '点赞失败' });
     }
 
-    setActionLoading(false);
+    setLikeLoading(false);
   };
 
   const handleAddComment = async () => {
@@ -147,7 +198,7 @@ const PostDetail = () => {
       setCommentDraft('');
       setReplyTarget('');
       await loadComments();
-      await loadPostDetail();
+      await loadPostDetail({ incrementView: false });
     } else {
       setNotice({ type: 'error', message: result.error || '发表评论失败' });
     }
@@ -205,7 +256,7 @@ const PostDetail = () => {
     const result = await deleteComment(commentId);
     if (result.success) {
       await loadComments();
-      await loadPostDetail();
+      await loadPostDetail({ incrementView: false });
     } else {
       setNotice({ type: 'error', message: result.error || '删除评论失败' });
     }
@@ -316,7 +367,16 @@ const PostDetail = () => {
           <div className="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
             <div style={{ fontSize: '12px', color: '#666' }}>
               <span className="me-3">👁 {viewCount}</span>
-              <span className="me-3">❤️ {likeCount}</span>
+              <button
+                type="button"
+                onClick={handleToggleLike}
+                disabled={likeLoading}
+                className="btn btn-link btn-sm p-0 me-3"
+                style={{ fontSize: '12px', color: likeColor, textDecoration: 'none' }}
+                aria-pressed={isLiked}
+              >
+                ♥ {likeCount}
+              </button>
               <span>💬 {commentCount}</span>
             </div>
             {post.is_owner ? (
@@ -342,16 +402,6 @@ const PostDetail = () => {
                 举报
               </Link>
             )}
-          </div>
-
-          <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <button
-              onClick={handleToggleLike}
-              disabled={actionLoading}
-              className="btn btn-outline-warning btn-sm"
-            >
-              ❤️ 点赞/取消
-            </button>
           </div>
 
           <div style={{ marginTop: '12px' }}>

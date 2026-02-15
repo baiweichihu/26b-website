@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './PostCard.module.css';
 
-const PostCard = ({ post, onDeletePost }) => {
+const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading }) => {
   const navigate = useNavigate();
   const date = new Date(post.created_at);
   const formattedDate = date.toLocaleDateString('zh-CN', {
@@ -24,6 +24,8 @@ const PostCard = ({ post, onDeletePost }) => {
   const likeCount = post.like_count || 0;
   const commentCount = post.comment_count || 0;
   const viewCount = post.view_count || 0;
+  const isLiked = Boolean(post.liked);
+  const likeColor = isLiked ? '#e53935' : '#9aa0a6';
 
   const [activeMedia, setActiveMedia] = useState(null);
   const content = post.content || '';
@@ -50,6 +52,11 @@ const PostCard = ({ post, onDeletePost }) => {
   };
 
   const stopPropagation = (event) => event.stopPropagation();
+
+  const handleToggleLike = (event) => {
+    event.stopPropagation();
+    onToggleLike?.(post.id);
+  };
 
   return (
     <div className="col-12 col-md-6 col-lg-4">
@@ -144,7 +151,23 @@ const PostCard = ({ post, onDeletePost }) => {
         <div className={`d-flex justify-content-between align-items-center ${styles.postFooter}`}>
           <div style={{ fontSize: '12px', color: '#666' }}>
             <span className="me-3">👁 {viewCount}</span>
-            <span className="me-3">❤️ {likeCount}</span>
+            {onToggleLike ? (
+              <button
+                type="button"
+                onClick={handleToggleLike}
+                disabled={likeLoading}
+                className="btn btn-link btn-sm p-0 me-3"
+                style={{ fontSize: '12px', color: likeColor, textDecoration: 'none' }}
+                onMouseDown={stopPropagation}
+                aria-pressed={isLiked}
+              >
+                ♥ {likeCount}
+              </button>
+            ) : (
+              <span className="me-3" style={{ color: likeColor }}>
+                ♥ {likeCount}
+              </span>
+            )}
             <span>💬 {commentCount}</span>
           </div>
           {post.is_owner ? (
