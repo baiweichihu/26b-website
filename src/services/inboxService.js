@@ -71,7 +71,12 @@ export async function createAuditResultNotification(
  * @param {string} targetType - 被举报内容类型 (post/comment)
  * @returns {Promise<Object>}
  */
-export async function createReportFeedbackNotification(userId, status, targetType) {
+export async function createReportFeedbackNotification(
+  userId,
+  status,
+  targetType,
+  reportId = null
+) {
   const title = status === 'resolved' ? '举报已处理' : '举报已驳回';
   const content =
     status === 'resolved'
@@ -86,8 +91,8 @@ export async function createReportFeedbackNotification(userId, status, targetTyp
         type: 'report_feedback',
         title: title,
         content: content,
-        related_resource_type: 'support_tickets',
-        related_resource_id: null,
+        related_resource_type: 'content_reports',
+        related_resource_id: reportId,
         is_read: false,
         created_at: new Date().toISOString(),
       },

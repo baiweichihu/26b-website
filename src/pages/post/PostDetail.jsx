@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 import {
@@ -12,8 +12,13 @@ import {
   deleteComment,
 } from '../../services/postService';
 import NoticeBox from '../../components/widgets/NoticeBox';
+import PostMetrics from '../../components/features/post/PostMetrics';
+import PostCommentComposer from '../../components/features/post/PostCommentComposer';
+import PostCommentList from '../../components/features/post/PostCommentList';
+import ReportGateOverlay from '../../components/ui/ReportGateOverlay';
 import styles from './Wall.module.css';
 import postStyles from '../../components/features/post/PostCard.module.css';
+import detailStyles from './PostDetail.module.css';
 
 const PostDetail = () => {
   const { postId } = useParams();
@@ -28,7 +33,10 @@ const PostDetail = () => {
   const [likeLoading, setLikeLoading] = useState(false);
   const [notice, setNotice] = useState(null);
   const [activeMedia, setActiveMedia] = useState(null);
+  const [reportTarget, setReportTarget] = useState(null);
   const hasCountedViewRef = useRef(false);
+  const panelRef = useRef(null);
+  const composerRef = useRef(null);
 
   const formattedDate = post?.created_at
     ? new Date(post.created_at).toLocaleDateString('zh-CN', {
@@ -44,7 +52,6 @@ const PostDetail = () => {
   const commentCount = post?.comment_count || 0;
   const viewCount = post?.view_count || 0;
   const isLiked = Boolean(post?.liked);
-  const likeColor = isLiked ? '#e53935' : '#9aa0a6';
 
   const isVideoUrl = (url = '') => {
     const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
@@ -57,38 +64,43 @@ const PostDetail = () => {
 
   const closeMedia = () => setActiveMedia(null);
 
-  const loadPostDetail = async (options = {}) => {
-    if (!postId) return;
-    setLoading(true);
-    setNotice(null);
+  const loadPostDetail = useCallback(
+    async (options = {}) => {
+      if (!postId) return;
+      setLoading(true);
+      setNotice(null);
 
-    const { incrementView } = options;
-    const shouldIncrementView =
-      typeof incrementView === 'boolean' ? incrementView : !hasCountedViewRef.current;
+      const { incrementView } = options;
+      const shouldIncrementView =
+        typeof incrementView === 'boolean' ? incrementView : !hasCountedViewRef.current;
 
-    const result = await getPostById(postId, { incrementView: shouldIncrementView });
-    if (!result.success) {
-      setNotice({ type: 'error', message: result.error || '无法加载帖子详情' });
+      const result = await getPostById(postId, { incrementView: shouldIncrementView });
+      if (!result.success) {
+        setNotice({ type: 'error', message: result.error || '无法加载帖子详情' });
+        setLoading(false);
+        return;
+      }
+
+      setPost(result.data);
+      if (shouldIncrementView) {
+        hasCountedViewRef.current = true;
+      }
       setLoading(false);
-      return;
-    }
+    },
+    [postId]
+  );
 
-    setPost(result.data);
-    if (shouldIncrementView) {
-      hasCountedViewRef.current = true;
-    }
-    setLoading(false);
-  };
-
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     if (!postId) return;
     const result = await getComments(postId);
     if (result.success) {
       setComments(result.data || []);
-    } else if (!notice) {
-      setNotice({ type: 'error', message: result.error || '无法加载评论' });
+    } else {
+      setNotice((prev) =>
+        prev ? prev : { type: 'error', message: result.error || '无法加载评论' }
+      );
     }
-  };
+  }, [postId]);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -109,7 +121,51 @@ const PostDetail = () => {
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [postId]);
+  }, [loadPostDetail, loadComments]);
+
+  useLayoutEffect(() => {
+    const gsap = window.gsap;
+    const panel = panelRef.current;
+    if (!gsap || !panel || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return undefined;
+    }
+
+    const ctx = gsap.context(() => {
+      const headerItems = panel.querySelectorAll('[data-animate="detail"]');
+      const contentItems = panel.querySelectorAll('[data-animate="content"]');
+      const commentItems = panel.querySelectorAll('[data-animate="comment"]');
+
+      gsap.from(panel, { opacity: 0, y: 14, duration: 0.45, ease: 'power2.out' });
+      gsap.from(headerItems, {
+        opacity: 0,
+        y: 16,
+        duration: 0.55,
+        ease: 'power2.out',
+        stagger: 0.08,
+        delay: 0.05,
+      });
+      gsap.from(contentItems, {
+        opacity: 0,
+        y: 16,
+        duration: 0.55,
+        ease: 'power2.out',
+        stagger: 0.08,
+        delay: 0.15,
+      });
+      if (commentItems.length > 0) {
+        gsap.from(commentItems, {
+          opacity: 0,
+          y: 12,
+          duration: 0.5,
+          ease: 'power2.out',
+          stagger: 0.05,
+          delay: 0.2,
+        });
+      }
+    }, panel);
+
+    return () => ctx.revert();
+  }, [postId, loading, comments.length]);
 
   const handleToggleLike = async () => {
     if (!currentUserId) {
@@ -212,13 +268,70 @@ const PostDetail = () => {
       return;
     }
 
+    let previousState = null;
+
+    setComments((prevComments) =>
+      prevComments.map((comment) => {
+        if (comment.id !== commentId) {
+          return comment;
+        }
+
+        previousState = {
+          liked: Boolean(comment.liked),
+          like_count: comment.like_count || 0,
+        };
+
+        const nextLiked = !comment.liked;
+        const delta = nextLiked ? 1 : -1;
+
+        return {
+          ...comment,
+          liked: nextLiked,
+          like_count: Math.max(0, (comment.like_count || 0) + delta),
+        };
+      })
+    );
+
     setActionLoading(true);
     setNotice(null);
 
     const result = await toggleCommentLike(commentId);
     if (result.success) {
-      await loadComments();
+      const serverLiked = result.data?.liked;
+      if (typeof serverLiked === 'boolean') {
+        setComments((prevComments) =>
+          prevComments.map((comment) => {
+            if (comment.id !== commentId) {
+              return comment;
+            }
+
+            if (comment.liked === serverLiked) {
+              return comment;
+            }
+
+            const delta = serverLiked ? 1 : -1;
+            return {
+              ...comment,
+              liked: serverLiked,
+              like_count: Math.max(0, (comment.like_count || 0) + delta),
+            };
+          })
+        );
+      }
     } else {
+      if (previousState) {
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === commentId
+              ? {
+                  ...comment,
+                  liked: previousState.liked,
+                  like_count: previousState.like_count,
+                }
+              : comment
+          )
+        );
+      }
       setNotice({ type: 'error', message: result.error || '点赞失败' });
     }
 
@@ -264,6 +377,48 @@ const PostDetail = () => {
     setActionLoading(false);
   };
 
+  const handleReplySelect = (commentId) => {
+    setReplyTarget(commentId);
+    if (composerRef.current) {
+      composerRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const handleReportPost = () => {
+    if (!post) return;
+    setReportTarget({
+      type: 'post',
+      id: post.id,
+      summary: post.title || post.content || '',
+    });
+  };
+
+  const handleReportComment = (comment) => {
+    if (!comment) return;
+    setReportTarget({
+      type: 'comment',
+      id: comment.id,
+      summary: comment.content || '',
+    });
+  };
+
+  const handleCloseReport = () => setReportTarget(null);
+
+  const authorName = post?.author?.display_nickname || post?.author?.nickname || '匿名';
+  const replyTargetName = useMemo(() => {
+    if (!replyTarget) return '';
+    const target = comments.find((comment) => comment.id === replyTarget);
+    return target?.author?.nickname || '匿名用户';
+  }, [replyTarget, comments]);
+
+  const visibilityConfig = {
+    public: { label: '所有人可见', icon: 'fa-globe' },
+    alumni_only: { label: '仅校友可见', icon: 'fa-user-graduate' },
+    classmate_only: { label: '仅本班同学可见', icon: 'fa-user-friends' },
+    private: { label: '仅自己可见', icon: 'fa-lock' },
+  };
+  const visibilityMeta = visibilityConfig[post?.visibility] || visibilityConfig.public;
+
   if (loading) {
     return (
       <div className={`page-content scene-page ${styles.pageContent}`}>
@@ -284,7 +439,7 @@ const PostDetail = () => {
       <div className={`page-content scene-page ${styles.pageContent}`}>
         <section className={`scene-panel ${styles.wallPanel}`}>
           <NoticeBox type="error" message={(notice && notice.message) || '帖子不存在'} />
-          <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>
+          <button className="scene-button ghost" onClick={() => navigate(-1)}>
             返回
           </button>
         </section>
@@ -292,53 +447,66 @@ const PostDetail = () => {
     );
   }
 
-  const authorName = post.author?.display_nickname || post.author?.nickname || '匿名';
-
   return (
     <div className={`page-content scene-page ${styles.pageContent}`}>
-      <section className={`scene-panel ${styles.wallPanel}`}>
-        <div className={styles.wallHeader}>
-          <p className="scene-kicker">帖子详情</p>
-          <h1 className="scene-title">{post.title || '帖子'}</h1>
-          <p className="scene-subtitle">{formattedDate}</p>
-        </div>
+      <section
+        className={`scene-panel ${styles.wallPanel} ${detailStyles.detailPanel}`}
+        ref={panelRef}
+      >
+        <header className={detailStyles.detailHeader}>
+          <div>
+            <p className="scene-kicker" data-animate="detail">
+              帖子详情
+            </p>
+            <h1 className="scene-title" data-animate="detail">
+              {post.title || '帖子'}
+            </h1>
+            <div className={detailStyles.headerMeta} data-animate="detail">
+              <span>{formattedDate}</span>
+              <span className={detailStyles.metaBadge}>
+                <i className={`fas ${visibilityMeta.icon}`} aria-hidden="true"></i>
+                {visibilityMeta.label}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`scene-button ghost ${detailStyles.backButton}`}
+            onClick={() => navigate(-1)}
+            data-animate="detail"
+          >
+            <i className="fas fa-arrow-left" aria-hidden="true"></i>
+            返回
+          </button>
+        </header>
 
         {notice && <NoticeBox type={notice.type} message={notice.message} />}
 
-        <div className={postStyles.postCard} style={{ marginBottom: '1.5rem', height: 'auto' }}>
-          <div className="d-flex align-items-center mb-3">
-            <div className="me-3">
+        <article
+          className={`${postStyles.postCard} ${postStyles.postCardDetail} ${detailStyles.detailCard}`}
+          data-animate="content"
+        >
+          <div className={postStyles.postHeader}>
+            <div className={postStyles.authorBlock}>
               <div className={postStyles.avatarCircle}>
                 {post.author?.avatar_url ? (
-                  <img
-                    src={post.author.avatar_url}
-                    alt={authorName}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                    }}
-                  />
+                  <img src={post.author.avatar_url} alt={authorName} />
                 ) : (
                   <span>{authorName.charAt(0)}</span>
                 )}
               </div>
-            </div>
-            <div className="flex-grow-1">
-              <div className="d-flex justify-content-between align-items-center">
+              <div className={postStyles.authorInfo}>
                 <span className={postStyles.postAuthorName}>{authorName}</span>
-                <span className={`${postStyles.postDate} text-muted small`}>{formattedDate}</span>
+                {post.is_anonymous && <span className={postStyles.anonymousTag}>匿名发布</span>}
               </div>
             </div>
+            <span className={postStyles.postDate}>{formattedDate}</span>
           </div>
 
-          <div className={postStyles.postContent} style={{ whiteSpace: 'pre-wrap' }}>
-            {post.content}
-          </div>
+          <p className={detailStyles.contentText}>{post.content}</p>
 
           {post.media_urls && post.media_urls.length > 0 && (
-            <div className="mb-3">
+            <div className={postStyles.postMedia}>
               <div className={`${postStyles.mediaGrid} ${postStyles.mediaGridDetail}`}>
                 {post.media_urls.map((url, idx) =>
                   isVideoUrl(url) ? (
@@ -364,136 +532,71 @@ const PostDetail = () => {
             </div>
           )}
 
-          <div className="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-            <div style={{ fontSize: '12px', color: '#666' }}>
-              <span className="me-3">👁 {viewCount}</span>
-              <button
-                type="button"
-                onClick={handleToggleLike}
-                disabled={likeLoading}
-                className="btn btn-link btn-sm p-0 me-3"
-                style={{ fontSize: '12px', color: likeColor, textDecoration: 'none' }}
-                aria-pressed={isLiked}
-              >
-                ♥ {likeCount}
-              </button>
-              <span>💬 {commentCount}</span>
-            </div>
-            {post.is_owner ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '12px', color: '#888' }}>
-                  👁
-                  {post.visibility === 'public' && ' 所有人可见'}
-                  {post.visibility === 'alumni_only' && ' 仅校友可见'}
-                  {post.visibility === 'classmate_only' && ' 仅本班同学可见'}
-                  {post.visibility === 'private' && ' 仅自己可见'}
-                </span>
+          <div className={detailStyles.detailFooter}>
+            <PostMetrics
+              viewCount={viewCount}
+              likeCount={likeCount}
+              commentCount={commentCount}
+              isLiked={isLiked}
+              onToggleLike={handleToggleLike}
+              likeLoading={likeLoading}
+              size="large"
+              stopPropagation={false}
+            />
+            <div className={detailStyles.actionGroup}>
+              {post.is_owner ? (
                 <button
                   type="button"
                   onClick={handleDeletePost}
-                  className="btn btn-outline-danger btn-sm"
+                  className={`${detailStyles.actionButton} ${detailStyles.dangerButton}`}
                   disabled={actionLoading}
                 >
                   删除
                 </button>
-              </div>
-            ) : (
-              <Link to={`/tickets/new/post/${post.id}`} className="btn btn-outline-danger btn-sm">
-                举报
-              </Link>
-            )}
-          </div>
-
-          <div style={{ marginTop: '12px' }}>
-            <input
-              type="text"
-              value={commentDraft}
-              onChange={(event) => setCommentDraft(event.target.value.slice(0, 200))}
-              placeholder="发表评论"
-              className="form-control form-control-sm"
-              disabled={actionLoading}
-              maxLength={200}
-            />
-            <div className="form-text">最多 200 字</div>
-          </div>
-          <div style={{ marginTop: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <select
-              value={replyTarget}
-              onChange={(event) => setReplyTarget(event.target.value)}
-              className="form-select form-select-sm"
-              style={{ maxWidth: '140px' }}
-            >
-              <option value="">不回复</option>
-              {comments.map((comment, index) => (
-                <option key={comment.id} value={comment.id}>
-                  {String(index + 1).padStart(2, '0')}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={handleAddComment}
-              disabled={actionLoading}
-              className="btn btn-outline-dark btn-sm"
-            >
-              ➕ 发布评论
-            </button>
-          </div>
-
-          {comments.length > 0 && (
-            <div style={{ marginTop: '12px', fontSize: '13px' }}>
-              {comments.map((comment, index) => {
-                const commentAuthor = comment.author?.nickname || '匿名用户';
-                const parentComment = comment.parent_id
-                  ? comments.find((item) => item.id === comment.parent_id)
-                  : null;
-                const replyTargetName = parentComment?.author?.nickname;
-                const displayText = replyTargetName
-                  ? `“${commentAuthor}”回复“${replyTargetName}”：${comment.content}`
-                  : `“${commentAuthor}”：${comment.content}`;
-                const displayIndex = String(index + 1).padStart(2, '0');
-
-                return (
-                  <div key={comment.id} style={{ marginBottom: '6px' }}>
-                    <strong>{displayIndex}.</strong> {displayText}
-                    <button
-                      onClick={() => handleToggleCommentLike(comment.id)}
-                      disabled={actionLoading}
-                      className="btn btn-link btn-sm"
-                      style={{ padding: '0 4px' }}
-                    >
-                      ❤️
-                    </button>
-                    <span style={{ marginLeft: '4px' }}>{comment.like_count || 0}</span>
-                    {currentUserId && comment.author_id === currentUserId ? (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteComment(comment.id)}
-                        disabled={actionLoading}
-                        className="btn btn-link btn-sm"
-                        style={{ padding: '0 4px' }}
-                      >
-                        🗑️
-                      </button>
-                    ) : (
-                      <Link
-                        to={`/tickets/new/comment/${comment.id}`}
-                        className="btn btn-link btn-sm"
-                        style={{ padding: '0 4px', color: '#9aa0a6' }}
-                        title="举报评论"
-                      >
-                        ⚠️
-                      </Link>
-                    )}
-                  </div>
-                );
-              })}
+              ) : (
+                <button
+                  type="button"
+                  className={`${detailStyles.actionButton} ${detailStyles.reportButton}`}
+                  onClick={handleReportPost}
+                >
+                  举报
+                </button>
+              )}
             </div>
-          )}
+          </div>
+        </article>
+
+        <div className={detailStyles.sectionHeader} data-animate="content">
+          <h2 className={detailStyles.sectionTitle}>评论</h2>
+          <span className={detailStyles.sectionHint}>{commentCount} 条评论</span>
         </div>
 
-        <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>
-          返回
-        </button>
+        {comments.length === 0 && (
+          <div className={detailStyles.sectionHint} data-animate="content">
+            还没有评论，快来抢沙发。
+          </div>
+        )}
+
+        <PostCommentList
+          comments={comments}
+          currentUserId={currentUserId}
+          onToggleLike={handleToggleCommentLike}
+          onDeleteComment={handleDeleteComment}
+          onReplySelect={handleReplySelect}
+          onReport={handleReportComment}
+          actionLoading={actionLoading}
+        />
+
+        <PostCommentComposer
+          ref={composerRef}
+          commentDraft={commentDraft}
+          onDraftChange={setCommentDraft}
+          onSubmit={handleAddComment}
+          replyTargetName={replyTargetName}
+          onClearReply={() => setReplyTarget('')}
+          disabled={actionLoading}
+          maxLength={200}
+        />
       </section>
 
       {activeMedia &&
@@ -507,7 +610,7 @@ const PostDetail = () => {
                 onClick={closeMedia}
                 aria-label="Close"
               >
-                X
+                ×
               </button>
               {activeMedia.isVideo ? (
                 <video
@@ -523,6 +626,20 @@ const PostDetail = () => {
           </div>,
           document.body
         )}
+
+      {reportTarget && (
+        <ReportGateOverlay
+          key={`${reportTarget.type}-${reportTarget.id}`}
+          targetType={reportTarget.type}
+          targetId={reportTarget.id}
+          targetSummary={reportTarget.summary}
+          isAuthenticated={Boolean(currentUserId)}
+          onClose={handleCloseReport}
+          onSubmitted={() =>
+            setNotice({ type: 'success', message: '举报已提交，我们会尽快处理。' })
+          }
+        />
+      )}
     </div>
   );
 };

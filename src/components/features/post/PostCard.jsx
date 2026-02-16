@@ -1,9 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import PostMetrics from './PostMetrics';
 import styles from './PostCard.module.css';
 
-const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading }) => {
+const visibilityConfig = {
+  public: { label: '所有人可见', icon: 'fa-globe' },
+  alumni_only: { label: '仅校友可见', icon: 'fa-user-graduate' },
+  classmate_only: { label: '仅本班同学可见', icon: 'fa-user-friends' },
+  private: { label: '仅自己可见', icon: 'fa-lock' },
+};
+
+const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading, onReport }) => {
   const navigate = useNavigate();
   const date = new Date(post.created_at);
   const formattedDate = date.toLocaleDateString('zh-CN', {
@@ -14,26 +22,17 @@ const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading }) => {
     minute: '2-digit',
   });
 
-  // 获取作者信息
   const author = post.author || {};
   const authorName = author.nickname || '匿名';
   const avatarUrl = author.avatar_url;
   const avatarText = authorName.charAt(0);
 
-  // 获取统计信息
-  const likeCount = post.like_count || 0;
-  const commentCount = post.comment_count || 0;
-  const viewCount = post.view_count || 0;
-  const isLiked = Boolean(post.liked);
-  const likeColor = isLiked ? '#e53935' : '#9aa0a6';
-
   const [activeMedia, setActiveMedia] = useState(null);
   const content = post.content || '';
   const hasMedia = Boolean(post.media_urls && post.media_urls.length > 0);
   const isTitleLikelyTwoLines = Boolean(post.title && post.title.length > 12);
-  const displayContent = useMemo(() => {
-    return content;
-  }, [content]);
+  const displayContent = useMemo(() => content, [content]);
+  const visibilityMeta = visibilityConfig[post.visibility] || visibilityConfig.public;
 
   const isVideoUrl = (url = '') => {
     const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
@@ -53,155 +52,128 @@ const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading }) => {
 
   const stopPropagation = (event) => event.stopPropagation();
 
-  const handleToggleLike = (event) => {
-    event.stopPropagation();
+  const handleToggleLike = () => {
     onToggleLike?.(post.id);
   };
 
   return (
-    <div className="col-12 col-md-6 col-lg-4">
-      <div
-        className={`${styles.postCard} ${styles.postCardCompact}`}
-        role="button"
-        tabIndex={0}
-        onClick={handleNavigate}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            handleNavigate();
-          }
-        }}
-      >
-        {/* 头部：作者信息 */}
-        <div className={`d-flex align-items-center ${styles.postHeader}`}>
-          <div className="me-3">
-            <div className={styles.avatarCircle}>
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={authorName}
-                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
-                />
-              ) : (
-                <span>{avatarText}</span>
+    <article
+      className={`${styles.postCard} ${styles.postCardCompact}`}
+      role="button"
+      tabIndex={0}
+      onClick={handleNavigate}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleNavigate();
+        }
+      }}
+      data-animate="card"
+    >
+      <div className={styles.postHeader}>
+        <div className={styles.authorBlock}>
+          <div className={styles.avatarCircle}>
+            {avatarUrl ? <img src={avatarUrl} alt={authorName} /> : <span>{avatarText}</span>}
+          </div>
+          <div className={styles.authorInfo}>
+            <span className={styles.postAuthorName}>{authorName}</span>
+            {post.is_anonymous && <span className={styles.anonymousTag}>匿名发布</span>}
+          </div>
+        </div>
+        <span className={styles.postDate}>{formattedDate}</span>
+      </div>
+
+      {post.title && (
+        <h3 className={`${styles.postTitle} ${styles.postTitleClamp} ${styles.postClampFade}`}>
+          {post.title}
+        </h3>
+      )}
+
+      <div className={styles.postBody}>
+        <div
+          className={`${styles.postContent} ${
+            hasMedia
+              ? isTitleLikelyTwoLines
+                ? styles.postContentClampWithMediaTight
+                : styles.postContentClampWithMedia
+              : isTitleLikelyTwoLines
+                ? styles.postContentClampNoMediaTight
+                : styles.postContentClampNoMedia
+          } ${styles.postClampFade}`}
+        >
+          {displayContent}
+        </div>
+
+        {hasMedia && (
+          <div className={styles.postMedia} onClick={stopPropagation}>
+            <div className={styles.mediaGrid}>
+              {post.media_urls.map((url, idx) =>
+                isVideoUrl(url) ? (
+                  <video
+                    key={idx}
+                    src={url}
+                    className={styles.mediaThumb}
+                    onClick={(event) => openMedia(event, url)}
+                    muted
+                    preload="metadata"
+                  />
+                ) : (
+                  <img
+                    key={idx}
+                    src={url}
+                    alt={`帖子图片 ${idx + 1}`}
+                    className={styles.mediaThumb}
+                    onClick={(event) => openMedia(event, url)}
+                  />
+                )
               )}
             </div>
           </div>
-          <div className="flex-grow-1">
-            <div className="d-flex justify-content-between align-items-center">
-              <span className={styles.postAuthorName}>{authorName}</span>
-              <span className={`${styles.postDate} text-muted small`}>{formattedDate}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 标题 */}
-        {post.title && (
-          <h3 className={`${styles.postTitle} ${styles.postTitleClamp} ${styles.postClampFade}`}>
-            {post.title}
-          </h3>
         )}
+      </div>
 
-        {/* 内容缩略 */}
-        <div className={styles.postBody}>
-          <div
-            className={`${styles.postContent} ${
-              hasMedia
-                ? isTitleLikelyTwoLines
-                  ? styles.postContentClampWithMediaTight
-                  : styles.postContentClampWithMedia
-                : isTitleLikelyTwoLines
-                  ? styles.postContentClampNoMediaTight
-                  : styles.postContentClampNoMedia
-            } ${styles.postClampFade}`}
-          >
-            {displayContent}
-          </div>
-
-          {/* 图片/视频列表 */}
-          {hasMedia && (
-            <div className={styles.postMedia} onClick={stopPropagation}>
-              <div className={styles.mediaGrid}>
-                {post.media_urls.map((url, idx) =>
-                  isVideoUrl(url) ? (
-                    <video
-                      key={idx}
-                      src={url}
-                      className={styles.mediaThumb}
-                      onClick={(event) => openMedia(event, url)}
-                      muted
-                      preload="metadata"
-                    />
-                  ) : (
-                    <img
-                      key={idx}
-                      src={url}
-                      alt={`帖子图片 ${idx + 1}`}
-                      className={styles.mediaThumb}
-                      onClick={(event) => openMedia(event, url)}
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* 统计信息 */}
-        <div className={`d-flex justify-content-between align-items-center ${styles.postFooter}`}>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            <span className="me-3">👁 {viewCount}</span>
-            {onToggleLike ? (
-              <button
-                type="button"
-                onClick={handleToggleLike}
-                disabled={likeLoading}
-                className="btn btn-link btn-sm p-0 me-3"
-                style={{ fontSize: '12px', color: likeColor, textDecoration: 'none' }}
-                onMouseDown={stopPropagation}
-                aria-pressed={isLiked}
-              >
-                ♥ {likeCount}
-              </button>
-            ) : (
-              <span className="me-3" style={{ color: likeColor }}>
-                ♥ {likeCount}
-              </span>
-            )}
-            <span>💬 {commentCount}</span>
-          </div>
+      <div className={styles.postFooter}>
+        <PostMetrics
+          viewCount={post.view_count}
+          likeCount={post.like_count}
+          commentCount={post.comment_count}
+          isLiked={Boolean(post.liked)}
+          onToggleLike={handleToggleLike}
+          likeLoading={likeLoading}
+        />
+        <div className={styles.postActions}>
+          <span className={styles.visibilityBadge}>
+            <i className={`fas ${visibilityMeta.icon}`} aria-hidden="true"></i>
+            {visibilityMeta.label}
+          </span>
           {post.is_owner ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', color: '#888' }}>
-                👁
-                {post.visibility === 'public' && ' 所有人可见'}
-                {post.visibility === 'alumni_only' && ' 仅校友可见'}
-                {post.visibility === 'classmate_only' && ' 仅本班同学可见'}
-                {post.visibility === 'private' && ' 仅自己可见'}
-              </span>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDeletePost();
-                }}
-                className="btn btn-outline-danger btn-sm"
-                onMouseDown={stopPropagation}
-              >
-                删除
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDeletePost();
+              }}
+              className={styles.deleteButton}
+              onMouseDown={stopPropagation}
+            >
+              删除
+            </button>
           ) : (
-            <Link
-              to={`/tickets/new/post/${post.id}`}
-              className="btn btn-outline-danger btn-sm"
-              onClick={stopPropagation}
+            <button
+              type="button"
+              className={styles.reportButton}
+              onClick={(event) => {
+                event.stopPropagation();
+                onReport?.(post);
+              }}
+              onMouseDown={stopPropagation}
             >
               举报
-            </Link>
+            </button>
           )}
         </div>
       </div>
+
       {activeMedia &&
         typeof document !== 'undefined' &&
         createPortal(
@@ -213,7 +185,7 @@ const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading }) => {
                 onClick={closeMedia}
                 aria-label="Close"
               >
-                X
+                ×
               </button>
               {activeMedia.isVideo ? (
                 <video src={activeMedia.url} className={styles.mediaContent} controls autoPlay />
@@ -224,7 +196,7 @@ const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading }) => {
           </div>,
           document.body
         )}
-    </div>
+    </article>
   );
 };
 

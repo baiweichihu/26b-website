@@ -667,6 +667,23 @@ export const getComments = async (postId) => {
       throw new Error(`获取评论失败: ${commentsError.message}`);
     }
 
+    const commentIds = (comments || []).map((comment) => comment.id);
+    let likedCommentIds = new Set();
+
+    if (user?.id && commentIds.length > 0) {
+      const { data: likedRows, error: likedError } = await supabase
+        .from('comment_likes')
+        .select('comment_id')
+        .eq('user_id', user.id)
+        .in('comment_id', commentIds);
+
+      if (likedError) {
+        throw new Error(`获取评论点赞状态失败: ${likedError.message}`);
+      }
+
+      likedCommentIds = new Set((likedRows || []).map((row) => row.comment_id));
+    }
+
     const processedComments = (comments || []).map((comment) => ({
       id: comment.id,
       post_id: comment.post_id,
@@ -682,6 +699,7 @@ export const getComments = async (postId) => {
         identity_type: comment.author?.identity_type,
       },
       like_count: comment.comment_likes?.[0]?.count || 0,
+      liked: likedCommentIds.has(comment.id),
     }));
 
     return {
@@ -1010,25 +1028,18 @@ export const deletePost = async (postId) => {
         .remove(storagePaths);
 
       if (storageError) {
-        const now = new Date().toISOString();
         try {
-          await supabase.from('support_tickets').insert({
+          await supabase.from('content_reports').insert({
             reporter_id: user.id,
-            category: 'other',
-            title: '删除帖子媒体失败',
-            description: '删除帖子时，媒体文件删除失败，请管理员处理。',
-            related_resource_type: 'post',
-            related_resource_id: postId,
-            metadata: {
-              media_urls: mediaUrls,
-              storage_error: storageError.message,
-            },
+            target_type: 'post',
+            target_id: postId,
+            reason: '删除帖子媒体失败',
+            suggestion: `存储删除失败：${storageError.message}`,
             status: 'pending',
-            created_at: now,
-            updated_at: now,
+            admin_note: null,
           });
         } catch (ticketError) {
-          console.error('create support ticket error:', ticketError);
+          console.error('create content report error:', ticketError);
         }
 
         const mediaError = new Error('媒体删除失败');
@@ -1104,5 +1115,46 @@ export const deleteComment = async (commentId) => {
       error: error.message,
       data: null,
     };
+  }
+};
+
+/**
+ * 提交举报
+ * @param {Object} payload
+ * @param {'post'|'comment'} payload.targetType
+ * @param {string} payload.targetId
+ * @param {string} payload.reason
+ * @param {string} payload.suggestion
+ */
+export const createReportTicket = async ({ targetType, targetId, reason, suggestion }) => {
+  try {
+    if (!targetType || !targetId) {
+      throw new Error('举报对象不能为空');
+    }
+    if (!reason || !reason.trim()) {
+      throw new Error('请填写举报原因');
+    }
+
+    const user = await getAuthenticatedUser();
+    const safeSuggestion = suggestion?.trim() || null;
+
+    const { error } = await supabase.from('content_reports').insert({
+      reporter_id: user.id,
+      target_type: targetType,
+      target_id: targetId,
+      reason: reason.trim(),
+      suggestion: safeSuggestion,
+      status: 'pending',
+      admin_note: null,
+    });
+
+    if (error) {
+      throw new Error(`提交举报失败: ${error.message}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('createReportTicket error:', error);
+    return { success: false, error: error.message };
   }
 };
