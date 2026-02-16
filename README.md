@@ -58,7 +58,19 @@ src/
 │   │   │   └── EasterEgg.module.css
 │   │   ├── post/
 │   │   │   ├── PostCard.jsx
-│   │   │   └── PostCard.module.css
+│   │   │   ├── PostCard.module.css
+│   │   │   ├── PostCommentComposer.jsx
+│   │   │   ├── PostCommentComposer.module.css
+│   │   │   ├── PostCommentList.jsx
+│   │   │   ├── PostCommentList.module.css
+│   │   │   ├── PostMetrics.jsx
+│   │   │   ├── PostMetrics.module.css
+│   │   │   ├── PostWallControls.jsx
+│   │   │   ├── PostWallControls.module.css
+│   │   │   ├── PostWallEmptyState.jsx
+│   │   │   ├── PostWallEmptyState.module.css
+│   │   │   ├── PostWallHero.jsx
+│   │   │   └── PostWallHero.module.css
 │   │   └── user/
 │   │       ├── LoginHero.jsx
 │   │       ├── RegisterHero.jsx
@@ -83,7 +95,9 @@ src/
 │   │   ├── IrisTransition.jsx
 │   │   ├── IrisTransition.module.css
 │   │   ├── AuthGateOverlay.jsx
-│   │   └── AuthGateOverlay.module.css
+│   │   ├── AuthGateOverlay.module.css
+│   │   ├── ReportGateOverlay.jsx
+│   │   └── ReportGateOverlay.module.css
 │   └── widgets/
 │       ├── NoticeBox.jsx
 │       └── NoticeBox.module.css
@@ -95,7 +109,8 @@ src/
     │   ├── Wall.jsx
     │   ├── Wall.module.css
     │   ├── CreatePost.jsx
-    │   └── PostDetail.jsx
+    │   ├── PostDetail.jsx
+    │   └── PostDetail.module.css
     ├── static/
     │   ├── Home.jsx
     │   ├── Lobby.jsx
