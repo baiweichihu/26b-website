@@ -7,6 +7,7 @@ import PostWallControls from '../../components/features/post/PostWallControls';
 import PostWallEmptyState from '../../components/features/post/PostWallEmptyState';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
+import ReportGateOverlay from '../../components/ui/ReportGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
 import { getPosts, deletePost, searchPosts, togglePostLike } from '../../services/postService';
 import styles from './Wall.module.css';
@@ -25,6 +26,7 @@ const Wall = () => {
   const [likeLoadingPostId, setLikeLoadingPostId] = useState(null);
   const panelRef = useRef(null);
   const lastAnimatedCountRef = useRef(0);
+  const [reportTarget, setReportTarget] = useState(null);
 
   const wallStats = useMemo(() => {
     return posts.reduce(
@@ -380,6 +382,17 @@ const Wall = () => {
     navigate('/posts/new');
   };
 
+  const handleReportPost = (post) => {
+    if (!post) return;
+    setReportTarget({
+      type: 'post',
+      id: post.id,
+      summary: post.title || post.content || '',
+    });
+  };
+
+  const handleCloseReport = () => setReportTarget(null);
+
   // const handleTestLogin = async () => {
   //   try {
   //     setActionLoading(true);
@@ -497,6 +510,7 @@ const Wall = () => {
                 onDeletePost={() => handleDeletePost(post.id)}
                 onToggleLike={handleToggleLike}
                 likeLoading={likeLoadingPostId === post.id}
+                onReport={handleReportPost}
               />
             ))}
           </div>
@@ -505,6 +519,20 @@ const Wall = () => {
           <AuthGateOverlay mode={authStatus} title={gateCopy.title} message={gateCopy.message} />
         )}
       </section>
+
+      {reportTarget && (
+        <ReportGateOverlay
+          key={`${reportTarget.type}-${reportTarget.id}`}
+          targetType={reportTarget.type}
+          targetId={reportTarget.id}
+          targetSummary={reportTarget.summary}
+          isAuthenticated={Boolean(currentUserId)}
+          onClose={handleCloseReport}
+          onSubmitted={() =>
+            setNotice({ type: 'success', message: '举报已提交，我们会尽快处理。' })
+          }
+        />
+      )}
     </div>
   );
 };

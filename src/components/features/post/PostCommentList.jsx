@@ -1,5 +1,4 @@
-import React, { useMemo, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef } from 'react';
 import styles from './PostCommentList.module.css';
 
 const formatDate = (value) => {
@@ -29,6 +28,7 @@ const PostCommentList = ({
   onToggleLike,
   onDeleteComment,
   onReplySelect,
+  onReport,
   actionLoading,
 }) => {
   const highlightTimerRef = useRef(null);
@@ -39,6 +39,14 @@ const PostCommentList = ({
     });
     return map;
   }, [comments]);
+
+  useEffect(() => {
+    return () => {
+      if (highlightTimerRef.current && typeof window !== 'undefined') {
+        window.clearTimeout(highlightTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleJumpToComment = (commentId) => {
     if (typeof document === 'undefined' || typeof window === 'undefined') return;
@@ -128,13 +136,14 @@ const PostCommentList = ({
                     <i className="fas fa-trash" aria-hidden="true"></i>
                   </button>
                 ) : (
-                  <Link
-                    to={`/tickets/new/comment/${comment.id}`}
+                  <button
+                    type="button"
                     className={`${styles.iconButton} ${styles.reportButton}`}
                     title="举报评论"
+                    onClick={() => onReport?.(comment)}
                   >
                     <i className="fas fa-flag" aria-hidden="true"></i>
-                  </Link>
+                  </button>
                 )}
               </div>
             </div>

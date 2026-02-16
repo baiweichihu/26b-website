@@ -1,5 +1,5 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabase';
 import {
@@ -15,6 +15,7 @@ import NoticeBox from '../../components/widgets/NoticeBox';
 import PostMetrics from '../../components/features/post/PostMetrics';
 import PostCommentComposer from '../../components/features/post/PostCommentComposer';
 import PostCommentList from '../../components/features/post/PostCommentList';
+import ReportGateOverlay from '../../components/ui/ReportGateOverlay';
 import styles from './Wall.module.css';
 import postStyles from '../../components/features/post/PostCard.module.css';
 import detailStyles from './PostDetail.module.css';
@@ -32,6 +33,7 @@ const PostDetail = () => {
   const [likeLoading, setLikeLoading] = useState(false);
   const [notice, setNotice] = useState(null);
   const [activeMedia, setActiveMedia] = useState(null);
+  const [reportTarget, setReportTarget] = useState(null);
   const hasCountedViewRef = useRef(false);
   const panelRef = useRef(null);
   const composerRef = useRef(null);
@@ -62,38 +64,43 @@ const PostDetail = () => {
 
   const closeMedia = () => setActiveMedia(null);
 
-  const loadPostDetail = async (options = {}) => {
-    if (!postId) return;
-    setLoading(true);
-    setNotice(null);
+  const loadPostDetail = useCallback(
+    async (options = {}) => {
+      if (!postId) return;
+      setLoading(true);
+      setNotice(null);
 
-    const { incrementView } = options;
-    const shouldIncrementView =
-      typeof incrementView === 'boolean' ? incrementView : !hasCountedViewRef.current;
+      const { incrementView } = options;
+      const shouldIncrementView =
+        typeof incrementView === 'boolean' ? incrementView : !hasCountedViewRef.current;
 
-    const result = await getPostById(postId, { incrementView: shouldIncrementView });
-    if (!result.success) {
-      setNotice({ type: 'error', message: result.error || '无法加载帖子详情' });
+      const result = await getPostById(postId, { incrementView: shouldIncrementView });
+      if (!result.success) {
+        setNotice({ type: 'error', message: result.error || '无法加载帖子详情' });
+        setLoading(false);
+        return;
+      }
+
+      setPost(result.data);
+      if (shouldIncrementView) {
+        hasCountedViewRef.current = true;
+      }
       setLoading(false);
-      return;
-    }
+    },
+    [postId]
+  );
 
-    setPost(result.data);
-    if (shouldIncrementView) {
-      hasCountedViewRef.current = true;
-    }
-    setLoading(false);
-  };
-
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     if (!postId) return;
     const result = await getComments(postId);
     if (result.success) {
       setComments(result.data || []);
-    } else if (!notice) {
-      setNotice({ type: 'error', message: result.error || '无法加载评论' });
+    } else {
+      setNotice((prev) =>
+        prev ? prev : { type: 'error', message: result.error || '无法加载评论' }
+      );
     }
-  };
+  }, [postId]);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -114,7 +121,7 @@ const PostDetail = () => {
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [postId]);
+  }, [loadPostDetail, loadComments]);
 
   useLayoutEffect(() => {
     const gsap = window.gsap;
@@ -377,6 +384,26 @@ const PostDetail = () => {
     }
   };
 
+  const handleReportPost = () => {
+    if (!post) return;
+    setReportTarget({
+      type: 'post',
+      id: post.id,
+      summary: post.title || post.content || '',
+    });
+  };
+
+  const handleReportComment = (comment) => {
+    if (!comment) return;
+    setReportTarget({
+      type: 'comment',
+      id: comment.id,
+      summary: comment.content || '',
+    });
+  };
+
+  const handleCloseReport = () => setReportTarget(null);
+
   const authorName = post?.author?.display_nickname || post?.author?.nickname || '匿名';
   const replyTargetName = useMemo(() => {
     if (!replyTarget) return '';
@@ -527,12 +554,13 @@ const PostDetail = () => {
                   删除
                 </button>
               ) : (
-                <Link
-                  to={`/tickets/new/post/${post.id}`}
+                <button
+                  type="button"
                   className={`${detailStyles.actionButton} ${detailStyles.reportButton}`}
+                  onClick={handleReportPost}
                 >
                   举报
-                </Link>
+                </button>
               )}
             </div>
           </div>
@@ -555,6 +583,7 @@ const PostDetail = () => {
           onToggleLike={handleToggleCommentLike}
           onDeleteComment={handleDeleteComment}
           onReplySelect={handleReplySelect}
+          onReport={handleReportComment}
           actionLoading={actionLoading}
         />
 
@@ -597,6 +626,20 @@ const PostDetail = () => {
           </div>,
           document.body
         )}
+
+      {reportTarget && (
+        <ReportGateOverlay
+          key={`${reportTarget.type}-${reportTarget.id}`}
+          targetType={reportTarget.type}
+          targetId={reportTarget.id}
+          targetSummary={reportTarget.summary}
+          isAuthenticated={Boolean(currentUserId)}
+          onClose={handleCloseReport}
+          onSubmitted={() =>
+            setNotice({ type: 'success', message: '举报已提交，我们会尽快处理。' })
+          }
+        />
+      )}
     </div>
   );
 };

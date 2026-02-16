@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import PostMetrics from './PostMetrics';
 import styles from './PostCard.module.css';
 
@@ -11,7 +11,7 @@ const visibilityConfig = {
   private: { label: '仅自己可见', icon: 'fa-lock' },
 };
 
-const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading }) => {
+const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading, onReport }) => {
   const navigate = useNavigate();
   const date = new Date(post.created_at);
   const formattedDate = date.toLocaleDateString('zh-CN', {
@@ -159,13 +159,17 @@ const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading }) => {
               删除
             </button>
           ) : (
-            <Link
-              to={`/tickets/new/post/${post.id}`}
+            <button
+              type="button"
               className={styles.reportButton}
-              onClick={stopPropagation}
+              onClick={(event) => {
+                event.stopPropagation();
+                onReport?.(post);
+              }}
+              onMouseDown={stopPropagation}
             >
               举报
-            </Link>
+            </button>
           )}
         </div>
       </div>
