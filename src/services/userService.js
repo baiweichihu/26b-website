@@ -156,7 +156,7 @@ export const signUpVerifyAndSetInfo = async ({ email, otp, password, nickname })
       if (pwdError) throw pwdError;
     }
 
-    const avatarUrl = generateIdenticonAvatarUrl(email);
+    const avatarUrl = generateIdenticonAvatarUrl(user.id ? user.id : email);
 
     // update profile
     const { error: profileError } = await supabase

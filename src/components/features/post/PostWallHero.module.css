@@ -1,0 +1,116 @@
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(1.4rem, 3vw, 2.6rem);
+  padding: clamp(1.6rem, 3vw, 2.5rem);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 22px 38px rgba(18, 32, 60, 0.14);
+  overflow: hidden;
+}
+
+.hero::before,
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  filter: blur(4px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.hero::before {
+  top: -140px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(255, 199, 135, 0.6), rgba(255, 199, 135, 0));
+}
+
+.hero::after {
+  bottom: -160px;
+  right: -120px;
+  background: radial-gradient(circle, rgba(124, 197, 255, 0.45), rgba(124, 197, 255, 0));
+}
+
+.heroContent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  z-index: 1;
+}
+
+.heroActions {
+  margin-top: 0.4rem;
+}
+
+.heroButton {
+  padding: 0.85rem 1.8rem;
+  font-size: 1rem;
+}
+
+.heroStats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.8rem;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 16px 24px rgba(18, 32, 60, 0.1);
+}
+
+.statIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #132238;
+  background: linear-gradient(120deg, var(--scene-accent), var(--scene-accent-2));
+  box-shadow: 0 10px 18px rgba(18, 32, 60, 0.12);
+  font-size: 0.95rem;
+}
+
+.statLabel {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--muted-color);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin-bottom: 0.2rem;
+}
+
+.statValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+[data-theme='dark'] .hero {
+  background: rgba(12, 18, 32, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .statCard {
+  background: rgba(16, 24, 44, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 960px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}

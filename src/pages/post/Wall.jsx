@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import PostCard from '../../components/features/post/PostCard';
+import PostWallHero from '../../components/features/post/PostWallHero';
+import PostWallControls from '../../components/features/post/PostWallControls';
+import PostWallEmptyState from '../../components/features/post/PostWallEmptyState';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
@@ -20,6 +23,25 @@ const Wall = () => {
   const [authStatus, setAuthStatus] = useState('loading');
   const [currentUserId, setCurrentUserId] = useState(null);
   const [likeLoadingPostId, setLikeLoadingPostId] = useState(null);
+  const panelRef = useRef(null);
+  const lastAnimatedCountRef = useRef(0);
+
+  const wallStats = useMemo(() => {
+    return posts.reduce(
+      (acc, post) => {
+        acc.totalLikes += post.like_count || 0;
+        acc.totalComments += post.comment_count || 0;
+        acc.totalViews += post.view_count || 0;
+        return acc;
+      },
+      {
+        totalPosts: posts.length,
+        totalLikes: 0,
+        totalComments: 0,
+        totalViews: 0,
+      }
+    );
+  }, [posts]);
 
   const loadAuthStatus = useCallback(async () => {
     try {
@@ -112,6 +134,77 @@ const Wall = () => {
       setError(null);
     }
   }, [authStatus, refreshPosts]);
+
+  useLayoutEffect(() => {
+    const gsap = window.gsap;
+    const panel = panelRef.current;
+    if (!gsap || !panel || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return undefined;
+    }
+
+    const ctx = gsap.context(() => {
+      const heroItems = panel.querySelectorAll('[data-animate="hero"]');
+      const toolbarItems = panel.querySelectorAll('[data-animate="toolbar"]');
+      gsap.from(panel, { opacity: 0, y: 14, duration: 0.45, ease: 'power2.out' });
+      gsap.from(heroItems, {
+        opacity: 0,
+        y: 18,
+        duration: 0.6,
+        ease: 'power2.out',
+        stagger: 0.08,
+        delay: 0.1,
+      });
+      gsap.from(toolbarItems, {
+        opacity: 0,
+        y: 14,
+        duration: 0.5,
+        ease: 'power2.out',
+        stagger: 0.06,
+        delay: 0.15,
+      });
+    }, panel);
+
+    return () => ctx.revert();
+  }, []);
+
+  useLayoutEffect(() => {
+    const gsap = window.gsap;
+    const panel = panelRef.current;
+    if (
+      !gsap ||
+      !panel ||
+      loading ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return undefined;
+    }
+
+    if (posts.length === 0) {
+      lastAnimatedCountRef.current = 0;
+      return undefined;
+    }
+
+    if (lastAnimatedCountRef.current === posts.length) {
+      return undefined;
+    }
+
+    lastAnimatedCountRef.current = posts.length;
+    const cards = panel.querySelectorAll('[data-animate="card"]');
+    if (cards.length === 0) return undefined;
+
+    const ctx = gsap.context(() => {
+      gsap.from(cards, {
+        opacity: 0,
+        y: 18,
+        duration: 0.6,
+        ease: 'power2.out',
+        stagger: 0.05,
+        delay: 0.1,
+      });
+    }, panel);
+
+    return () => ctx.revert();
+  }, [loading, posts.length]);
 
   const handleDeletePost = async (postId) => {
     try {
@@ -344,83 +437,38 @@ const Wall = () => {
 
   return (
     <div className={`page-content scene-page ${styles.pageContent}`}>
-      <section className={`scene-panel ${styles.wallPanel} ${gateStyles.lockedContainer}`}>
+      <section
+        className={`scene-panel ${styles.wallPanel} ${gateStyles.lockedContainer}`}
+        ref={panelRef}
+      >
         <div
           className={`${gateStyles.lockedContent} ${isLocked ? gateStyles.isLocked : ''}`}
           aria-hidden={isLocked}
         >
-          <div className={styles.wallHeader}>
-            <p className="scene-kicker">班级留言墙</p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h1 className="scene-title">共享笔记与回响</h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {/* <button
-                type="button"
-                className="scene-button ghost"
-                onClick={handleTestLogin}
-                disabled={actionLoading}
-              >
-                测试登录
-              </button>
-              <button
-                type="button"
-                className="scene-button ghost"
-                onClick={handleTestLogout}
-                disabled={actionLoading}
-              >
-                模拟退出
-              </button> */}
-                <button
-                  type="button"
-                  className="scene-button primary"
-                  style={{ marginRight: '12px', padding: '1.05rem 2.1rem', fontSize: '1.2rem' }}
-                  onClick={handleCreatePostClick}
-                >
-                  发布帖子 &gt;ω&lt;
-                </button>
-              </div>
-            </div>
-            <p className="scene-subtitle">留下留言、庆祝里程碑，或为班级写下一段短短的回忆。</p>
+          <PostWallHero
+            onCreatePost={handleCreatePostClick}
+            actionLoading={actionLoading}
+            stats={wallStats}
+          />
 
-            {notice && <NoticeBox type={notice.type} message={notice.message} />}
-
-            <div style={{ marginTop: '12px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <input
-                type="text"
-                value={searchKeyword}
-                onChange={(event) => setSearchKeyword(event.target.value)}
-                placeholder="搜索关键词"
-                className="form-control form-control-sm"
-                style={{ maxWidth: '180px' }}
-              />
-              <select
-                value={searchSortBy}
-                onChange={(event) => setSearchSortBy(event.target.value)}
-                className="form-select form-select-sm"
-                style={{ maxWidth: '140px' }}
-              >
-                <option value="time">按时间</option>
-                <option value="likes">按点赞</option>
-              </select>
-              <button
-                onClick={handleTestSearch}
-                disabled={actionLoading}
-                className="scene-button ghost"
-              >
-                {actionLoading ? '处理中...' : '🔍 搜索'}
-              </button>
-              <button
-                onClick={handleResetSearch}
-                disabled={actionLoading}
-                className="scene-button ghost"
-              >
-                重置
-              </button>
+          {notice && (
+            <div className={styles.noticeWrap} data-animate="toolbar">
+              <NoticeBox type={notice.type} message={notice.message} />
             </div>
-          </div>
+          )}
+
+          <PostWallControls
+            searchKeyword={searchKeyword}
+            searchSortBy={searchSortBy}
+            onKeywordChange={setSearchKeyword}
+            onSortChange={setSearchSortBy}
+            onSearch={handleTestSearch}
+            onReset={handleResetSearch}
+            actionLoading={actionLoading}
+          />
 
           {loading && (
-            <div className={styles.stateBlock}>
+            <div className={styles.stateBlock} data-animate="state">
               <div className="spinner-border text-primary" role="status">
                 <span className="visually-hidden">加载中...</span>
               </div>
@@ -429,33 +477,28 @@ const Wall = () => {
           )}
 
           {error && (
-            <div className={styles.stateBlock}>
+            <div className={styles.stateBlock} data-animate="state">
               <NoticeBox type="error" message={error} />
             </div>
           )}
 
           {!loading && !error && posts.length === 0 && (
-            <div className={styles.stateBlock}>
-              <div className={styles.emptyState}>
-                <i className="fas fa-comment-slash fa-3x mb-3"></i>
-                <h4>暂无帖子</h4>
-                <p>成为第一个为 26B 班留言的人。</p>
-              </div>
-            </div>
+            <PostWallEmptyState
+              onCreatePost={handleCreatePostClick}
+              actionLoading={actionLoading}
+            />
           )}
 
-          <div className="row g-4">
-            {posts.map((post) => {
-              return (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onDeletePost={() => handleDeletePost(post.id)}
-                  onToggleLike={handleToggleLike}
-                  likeLoading={likeLoadingPostId === post.id}
-                />
-              );
-            })}
+          <div className={styles.postGrid}>
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onDeletePost={() => handleDeletePost(post.id)}
+                onToggleLike={handleToggleLike}
+                likeLoading={likeLoadingPostId === post.id}
+              />
+            ))}
           </div>
         </div>
         {isLocked && (

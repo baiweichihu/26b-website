@@ -1,35 +1,51 @@
 .postCard {
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  border-radius: 18px;
-  padding: 1.5rem;
+  border-radius: 22px;
+  padding: 1.4rem;
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 0.8rem;
   transition:
     transform 0.35s ease,
     box-shadow 0.35s ease;
-  box-shadow: 0 16px 28px rgba(18, 32, 60, 0.12);
+  box-shadow: 0 18px 32px rgba(18, 32, 60, 0.14);
   transform-style: preserve-3d;
 }
 
 .postCardCompact {
-  height: 420px;
+  min-height: 420px;
 }
 
-.postHeader {
-  margin-bottom: 12px;
+.postCardDetail {
+  min-height: auto;
+  padding: 1.8rem;
 }
 
 .postCard:hover {
-  box-shadow: 0 24px 40px rgba(18, 32, 60, 0.2);
+  box-shadow: 0 26px 44px rgba(18, 32, 60, 0.2);
   transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
 }
 
+.postHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.authorBlock {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
 .avatarCircle {
-  width: 45px;
-  height: 45px;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   background: linear-gradient(135deg, rgba(255, 205, 142, 0.95), rgba(124, 197, 255, 0.9));
   display: flex;
   align-items: center;
@@ -38,6 +54,20 @@
   font-weight: 700;
   font-size: 1.1rem;
   box-shadow: 0 10px 18px rgba(18, 32, 60, 0.15);
+  overflow: hidden;
+}
+
+.avatarCircle img {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.authorInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .postAuthorName {
@@ -46,15 +76,24 @@
   font-size: 1.05rem;
 }
 
+.anonymousTag {
+  font-size: 0.72rem;
+  color: var(--muted-color);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .postDate {
   font-size: 0.85rem;
   color: var(--muted-color);
+  white-space: nowrap;
 }
 
 .postTitle {
   color: var(--text-color);
-  margin-bottom: 0.2rem;
+  margin: 0.1rem 0 0;
   line-height: 1.4;
+  font-size: 1.2rem;
 }
 
 .postTitleClamp {
@@ -65,22 +104,19 @@
   overflow: hidden;
 }
 
+.postBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 .postContent {
   color: var(--muted-color);
   line-height: 1.6;
-  margin-bottom: 0.5rem;
   font-size: 0.95rem;
-}
-
-.postContentClamp {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  line-clamp: 4;
-  overflow: hidden;
-  min-height: 88px;
   white-space: pre-wrap;
 }
+
 .postContentClampNoMedia,
 .postContentClampNoMediaTight,
 .postContentClampWithMedia,
@@ -88,7 +124,6 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  white-space: pre-wrap;
 }
 
 .postContentClampNoMedia {
@@ -120,36 +155,83 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 14px;
-  height: 1.1em;
+  width: 18px;
+  height: 1.3em;
   background: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--panel-bg) 100%);
   pointer-events: none;
 }
 
 .postMedia {
-  margin-top: 2px;
-  margin-bottom: 6px;
+  margin-top: 0.2rem;
 }
 
 .postFooter {
   margin-top: auto;
-  padding-top: 10px;
-  border-top: 1px solid rgba(31, 41, 55, 0.5);
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(31, 41, 55, 0.12);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.postLikes {
-  color: #f26565;
+.postActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.visibilityBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  font-size: 0.78rem;
+  color: var(--muted-color);
+}
+
+.deleteButton,
+.reportButton {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-color);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.postLikes i {
-  color: #f26565;
+.reportButton {
+  color: #d18b3c;
+  border-color: rgba(209, 139, 60, 0.35);
+  background: rgba(209, 139, 60, 0.12);
+}
+
+.deleteButton {
+  color: #d94c4c;
+  border-color: rgba(217, 76, 76, 0.35);
+  background: rgba(217, 76, 76, 0.12);
+}
+
+.deleteButton:hover,
+.reportButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(18, 32, 60, 0.12);
 }
 
 .mediaGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 8px;
 }
 
@@ -162,7 +244,7 @@
   width: 100%;
   height: 120px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   background: #0f172a;
 }
@@ -217,17 +299,28 @@
 
 @media (max-width: 768px) {
   .postCard {
-    padding: 1.25rem;
-    border-radius: 14px;
+    padding: 1.2rem;
+    border-radius: 18px;
   }
 
   .avatarCircle {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     font-size: 1rem;
   }
 
   .postAuthorName {
     font-size: 1rem;
   }
+}
+
+[data-theme='dark'] .visibilityBadge {
+  background: rgba(16, 24, 44, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .deleteButton,
+[data-theme='dark'] .reportButton {
+  background: rgba(16, 24, 44, 0.7);
+  border-color: rgba(255, 255, 255, 0.12);
 }

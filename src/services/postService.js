@@ -667,6 +667,23 @@ export const getComments = async (postId) => {
       throw new Error(`获取评论失败: ${commentsError.message}`);
     }
 
+    const commentIds = (comments || []).map((comment) => comment.id);
+    let likedCommentIds = new Set();
+
+    if (user?.id && commentIds.length > 0) {
+      const { data: likedRows, error: likedError } = await supabase
+        .from('comment_likes')
+        .select('comment_id')
+        .eq('user_id', user.id)
+        .in('comment_id', commentIds);
+
+      if (likedError) {
+        throw new Error(`获取评论点赞状态失败: ${likedError.message}`);
+      }
+
+      likedCommentIds = new Set((likedRows || []).map((row) => row.comment_id));
+    }
+
     const processedComments = (comments || []).map((comment) => ({
       id: comment.id,
       post_id: comment.post_id,
@@ -682,6 +699,7 @@ export const getComments = async (postId) => {
         identity_type: comment.author?.identity_type,
       },
       like_count: comment.comment_likes?.[0]?.count || 0,
+      liked: likedCommentIds.has(comment.id),
     }));
 
     return {

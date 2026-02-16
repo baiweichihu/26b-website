@@ -6,6 +6,10 @@
 
 .wallPanel {
   padding: clamp(1.5rem, 3vw, 2.6rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  position: relative;
 }
 
 .wallHeader {
@@ -28,6 +32,16 @@
   background: rgba(255, 255, 255, 0.5);
   border: 1px dashed rgba(255, 255, 255, 0.6);
   color: var(--muted-color);
+}
+
+.noticeWrap {
+  margin-top: 0.6rem;
+}
+
+.postGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
 }
 
 [data-theme='dark'] .emptyState {

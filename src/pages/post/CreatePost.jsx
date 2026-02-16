@@ -209,7 +209,7 @@ const CreatePost = () => {
             <p className="scene-kicker">发布帖子</p>
             <h1 className="scene-title">发布成功</h1>
           </div>
-          <button className="btn btn-outline-secondary" onClick={() => navigate(-1)}>
+          <button className="scene-button ghost" onClick={() => navigate(-1)}>
             返回
           </button>
         </section>
@@ -345,16 +345,12 @@ const CreatePost = () => {
           <div className="d-flex gap-2">
             <button
               type="submit"
-              className="btn btn-primary"
+              className="scene-button primary"
               disabled={!isFormValid || submitting || uploading || hasFileError}
             >
               {submitting || uploading ? '发布中...' : '发布'}
             </button>
-            <button
-              type="button"
-              className="btn btn-outline-secondary"
-              onClick={() => navigate(-1)}
-            >
+            <button type="button" className="scene-button ghost" onClick={() => navigate(-1)}>
               取消
             </button>
           </div>
