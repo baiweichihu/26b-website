@@ -15,7 +15,6 @@ const PostWallControls = ({
       <div className={styles.controlGroup} data-animate="toolbar">
         <span className={styles.label}>关键词</span>
         <div className={styles.inputWrap}>
-          <i className={`fas fa-search ${styles.inputIcon}`} aria-hidden="true"></i>
           <input
             type="text"
             value={searchKeyword}

@@ -67,7 +67,7 @@ export async function createAuditResultNotification(
 /**
  * 创建举报反馈通知
  * @param {string} userId - 举报人ID
- * @param {string} status - 处理状态 (resolved/dismissed)
+ * @param {string} status - 处理状态 (approved/rejected)
  * @param {string} targetType - 被举报内容类型 (post/comment)
  * @returns {Promise<Object>}
  */
@@ -77,9 +77,9 @@ export async function createReportFeedbackNotification(
   targetType,
   reportId = null
 ) {
-  const title = status === 'resolved' ? '举报已处理' : '举报已驳回';
+  const title = status === 'approved' ? '举报已处理' : '举报已驳回';
   const content =
-    status === 'resolved'
+    status === 'approved'
       ? `感谢你的举报，我们已对违规${targetType === 'post' ? '帖子' : '评论'}进行处理`
       : `感谢你的举报，我们审核后认为该${targetType === 'post' ? '帖子' : '评论'}无违规，已驳回举报`;
 
@@ -325,4 +325,132 @@ export async function markAllNotificationsAsRead(userId) {
     .select();
 
   return { data, error };
+}
+
+/**
+ * 获取用户的所有通知列表（包括已读和未读）
+ * @param {string} userId - 用户ID
+ * @param {number} limit - 限制条数（默认50）
+ * @param {number} offset - 分页偏移（默认0）
+ * @returns {Promise<Object>}
+ */
+export async function getAllNotifications(userId, limit = 50, offset = 0) {
+  if (!userId) {
+    return {
+      data: null,
+      error: '缺少必要参数：userId',
+    };
+  }
+
+  const { data, error, count } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact' })
+    .eq('recipient_id', userId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  return { data, error, count };
+}
+
+/**
+ * 删除单条通知
+ * @param {string} notificationId - 通知ID
+ * @returns {Promise<Object>}
+ */
+export async function deleteNotification(notificationId) {
+  if (!notificationId) {
+    return {
+      success: false,
+      error: '缺少必要参数：notificationId',
+    };
+  }
+
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('id', notificationId);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, error: null };
+}
+
+/**
+ * 发布系统公告（Superuser 操作）
+ * 向指定身份的用户或所有用户发送公告通知
+ * @param {string} title - 公告标题
+ * @param {string} content - 公告内容
+ * @param {string} publishedBy - 发布者ID（Superuser）
+ * @param {Array<string>} targetIdentities - 目标身份数组 (classmate/alumni/guest)，为空时发送给所有用户
+ * @returns {Promise<Object>} { insertedCount, error }
+ */
+export async function createSystemAnnouncementNotification(
+  title,
+  content,
+  publishedBy,
+  targetIdentities = []
+) {
+  if (!title || !content || !publishedBy) {
+    return {
+      insertedCount: 0,
+      error: '缺少必要参数：title, content, publishedBy',
+    };
+  }
+
+  try {
+    let query = supabase.from('profiles').select('id');
+
+    // 如果指定了目标身份，仅向这些身份的用户发送
+    if (targetIdentities.length > 0) {
+      query = query.in('identity_type', targetIdentities);
+    }
+
+    const { data: recipients, error: fetchError } = await query;
+
+    if (fetchError) {
+      return { insertedCount: 0, error: fetchError.message };
+    }
+
+    if (!recipients || recipients.length === 0) {
+      return {
+        insertedCount: 0,
+        error: '没有符合条件的接收者',
+      };
+    }
+
+    // 为每个用户创建通知记录
+    const notifications = recipients.map((recipient) => ({
+      recipient_id: recipient.id,
+      type: 'system_announcement',
+      title: title,
+      content: content,
+      related_resource_type: 'announcement',
+      related_resource_id: null,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    }));
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(notifications);
+
+    if (error) {
+      return {
+        insertedCount: 0,
+        error: error.message,
+      };
+    }
+
+    return {
+      insertedCount: notifications.length,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      insertedCount: 0,
+      error: error.message || '发布公告失败',
+    };
+  }
 }

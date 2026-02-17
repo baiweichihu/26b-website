@@ -1,6 +1,6 @@
 .dockWrap {
   position: relative;
-  z-index: 2;
+  z-index: 101;
   width: 100%;
   margin: 0;
   padding: 0.4rem clamp(1.5rem, 4vw, 4rem);

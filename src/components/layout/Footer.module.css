@@ -1,5 +1,5 @@
 .footer {
-  margin-top: 3rem;
+  margin-top: auto;
   padding: 2.5rem clamp(1.5rem, 3vw, 3.5rem);
   background: linear-gradient(120deg, rgba(12, 20, 36, 0.95), rgba(22, 38, 60, 0.95));
   color: rgba(233, 240, 255, 0.8);

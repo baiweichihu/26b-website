@@ -255,6 +255,18 @@ const UserDock = () => {
                   <span>用户管理</span>
                   <span className={styles.panelMeta}>Center</span>
                 </Link>
+                {(profile?.role === 'admin' || profile?.role === 'superuser') && (
+                  <Link
+                    to="/admin/dashboard"
+                    className={styles.panelItem}
+                    onClick={(event) => triggerIris?.(event, '/admin/dashboard')}
+                  >
+                    <span>
+                      {profile?.role === 'superuser' ? '超级管理面板' : '管理员面板'}
+                    </span>
+                    <span className={styles.panelMeta}>Admin</span>
+                  </Link>
+                )}
                 {status === 'guest' && (
                   <Link
                     to="/guest-update-identity"

@@ -29,8 +29,17 @@ import GuestUpdateIdentity from './pages/user/GuestUpdateIdentity';
 import UserManagement from './pages/user/UserManagement';
 import ResetPassword from './pages/user/ResetPassword';
 import EditProfile from './pages/user/EditProfile';
+import Notifications from './pages/Notifications';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UserPermissions from './pages/admin/UserPermissions';
+import ContentReports from './pages/admin/ContentReports';
+import JournalApproval from './pages/admin/JournalApproval';
+import PermissionRequest from './pages/admin/PermissionRequest';
+import PermissionApprovals from './pages/admin/PermissionApprovals';
+import SuperuserPanel from './pages/admin/SuperuserPanel';
+import Announcement from './pages/admin/Announcement';
 import MusicPlayer from './components/features/media/MusicPlayer';
-import EasterEgg from './components/features/media/EasterEgg'; // already imported
+import EasterEgg from './components/features/media/EasterEgg';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -53,12 +62,21 @@ const AppLayout = () => {
           <Route path="/posts/new" element={<CreatePost />} />
           <Route path="/posts/:postId" element={<PostDetail />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/guest-update-identity" element={<GuestUpdateIdentity />} />
           <Route path="/user/reset-password" element={<ResetPassword />} />
           <Route path="/user/manage" element={<UserManagement />} />
           <Route path="/user/edit-profile" element={<EditProfile />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/user-permissions" element={<UserPermissions />} />
+          <Route path="/admin/content-reports" element={<ContentReports />} />
+          <Route path="/admin/journal-approval" element={<JournalApproval />} />
+          <Route path="/admin/permission-request" element={<PermissionRequest />} />
+          <Route path="/admin/permission-approvals" element={<PermissionApprovals />} />
+          <Route path="/admin/superuser-panel" element={<SuperuserPanel />} />
+          <Route path="/admin/announcement" element={<Announcement />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
