@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../../lib/supabase';
 import {
   getAllNotifications,
   getUnreadNotifications,
@@ -8,7 +8,7 @@ import {
   markAllNotificationsAsRead,
   subscribeToNotifications,
   unsubscribeFromNotifications,
-} from '../services/inboxService';
+} from '../../services/inboxService';
 import styles from './Notifications.module.css';
 
 /**
@@ -137,19 +137,19 @@ function Notifications() {
     switch (notification.related_resource_type) {
       case 'admin_request':
         // 跳转到审核页面
-        window.location.href = `/admin/user-permissions?request=${notification.related_resource_id}`;
+        navigate(`/admin/user-permissions?request=${notification.related_resource_id}`);
         break;
       case 'content_reports':
         // 跳转到举报管理页面
-        window.location.href = `/admin/content-reports?report=${notification.related_resource_id}`;
+        navigate(`/admin/content-reports?report=${notification.related_resource_id}`);
         break;
       case 'post':
         // 跳转到帖子详情
-        window.location.href = `/post/${notification.related_resource_id}`;
+        navigate(`/post/${notification.related_resource_id}`);
         break;
       case 'comment':
         // 跳转到帖子（评论在帖子详情中显示）
-        window.location.href = `/post?comment=${notification.related_resource_id}`;
+        navigate(`/post?comment=${notification.related_resource_id}`);
         break;
       default:
         break;

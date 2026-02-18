@@ -234,6 +234,12 @@ main {
   color: #e0e0e0;
 }
 
+input,
+select,
+textarea {
+  cursor: text;
+}
+
 [data-theme='dark'] input::placeholder,
 [data-theme='dark'] textarea::placeholder {
   color: #8899aa;

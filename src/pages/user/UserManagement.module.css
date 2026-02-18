@@ -253,3 +253,25 @@
   background: rgba(16, 24, 44, 0.7);
   border-color: rgba(255, 255, 255, 0.12);
 }
+
+.alumniHint {
+  border-top: 1px solid var(--panel-border);
+  margin-top: 1.4rem;
+  padding-top: 1.4rem;
+  text-align: center;
+}
+
+.alumniHint p {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+  margin: 0;
+}
+
+[data-theme='dark'] .alumniHint {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .alumniHint p {
+  color: #888;
+}

@@ -178,7 +178,7 @@ function AdminDashboard() {
 
   const baseMenuItems = [
     {
-      title: '用户权限管理',
+      title: '普通用户权限管理',
       description: '审核游客升级校友申请、禁言用户',
       icon: '👤',
       path: '/admin/user-permissions',
@@ -205,7 +205,7 @@ function AdminDashboard() {
       requiredRole: 'admin',
     },
     {
-      title: '权限管理',
+      title: '自身权限管理',
       description: '申请权限变更、查看权限',
       icon: '🔐',
       path: '/admin/permission-request',
@@ -216,7 +216,7 @@ function AdminDashboard() {
 
   const superuserMenuItems = [
     {
-      title: '权限变更审批',
+      title: '管理员权限审批',
       description: '审核管理员权限变更申请',
       icon: '✅',
       path: '/admin/permission-approvals',
@@ -233,9 +233,9 @@ function AdminDashboard() {
       requiredRole: 'superuser',
     },
     {
-      title: '超级管理员面板',
+      title: '所有用户管理',
       description: '管理所有账户、任免管理员',
-      icon: '👑',
+      icon: '📋',
       path: '/admin/superuser-panel',
       permission: true,
       requiredRole: 'superuser',

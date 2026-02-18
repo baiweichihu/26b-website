@@ -104,8 +104,8 @@ const Journal = () => {
           // 有有效的查档申请
           setAuthStatus('member');
         } else {
-          // 没有有效的查档申请
-          setAuthStatus('alumni');
+          // 没有有效的查档申请 - 设置为 guest 状态以阻止加载
+          setAuthStatus('guest');
         }
         return;
       }
@@ -327,18 +327,25 @@ const Journal = () => {
   const clampedMdIndex = Math.min(Math.max(mdSectionIndex, 0), totalMdSectionsSafe - 1);
   const mdDisplayIndex = totalMdSectionsSafe === 0 ? 0 : clampedMdIndex + 1;
 
-  const isLocked = authStatus === 'anonymous' || authStatus === 'guest' || authStatus === 'alumni';
+  const isLocked = authStatus === 'loading' || authStatus === 'anonymous' || authStatus === 'guest';
   const gateCopy = useMemo(() => {
+    if (authStatus === 'loading') {
+      return {
+        title: '加载中',
+        message: '正在验证您的身份和权限...',
+      };
+    }
     if (authStatus === 'guest') {
       return {
-        title: '抱歉，游客不能浏览此页面',
-        message: '请验证校友身份，并进行班级日志查档申请',
+        title: '需要申请查档权限',
+        message: '校友需要向管理员申请班日志查档时间，批准后方可在约定的时间内浏览',
+        isApplyRequired: true,
       };
     }
     if (authStatus === 'alumni') {
       return {
-        title: '需要申请查档权限',
-        message: '校友需要向管理员申请班日志查档时间，批准后方可在约定的时间内浏览',
+        title: '抱歉，游客不能浏览此页面',
+        message: '请验证校友身份，并进行班级日志查档申请',
       };
     }
     return {
@@ -392,7 +399,9 @@ const Journal = () => {
               </div>
 
               <div className={styles.controlGroup}>
-                <label className={styles.controlLabel}>PDF页码</label>
+                <label className={styles.controlLabel} htmlFor="pdf-page-input">
+                  PDF页码
+                </label>
                 <div className={styles.pageControls}>
                   <button
                     className={styles.pageButton}
@@ -404,6 +413,8 @@ const Journal = () => {
                   </button>
                   <span className={styles.pageInput}>
                     <input
+                      id="pdf-page-input"
+                      name="pdfPage"
                       type="number"
                       value={clampedPage}
                       min="1"
@@ -461,7 +472,9 @@ const Journal = () => {
               </div>
 
               <div className={styles.controlGroup}>
-                <label className={styles.controlLabel}>MD章节</label>
+                <label className={styles.controlLabel} htmlFor="md-section-input">
+                  MD章节
+                </label>
                 <div className={styles.sectionControls}>
                   <button
                     className={styles.pageButton}
@@ -473,6 +486,8 @@ const Journal = () => {
                   </button>
                   <span className={styles.pageInput}>
                     <input
+                      id="md-section-input"
+                      name="mdSection"
                       type="number"
                       value={mdDisplayIndex}
                       min="1"
@@ -513,8 +528,11 @@ const Journal = () => {
             </aside>
 
             <JournalLayout>
-              <div className={styles.pdfSection} ref={pdfFullscreenRef}>
-                <div className={styles.sectionHeader} data-fullscreen={isFullscreen}>
+              {isLocked ? (
+                <div className={styles.pdfSection} />
+              ) : (
+                <div className={styles.pdfSection} ref={pdfFullscreenRef}>
+                  <div className={styles.sectionHeader} data-fullscreen={isFullscreen}>
                   {!isFullscreen && (
                     <div className={styles.headerRow1}>
                       <h2>PDF 版</h2>
@@ -626,7 +644,9 @@ const Journal = () => {
                         <div className={styles.dividerHorizontal}></div>
                         <div className={styles.controlPanel}>
                           <div className={styles.controlGroup}>
-                            <label className={styles.controlLabel}>PDF页码</label>
+                            <label className={styles.controlLabel} htmlFor="pdf-page-input-fullscreen">
+                              PDF页码
+                            </label>
                             <div className={styles.pageControls}>
                               <button
                                 className={styles.pageButton}
@@ -638,6 +658,8 @@ const Journal = () => {
                               </button>
                               <span className={styles.pageInput}>
                                 <input
+                                  id="pdf-page-input-fullscreen"
+                                  name="pdfPageFullscreen"
                                   type="number"
                                   value={clampedPage}
                                   min="1"
@@ -709,21 +731,24 @@ const Journal = () => {
                     </div>
                   )}
                 </div>
-                <PDFViewer
-                  files={pdfFiles}
-                  currentPage={clampedPage}
-                  totalPages={totalPagesSafe}
-                  onPageChange={handlePageChange}
-                  onLoadSuccess={handlePDFLoaded}
-                  onFilePages={handlePDFFilePagesUpdated}
-                  isFullscreen={isFullscreen}
-                  scale={pdfScale}
-                />
-              </div>
-
-              <div className={styles.mdSection} ref={mdFullscreenRef}>
-                <div className={styles.sectionHeader} data-fullscreen={isFullscreen}>
-                  {!isFullscreen && (
+                  <PDFViewer
+                    files={pdfFiles}
+                    currentPage={clampedPage}
+                    totalPages={totalPagesSafe}
+                    onPageChange={handlePageChange}
+                    onLoadSuccess={handlePDFLoaded}
+                    onFilePages={handlePDFFilePagesUpdated}
+                    isFullscreen={isFullscreen}
+                    scale={pdfScale}
+                  />
+                </div>
+              )}
+              {isLocked ? (
+                <div className={styles.mdSection} />
+              ) : (
+                <div className={styles.mdSection} ref={mdFullscreenRef}>
+                  <div className={styles.sectionHeader} data-fullscreen={isFullscreen}>
+                    {!isFullscreen && (
                     <div className={styles.headerRow1}>
                       <h2>Markdown 版</h2>
                       <button
@@ -835,7 +860,9 @@ const Journal = () => {
                         <div className={styles.dividerHorizontal}></div>
                         <div className={styles.controlPanel}>
                           <div className={styles.controlGroup}>
-                            <label className={styles.controlLabel}>MD章节</label>
+                            <label className={styles.controlLabel} htmlFor="md-section-input-fullscreen">
+                              MD章节
+                            </label>
                             <div className={styles.sectionControls}>
                               <button
                                 className={styles.pageButton}
@@ -849,6 +876,8 @@ const Journal = () => {
                               </button>
                               <span className={styles.pageInput}>
                                 <input
+                                  id="md-section-input-fullscreen"
+                                  name="mdSectionFullscreen"
                                   type="number"
                                   value={mdDisplayIndex}
                                   min="1"
@@ -938,11 +967,12 @@ const Journal = () => {
                   fontSize={mdFontSize}
                 />
               </div>
+              )}
             </JournalLayout>
           </main>
         </div>
         {isLocked && (
-          <AuthGateOverlay mode={authStatus} title={gateCopy.title} message={gateCopy.message} />
+          <AuthGateOverlay mode={authStatus} title={gateCopy.title} message={gateCopy.message} isApplyRequired={gateCopy.isApplyRequired} />
         )}
       </div>
     </div>

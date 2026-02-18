@@ -164,7 +164,7 @@ function JournalApproval() {
         <div className={styles.table}>
           <div className={styles.tableHeader}>
             <div className={styles.col1}>申请人</div>
-            <div className={styles.col2}>查档时间范围</div>
+            <div className={styles.col2}>申请天数</div>
             <div className={styles.col3}>申请理由</div>
             <div className={styles.col4}>操作</div>
           </div>
@@ -182,8 +182,7 @@ function JournalApproval() {
                 </div>
               </div>
               <div className={styles.col2}>
-                {formatDate(request.requested_access_start_time)} -{' '}
-                {formatDate(request.requested_access_end_time)}
+                {request.requested_access_days || '-'} 天
               </div>
               <div className={styles.col3}>{request.reason || '-'}</div>
               <div className={styles.col4}>

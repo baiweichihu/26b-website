@@ -120,6 +120,41 @@
   background: linear-gradient(120deg, var(--scene-accent), var(--scene-accent-2));
   color: #132238;
   border-color: transparent;
+  box-shadow: 0 16px 28px rgba(22, 38, 60, 0.2);
+}
+
+[data-theme='dark'] .modeButtonActive {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .formCard .form-control {
+  background: rgba(16, 24, 44, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e0e0e0 !important;
+}
+
+[data-theme='dark'] .authPanel .form-control {
+  background: rgba(16, 24, 44, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e0e0e0 !important;
+}
+
+[data-theme='dark'] .authPanel .form-control:focus {
+  background: rgba(16, 24, 44, 0.95) !important;
+  border-color: #6b7bff !important;
+  color: #e0e0e0 !important;
+  box-shadow: 0 0 0 0.2rem rgba(107, 123, 255, 0.25) !important;
+}
+
+[data-theme='dark'] .formCard .form-control::placeholder {
+  color: #8899aa !important;
+}
+
+[data-theme='dark'] .formCard .form-control:focus {
+  background: rgba(16, 24, 44, 0.95) !important;
+  border-color: #6b7bff !important;
+  color: #e0e0e0 !important;
+  box-shadow: 0 0 0 0.2rem rgba(107, 123, 255, 0.25) !important;
 }
 
 .field {
@@ -205,9 +240,7 @@
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme='dark'] .modeButtonActive {
-  color: #0b1220;
-}
+
 
 @media (max-width: 960px) {
   .authLayout {

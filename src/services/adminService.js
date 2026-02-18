@@ -25,7 +25,7 @@ export async function getAdminPermissions(adminId) {
     .from('admin_permissions')
     .select('*')
     .eq('admin_id', adminId)
-    .single();
+    .maybeSingle();
 
   return { data, error };
 }
@@ -556,10 +556,10 @@ export async function approveJournalAccess(requestId, handledBy) {
   }
 
   try {
-    // 1. 获取申请信息
+    // 1. 获取申请信息，包含查档天数
     const { data: request, error: fetchError } = await supabase
       .from('journal_access_requests')
-      .select('requester_id')
+      .select('requester_id, requested_access_days')
       .eq('id', requestId)
       .single();
 
@@ -567,11 +567,31 @@ export async function approveJournalAccess(requestId, handledBy) {
       return { data: null, error: fetchError.message };
     }
 
-    // 2. 更新申请状态为批准
+    if (!request.requested_access_days) {
+      return { data: null, error: '申请中缺少查档天数信息' };
+    }
+
+    // 2. 计算时间范围
+    // 开始时间 = 批准时的日期的 00:00:00
+    // 结束时间 = 开始时间 + 申请天数天
+    const now = new Date();
+    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + request.requested_access_days);
+    const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(
+      startDate.getDate()
+    ).padStart(2, '0')}`;
+    const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(
+      endDate.getDate()
+    ).padStart(2, '0')}`;
+
+    // 3. 更新申请状态为批准，并设置时间范围
     const { data: updatedRequest, error: updateError } = await supabase
       .from('journal_access_requests')
       .update({
         status: 'approved',
+        requested_access_start_time: startDateStr,
+        requested_access_end_time: endDateStr,
         handled_by: handledBy,
         handled_at: new Date().toISOString(),
       })
@@ -582,7 +602,7 @@ export async function approveJournalAccess(requestId, handledBy) {
       return { data: null, error: updateError.message };
     }
 
-    // 3. 发送审核通过通知
+    // 4. 发送审核通过通知
     await createAuditResultNotification(
       request.requester_id,
       'approved',
@@ -725,7 +745,7 @@ export async function getPermissionChangeRequests(status = null) {
  * @param {string} handledBy - 处理者ID（Superuser）
  * @returns {Promise<Object>}
  */
-export async function approvePermissionChangeRequest(requestId, handledBy) {
+export async function approvePermissionChangeRequest(requestId, handledBy, adminNote = '') {
   if (!requestId || !handledBy) {
     return {
       data: null,
@@ -752,6 +772,7 @@ export async function approvePermissionChangeRequest(requestId, handledBy) {
         status: 'approved',
         handled_by: handledBy,
         handled_at: new Date().toISOString(),
+        admin_note: adminNote,
       })
       .eq('id', requestId)
       .select();
@@ -796,7 +817,7 @@ export async function approvePermissionChangeRequest(requestId, handledBy) {
  * @param {string} handledBy - 处理者ID（Superuser）
  * @returns {Promise<Object>}
  */
-export async function rejectPermissionChangeRequest(requestId, handledBy) {
+export async function rejectPermissionChangeRequest(requestId, handledBy, adminNote = '') {
   if (!requestId || !handledBy) {
     return {
       data: null,
@@ -823,6 +844,7 @@ export async function rejectPermissionChangeRequest(requestId, handledBy) {
         status: 'rejected',
         handled_by: handledBy,
         handled_at: new Date().toISOString(),
+        admin_note: adminNote,
       })
       .eq('id', requestId)
       .select();

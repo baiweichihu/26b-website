@@ -19,6 +19,7 @@ import Home from './pages/static/Home';
 import Introduction from './pages/static/Introduction';
 import Activities from './pages/static/Activities';
 import Journal from './pages/journal/Journal';
+import AlumniJournalAccess from './pages/journal/AlumniJournalAccess';
 import Wall from './pages/post/Wall';
 import Contact from './pages/static/Contact';
 import CreatePost from './pages/post/CreatePost';
@@ -29,7 +30,7 @@ import GuestUpdateIdentity from './pages/user/GuestUpdateIdentity';
 import UserManagement from './pages/user/UserManagement';
 import ResetPassword from './pages/user/ResetPassword';
 import EditProfile from './pages/user/EditProfile';
-import Notifications from './pages/Notifications';
+import Notifications from './pages/notifications/Notifications';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserPermissions from './pages/admin/UserPermissions';
 import ContentReports from './pages/admin/ContentReports';
@@ -58,6 +59,7 @@ const AppLayout = () => {
           <Route path="/introduction" element={<Introduction />} />
           <Route path="/activities" element={<Activities />} />
           <Route path="/journal" element={<Journal />} />
+          <Route path="/journal/access-request" element={<AlumniJournalAccess />} />
           <Route path="/wall" element={<Wall />} />
           <Route path="/posts/new" element={<CreatePost />} />
           <Route path="/posts/:postId" element={<PostDetail />} />

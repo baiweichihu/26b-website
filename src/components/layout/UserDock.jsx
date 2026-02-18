@@ -262,7 +262,7 @@ const UserDock = () => {
                     onClick={(event) => triggerIris?.(event, '/admin/dashboard')}
                   >
                     <span>
-                      {profile?.role === 'superuser' ? '超级管理面板' : '管理员面板'}
+                      {profile?.role === 'superuser' ? '管理面板' : '管理员面板'}
                     </span>
                     <span className={styles.panelMeta}>Admin</span>
                   </Link>
