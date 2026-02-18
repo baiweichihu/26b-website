@@ -54,10 +54,9 @@ const GuestUpdateIdentity = () => {
         let upgradeRequestExists = false;
         if (profileData.identity_type === 'guest') {
           const { data: requestData, error: requestError } = await supabase
-            .from('admin_requests')
+            .from('upgrade_requests')
             .select('id')
             .eq('requester_id', user.id)
-            .eq('request_type', 'upgrade_identity')
             .eq('status', 'pending')
             .limit(1);
 
