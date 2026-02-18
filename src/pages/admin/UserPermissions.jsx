@@ -315,20 +315,34 @@ function UserPermissions() {
                     {new Date(request.created_at).toLocaleString('zh-CN')}
                   </div>
                   <div className={styles.col4}>
-                    <button
-                      className={styles.approveBtn}
-                      onClick={() => handleApproveUpgrade(request.id)}
-                      disabled={processingRequestId === request.id}
-                    >
-                      批准
-                    </button>
-                    <button
-                      className={styles.rejectBtn}
-                      onClick={() => handleRejectUpgrade(request.id)}
-                      disabled={processingRequestId === request.id}
-                    >
-                      驳回
-                    </button>
+                    {request.status === 'pending' ? (
+                      <>
+                        <button
+                          className={styles.approveBtn}
+                          onClick={() => handleApproveUpgrade(request.id)}
+                          disabled={processingRequestId === request.id}
+                        >
+                          批准
+                        </button>
+                        <button
+                          className={styles.rejectBtn}
+                          onClick={() => handleRejectUpgrade(request.id)}
+                          disabled={processingRequestId === request.id}
+                        >
+                          驳回
+                        </button>
+                      </>
+                    ) : (
+                      <span
+                        className={`${styles.statusBadge} ${
+                          request.status === 'approved'
+                            ? styles.approved
+                            : styles.rejected
+                        }`}
+                      >
+                        {request.status === 'approved' ? '已批准' : '已驳回'}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}

@@ -420,3 +420,157 @@
     width: 100%;
   }
 }
+
+/* Dark mode support */
+[data-theme='dark'] .container {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn:hover {
+  background-color: #374151;
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .header h1 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .errorBanner {
+  background-color: #4a1f1f;
+  color: #ff8787;
+  border-left-color: #ff6b6b;
+}
+
+[data-theme='dark'] .filterBar label {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .filterBtn {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .filterBtn:hover {
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .filterBtn.active {
+  background-color: #6b7bff;
+  border-color: #6b7bff;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .reportsList {
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .loading,
+[data-theme='dark'] .empty {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .reportCard {
+  background-color: #2d3748;
+  border-bottom-color: #4a5568;
+}
+
+[data-theme='dark'] .reportCard:hover {
+  background-color: #374151;
+}
+
+[data-theme='dark'] .reportCard.selected {
+  background-color: #1e293b;
+  border-left-color: #6b7bff;
+}
+
+[data-theme='dark'] .reportCardContent p,
+[data-theme='dark'] .reportCardContent strong {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .timestamp {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .detailPanel {
+  background-color: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .detailPanel h2,
+[data-theme='dark'] .detailSection h3 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .detailGroup label {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .detailGroup p {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .reporterCard,
+[data-theme='dark'] .contentPreview,
+[data-theme='dark'] .notesBox {
+  background-color: #1e293b;
+}
+
+[data-theme='dark'] .contentPreview p {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .reporterCard p {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .reporterCard small {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .contentText {
+  background-color: #1e293b;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .notesBox {
+  border-left-color: #6b7bff;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .notesInput {
+  background-color: #1e293b;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .notesInput::placeholder {
+  color: #6b7280;
+}
+
+[data-theme='dark'] .notesInput:focus {
+  border-color: #6b7bff;
+  box-shadow: 0 0 0 3px rgba(107, 123, 255, 0.2);
+}
+
+[data-theme='dark'] .emptyDetail {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .handledInfo {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .suggestion {
+  color: #e0e0e0;
+}

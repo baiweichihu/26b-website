@@ -258,6 +258,24 @@
   color: #d9534f;
 }
 
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.statusBadge.approved {
+  background-color: #d3f3d3;
+  color: #2f9c3f;
+}
+
+.statusBadge.rejected {
+  background-color: #f8d3d3;
+  color: #d9534f;
+}
+
 .approveBtn,
 .rejectBtn,
 .banBtn,
@@ -395,5 +413,141 @@
   .userInfo img {
     width: 32px;
     height: 32px;
+  }
+}
+
+/* Dark mode support */
+[data-theme='dark'] .container {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn:hover {
+  background-color: #374151;
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .header h1 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .errorBanner {
+  background-color: #4a1f1f;
+  color: #ff8787;
+  border-left-color: #ff6b6b;
+}
+
+[data-theme='dark'] .tabBar {
+  border-bottom-color: #4a5568;
+}
+
+[data-theme='dark'] .tabBtn {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .tabBtn:hover {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tabBtn.active {
+  color: #6b7bff;
+  border-bottom-color: #6b7bff;
+}
+
+[data-theme='dark'] .filterBar label {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .filterBtn {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .filterBtn:hover {
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .filterBtn.active {
+  background-color: #6b7bff;
+  border-color: #6b7bff;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .loading,
+[data-theme='dark'] .empty {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .table {
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .tableHeader {
+  background-color: #1e293b;
+  border-bottom-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tableRow {
+  border-bottom-color: #4a5568;
+  background-color: #2d3748;
+}
+
+[data-theme='dark'] .tableRow:hover {
+  background-color: #374151;
+}
+
+[data-theme='dark'] .col1,
+[data-theme='dark'] .col2,
+[data-theme='dark'] .col3 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .userInfo p {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .userInfo small {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .evidence {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .badge {
+  background-color: #374151;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .statusBadge.approved {
+  background-color: #1e4620;
+  color: #51cf66;
+}
+
+[data-theme='dark'] .statusBadge.rejected {
+  background-color: #4a1f1f;
+  color: #ff8787;
+}
+
+@media (max-width: 768px) {
+  [data-theme='dark'] .tableRow {
+    border-color: #4a5568;
+    background-color: #2d3748;
+  }
+
+  [data-theme='dark'] .tableRow::before,
+  [data-theme='dark'] .col1::before,
+  [data-theme='dark'] .col2::before,
+  [data-theme='dark'] .col3::before {
+    color: #a0aec0;
   }
 }

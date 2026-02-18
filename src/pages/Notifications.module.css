@@ -255,3 +255,127 @@
   color: #666;
   font-size: 14px;
 }
+
+/* ===== 深色模式适配 ===== */
+[data-theme='dark'] .notificationsContainer {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .backBtn {
+  background-color: #2d3748;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn:hover {
+  background-color: #374151;
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .header h1 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .unreadBadge {
+  background-color: rgba(30, 41, 59, 0.9);
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .markAllButton {
+  background-color: #6b7bff;
+}
+
+[data-theme='dark'] .markAllButton:hover {
+  background-color: #7c8dff;
+}
+
+[data-theme='dark'] .filterBtn {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(30, 41, 59, 0.8);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .filterBtn:hover {
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .filterBtn.active {
+  background-color: #6b7bff;
+  border-color: #6b7bff;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .loading {
+  background-color: rgba(30, 41, 59, 0.8);
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .error {
+  background-color: #4a1f1f;
+  color: #ff8787;
+}
+
+[data-theme='dark'] .empty {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .notificationItem {
+  border-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(30, 41, 59, 0.9);
+}
+
+[data-theme='dark'] .notificationItem:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border-color: #6b7bff;
+}
+
+[data-theme='dark'] .notificationItem.unread {
+  background-color: rgba(30, 41, 59, 0.95);
+  border-left-color: #6b7bff;
+}
+
+[data-theme='dark'] .timestamp {
+  color: #8899aa;
+}
+
+[data-theme='dark'] .notifContent h3 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .notifContent p {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .readBtn {
+  background-color: #51cf66;
+}
+
+[data-theme='dark'] .readBtn:hover {
+  background-color: #69db7c;
+}
+
+[data-theme='dark'] .pagination button {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(30, 41, 59, 0.8);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pagination button:hover:not(:disabled) {
+  background-color: #6b7bff;
+  border-color: #6b7bff;
+}
+
+[data-theme='dark'] .pagination button:disabled {
+  color: #666;
+}
+
+[data-theme='dark'] .pagination span {
+  color: #a0aec0;
+}

@@ -193,3 +193,98 @@
     gap: 8px;
   }
 }
+
+/* Dark mode support */
+[data-theme='dark'] .container {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn:hover {
+  background-color: #374151;
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .header h1 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .errorBanner {
+  background-color: #4a1f1f;
+  color: #ff8787;
+  border-left-color: #ff6b6b;
+}
+
+[data-theme='dark'] .filterBar label {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .filterBtn {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .filterBtn:hover {
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .filterBtn.active {
+  background-color: #6b7bff;
+  border-color: #6b7bff;
+  color: #ffffff;
+}
+
+[data-theme='dark'] .table {
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .tableHeader {
+  background-color: #1e293b;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tableRow {
+  border-top-color: #4a5568;
+  background-color: #2d3748;
+}
+
+[data-theme='dark'] .userInfo p {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .userInfo small {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .approveBtn {
+  background-color: #1e4620;
+  color: #51cf66;
+}
+
+[data-theme='dark'] .rejectBtn {
+  background-color: #4a1f4a;
+  color: #d896ff;
+}
+
+[data-theme='dark'] .status.approved {
+  background-color: #1e4620;
+  color: #51cf66;
+}
+
+[data-theme='dark'] .status.rejected {
+  background-color: #4a1f4a;
+  color: #d896ff;
+}
+
+[data-theme='dark'] .loading,
+[data-theme='dark'] .empty {
+  color: #a0aec0;
+}

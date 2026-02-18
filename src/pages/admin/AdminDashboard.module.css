@@ -238,3 +238,76 @@
     margin-top: 12px;
   }
 }
+
+/* Dark mode support */
+[data-theme='dark'] .dashboardContainer {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn:hover {
+  background-color: #374151;
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .header h1,
+[data-theme='dark'] .header p,
+[data-theme='dark'] .menuSection h2 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .errorBanner {
+  background-color: #4a1f1f;
+  color: #ff8787;
+  border-left-color: #ff6b6b;
+}
+
+[data-theme='dark'] .permissionsCard {
+  background-color: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .permissionsCard h2 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .statCard {
+  background-color: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .statLabel {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .statNumber {
+  color: #ff8787;
+}
+
+[data-theme='dark'] .menuCard {
+  background-color: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .menuCard:hover {
+  border-color: #6b7bff;
+  box-shadow: 0 4px 16px rgba(107, 123, 255, 0.15);
+}
+
+[data-theme='dark'] .cardContent h3 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .cardContent p {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .loading {
+  color: #a0aec0;
+}

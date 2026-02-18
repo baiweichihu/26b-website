@@ -341,14 +341,21 @@ function ContentReports() {
                   <p>
                     <strong>内容ID：</strong> {selectedReport.target_id}
                   </p>
-                  <p>
-                    <strong>举报原因：</strong> {selectedReport.reason}
-                  </p>
-                  {selectedReport.suggestion && (
+                  {selectedReport.target_author_nickname && (
                     <p>
-                      <strong>举报者建议：</strong>
-                      <br />
-                      <span className={styles.suggestion}>{selectedReport.suggestion}</span>
+                      <strong>发布者：</strong> {selectedReport.target_author_nickname}
+                    </p>
+                  )}
+                  {selectedReport.target_content ? (
+                    <div>
+                      <strong>内容：</strong>
+                      <div className={styles.contentText}>
+                        {selectedReport.target_content}
+                      </div>
+                    </div>
+                  ) : (
+                    <p style={{ color: '#d9534f' }}>
+                      <strong>注意：</strong> 举报时未能保存内容快照
                     </p>
                   )}
                 </div>

@@ -81,6 +81,35 @@ const Journal = () => {
         return;
       }
 
+      if (profile.identity_type === 'classmate') {
+        setAuthStatus('member');
+        return;
+      }
+
+      // 校友需要检查是否有有效的查档申请
+      if (profile.identity_type === 'alumni') {
+        const now = new Date().toISOString();
+        const { data: accessRequest, error: requestError } = await supabase
+          .from('journal_access_requests')
+          .select('status, requested_access_start_time, requested_access_end_time')
+          .eq('requester_id', user.id)
+          .eq('status', 'approved')
+          .lte('requested_access_start_time', now)
+          .gte('requested_access_end_time', now)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!requestError && accessRequest) {
+          // 有有效的查档申请
+          setAuthStatus('member');
+        } else {
+          // 没有有效的查档申请
+          setAuthStatus('alumni');
+        }
+        return;
+      }
+
       setAuthStatus('member');
     } catch (error) {
       console.error('Journal auth check failed:', error);
@@ -298,12 +327,18 @@ const Journal = () => {
   const clampedMdIndex = Math.min(Math.max(mdSectionIndex, 0), totalMdSectionsSafe - 1);
   const mdDisplayIndex = totalMdSectionsSafe === 0 ? 0 : clampedMdIndex + 1;
 
-  const isLocked = authStatus === 'anonymous' || authStatus === 'guest';
+  const isLocked = authStatus === 'anonymous' || authStatus === 'guest' || authStatus === 'alumni';
   const gateCopy = useMemo(() => {
     if (authStatus === 'guest') {
       return {
         title: '抱歉，游客不能浏览此页面',
         message: '请验证校友身份，并进行班级日志查档申请',
+      };
+    }
+    if (authStatus === 'alumni') {
+      return {
+        title: '需要申请查档权限',
+        message: '校友需要向管理员申请班日志查档时间，批准后方可在约定的时间内浏览',
       };
     }
     return {
