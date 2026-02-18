@@ -54,10 +54,9 @@ const GuestUpdateIdentity = () => {
         let upgradeRequestExists = false;
         if (profileData.identity_type === 'guest') {
           const { data: requestData, error: requestError } = await supabase
-            .from('admin_requests')
+            .from('upgrade_requests')
             .select('id')
             .eq('requester_id', user.id)
-            .eq('request_type', 'upgrade_identity')
             .eq('status', 'pending')
             .limit(1);
 
@@ -137,7 +136,7 @@ const GuestUpdateIdentity = () => {
       <div className="page-content scene-page">
         <section className="scene-panel" style={{ padding: '2rem' }}>
           <p className="scene-kicker">校友身份核验</p>
-          <h1 className="scene-title">我们正在努力处理中&lt;&gt;</h1>
+          <h1 className="scene-title">我们正在努力处理中&gt;&lt;</h1>
           <p className="scene-subtitle">请耐心等待我们的审核处理完毕哦，注意查看消息提示AwA</p>
         </section>
       </div>
