@@ -1,0 +1,78 @@
+.lockedContainer {
+  position: relative;
+}
+
+.lockedContent {
+  transition:
+    filter 0.3s ease,
+    transform 0.3s ease;
+}
+
+.isLocked {
+  filter: blur(2px) saturate(0.9);
+  pointer-events: none;
+  user-select: none;
+}
+
+.gateOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 200, 140, 0.25), rgba(255, 200, 140, 0)),
+    radial-gradient(circle at 80% 10%, rgba(124, 197, 255, 0.25), rgba(124, 197, 255, 0)),
+    rgba(16, 24, 40, 0.35);
+  backdrop-filter: blur(6px);
+  z-index: 5;
+}
+
+.gateCard {
+  width: min(94%, 520px);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 22px;
+  padding: clamp(1.5rem, 3vw, 2.2rem);
+  box-shadow: var(--panel-shadow);
+  text-align: center;
+}
+
+.gateKicker {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: var(--muted-color);
+}
+
+.gateTitle {
+  margin: 0.6rem 0 0.8rem;
+  font-size: clamp(1.5rem, 2vw, 2rem);
+}
+
+.gateText {
+  margin: 0 0 1.4rem;
+  color: var(--muted-color);
+}
+
+.gateActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+[data-theme='dark'] .gateOverlay {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(88, 126, 185, 0.24), rgba(88, 126, 185, 0)),
+    radial-gradient(circle at 80% 10%, rgba(255, 170, 106, 0.2), rgba(255, 170, 106, 0)),
+    rgba(4, 8, 18, 0.6);
+}
+
+[data-theme='dark'] .gateCard {
+  background: rgba(12, 18, 32, 0.9);
+  border-color: rgba(255, 255, 255, 0.08);
+}

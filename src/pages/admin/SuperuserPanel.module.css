@@ -1,0 +1,811 @@
+.container {
+  padding: 20px;
+}
+
+.header {
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+}
+
+.header p {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.tabContainer {
+  display: flex;
+  gap: 0;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.tab {
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.3s;
+  margin-bottom: -2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tab:hover {
+  color: #333;
+}
+
+.tab.active {
+  color: #4c6ef5;
+  border-bottom-color: #4c6ef5;
+}
+
+/* Users Tab */
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filterBar label {
+  font-weight: 600;
+  color: #333;
+}
+
+.filterBtn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.filterBtn:hover {
+  border-color: #4c6ef5;
+  color: #4c6ef5;
+}
+
+.filterBtn.active {
+  background-color: #4c6ef5;
+  color: white;
+  border-color: #4c6ef5;
+}
+
+.usersTable {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 64px 1.5fr 2fr 1fr 1fr 1fr 2fr;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #e0e0e0;
+  padding: 16px;
+  gap: 16px;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 64px 1.5fr 2fr 1fr 1fr 1fr 2fr;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  gap: 16px;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: #f8f9ff;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.avatarCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarImg {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e0e0e0;
+  background-color: #fff;
+}
+
+.avatarFallback {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #eceff4;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border: 1px solid #e0e0e0;
+}
+
+.nickname {
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.email {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+.identity {
+  padding: 4px 12px;
+  background-color: #e8f0ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 16px;
+  font-size: 12px;
+  color: #0051b3;
+  font-weight: 500;
+  text-align: center;
+  display: inline-block;
+}
+
+.identity.admin {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.identity.superuser {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+
+.identityBadge {
+  padding: 4px 12px;
+  background-color: #e8f0ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 16px;
+  font-size: 12px;
+  color: #0051b3;
+  font-weight: 500;
+  text-align: center;
+  display: inline-block;
+}
+
+.identityBadge.classmate {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.identityBadge.alumni {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.identityBadge.guest {
+  background-color: #e2e3e5;
+  border-color: #d6d8db;
+  color: #383d41;
+}
+
+.statusBadge {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.statusBadge.active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.statusBadge.banned {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.banBtn,
+.unbanBtn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.banBtn {
+  background-color: #ffa94d;
+  color: white;
+}
+
+.banBtn:hover:not(:disabled) {
+  background-color: #ff922b;
+}
+
+.unbanBtn {
+  background-color: #74c0fc;
+  color: white;
+}
+
+.unbanBtn:hover:not(:disabled) {
+  background-color: #4c6ef5;
+}
+
+.banBtn:disabled,
+.unbanBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+  font-size: 16px;
+}
+
+.loadingState {
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+/* Admins Tab */
+.adminsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.adminCard {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  background: white;
+  transition: all 0.3s;
+}
+
+.adminCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.adminHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.adminName {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.adminMeta {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.adminMeta p {
+  margin: 0;
+}
+
+.permissionView {
+  margin-bottom: 16px;
+}
+
+.permissionView h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.permissionTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.permTag {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.permTag.active {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.editForm {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.editForm h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.permCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.permCheckbox input[type='checkbox'] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.permCheckbox label {
+  margin: 0;
+  cursor: pointer;
+  flex: 1;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.saveBtn,
+.cancelBtn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.saveBtn {
+  background-color: #51cf66;
+  color: white;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background-color: #3fa660;
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  background-color: #868e96;
+  color: white;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background-color: #495057;
+}
+
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+}
+
+.permissionEditor {
+  grid-column: 1 / -1;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.permissionEditor h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  text-transform: uppercase;
+}
+
+.permissionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.editBtn,
+.removeBtn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.editBtn {
+  background-color: #74c0fc;
+  color: white;
+}
+
+.editBtn:hover:not(:disabled) {
+  background-color: #4c6ef5;
+}
+
+.editBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.removeBtn {
+  background-color: #ff8787;
+  color: white;
+}
+
+.removeBtn:hover:not(:disabled) {
+  background-color: #ff6b6b;
+}
+
+.removeBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.successMessage,
+.errorMessage {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.successMessage {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.errorMessage {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode support */
+[data-theme='dark'] .header h1 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .header p {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .tabContainer {
+  border-bottom-color: #4a5568;
+}
+
+[data-theme='dark'] .tab {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .tab:hover,
+[data-theme='dark'] .tab.active {
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .tab.active {
+  border-bottom-color: #6b7bff;
+}
+
+[data-theme='dark'] .filterBar label {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .filterBtn {
+  background: #1a202c;
+  border-color: #4a5568;
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .filterBtn:hover {
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .filterBtn.active {
+  background-color: #6b7bff;
+  color: white;
+  border-color: #6b7bff;
+}
+
+[data-theme='dark'] .usersTable {
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .tableHeader {
+  background-color: #1a202c;
+  border-bottom-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tableRow {
+  border-bottom-color: #4a5568;
+}
+
+[data-theme='dark'] .tableRow:hover {
+  background-color: #2d3748;
+}
+
+[data-theme='dark'] .nickname {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .email {
+  color: #888;
+}
+
+[data-theme='dark'] .identity {
+  background-color: #1a3a52;
+  border-color: #2d5a7b;
+  color: #6b9bff;
+}
+
+[data-theme='dark'] .identity.admin {
+  background-color: #4a3c1a;
+  border-color: #7a6632;
+  color: #ffd93d;
+}
+
+[data-theme='dark'] .identity.superuser {
+  background-color: #3d1b2b;
+  border-color: #5a2d42;
+  color: #ff9999;
+}
+
+[data-theme='dark'] .identityBadge {
+  background-color: #1a3a52;
+  border-color: #2d5a7b;
+  color: #6b9bff;
+}
+
+[data-theme='dark'] .identityBadge.classmate {
+  background-color: #1b3d2d;
+  border-color: #2d5a42;
+  color: #7effaa;
+}
+
+[data-theme='dark'] .identityBadge.alumni {
+  background-color: #4a3c1a;
+  border-color: #7a6632;
+  color: #ffd93d;
+}
+
+[data-theme='dark'] .identityBadge.guest {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .statusBadge.active {
+  background-color: #1b3d2d;
+  color: #7effaa;
+}
+
+[data-theme='dark'] .statusBadge.banned {
+  background-color: #3d1b2b;
+  color: #ff9999;
+}
+
+[data-theme='dark'] .banBtn {
+  background-color: #fd7e14;
+  color: white;
+}
+
+[data-theme='dark'] .banBtn:hover:not(:disabled) {
+  background-color: #e8590c;
+}
+
+[data-theme='dark'] .unbanBtn {
+  background-color: #339af0;
+  color: white;
+}
+
+[data-theme='dark'] .unbanBtn:hover:not(:disabled) {
+  background-color: #1c7ed6;
+}
+
+[data-theme='dark'] .emptyState,
+[data-theme='dark'] .loadingState {
+  color: #888;
+}
+
+[data-theme='dark'] .adminCard {
+  background-color: #1a202c;
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .adminCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .adminHeader {
+  border-bottom-color: #4a5568;
+}
+
+[data-theme='dark'] .adminName {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .adminMeta {
+  color: #888;
+}
+
+[data-theme='dark'] .permissionView h4 {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .permTag {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .permTag.active {
+  background-color: #1b3d2d;
+  border-color: #2d5a42;
+  color: #7effaa;
+}
+
+[data-theme='dark'] .editForm {
+  border-bottom-color: #4a5568;
+}
+
+[data-theme='dark'] .editForm h4 {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .permCheckbox {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .saveBtn {
+  background-color: #2f9e44;
+  color: white;
+}
+
+[data-theme='dark'] .saveBtn:hover:not(:disabled) {
+  background-color: #2b8a3e;
+}
+
+[data-theme='dark'] .cancelBtn {
+  background-color: #5c5f66;
+  color: white;
+}
+
+[data-theme='dark'] .cancelBtn:hover:not(:disabled) {
+  background-color: #373a40;
+}
+
+[data-theme='dark'] .editBtn {
+  background-color: #339af0;
+  color: white;
+}
+
+[data-theme='dark'] .editBtn:hover:not(:disabled) {
+  background-color: #1c7ed6;
+}
+
+[data-theme='dark'] .removeBtn {
+  background-color: #c92a2a;
+  color: white;
+}
+
+[data-theme='dark'] .removeBtn:hover:not(:disabled) {
+  background-color: #a61e1e;
+}
+
+[data-theme='dark'] .successMessage {
+  background-color: #1b3d2d;
+  border-color: #2d5a42;
+  color: #7effaa;
+}
+
+[data-theme='dark'] .errorMessage {
+  background-color: #3d1b2b;
+  border-color: #5a2d42;
+  color: #ff9999;
+}
+
+[data-theme='dark'] .permissionEditor {
+  background-color: #1a202c;
+}
+
+[data-theme='dark'] .permissionEditor h4 {
+  color: #b0b0b0;
+}

@@ -1,0 +1,227 @@
+.cornerNav {
+  position: fixed;
+  top: calc(var(--header-offset, 0px) + 1.5rem);
+  left: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  z-index: 1200;
+  pointer-events: none;
+}
+
+.orbStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  pointer-events: auto;
+}
+
+.orb {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 226, 176, 0.95),
+    rgba(122, 188, 255, 0.9) 55%,
+    rgba(20, 32, 54, 0.95)
+  );
+  color: #0e1b2f;
+  box-shadow: 0 16px 30px rgba(20, 34, 64, 0.25);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.35s ease;
+}
+
+.orb:hover {
+  transform: translateY(-4px) rotateX(8deg) rotateY(-10deg);
+}
+
+.orbCore {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 40% 30%,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.2)
+  );
+  filter: blur(0.2px);
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.65);
+  transform: translateZ(16px);
+}
+
+.orbText {
+  position: relative;
+  z-index: 2;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.homeQuick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #1b2a44;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 18px rgba(18, 32, 60, 0.18);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.homeQuick:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(18, 32, 60, 0.22);
+}
+
+.homeQuickActive {
+  color: #ff9a44;
+  border-color: rgba(255, 168, 92, 0.7);
+}
+
+.trail {
+  min-width: 200px;
+  padding: 0.8rem 0.8rem 0.9rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 18px 40px rgba(13, 21, 38, 0.18);
+  backdrop-filter: blur(12px);
+  display: grid;
+  gap: 0.35rem;
+  transform-origin: top left;
+  transform: translateX(-10px) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.3s ease;
+}
+
+.trail * {
+  pointer-events: none;
+}
+
+.cornerNav[data-open='true'] .trail {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+
+.cornerNav[data-open='true'] .trail * {
+  pointer-events: auto;
+}
+
+.trailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 12px;
+  color: #1b2a44;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transform-style: preserve-3d;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    color 0.25s ease;
+}
+
+.trailItem:hover {
+  transform: translateX(6px) translateZ(10px);
+  box-shadow: 0 10px 18px rgba(26, 42, 70, 0.18);
+  color: #0f2f5a;
+}
+
+.trailItem i {
+  color: #2b4a7f;
+}
+
+.active {
+  color: #ff9a44;
+  border-color: rgba(255, 168, 92, 0.7);
+  box-shadow: 0 10px 18px rgba(255, 168, 92, 0.2);
+}
+
+.toggleWrap {
+  margin-top: 0.35rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+:global(#themeToggle) {
+  background: rgba(18, 28, 48, 0.08);
+  border: 1px solid rgba(31, 52, 92, 0.25);
+  color: #1c2b44;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+}
+
+[data-theme='dark'] .trail {
+  background: rgba(12, 18, 32, 0.78);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .homeQuick {
+  background: rgba(16, 24, 44, 0.8);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #e6efff;
+}
+
+[data-theme='dark'] .homeQuickActive {
+  color: #ffd195;
+  border-color: rgba(255, 209, 149, 0.6);
+}
+
+[data-theme='dark'] .trailItem {
+  background: rgba(16, 24, 44, 0.9);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: #e6efff;
+}
+
+[data-theme='dark'] .trailItem i {
+  color: #9bb8ff;
+}
+
+[data-theme='dark'] .active {
+  color: #ffd195;
+  border-color: rgba(255, 209, 149, 0.6);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] :global(#themeToggle) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e6efff;
+}
+
+@media (max-width: 720px) {
+  .cornerNav {
+    top: calc(var(--header-offset, 0px) + 1rem);
+    left: 1rem;
+  }
+
+  .trail {
+    min-width: 170px;
+  }
+}

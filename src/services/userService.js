@@ -1,0 +1,309 @@
+import { supabase } from '../lib/supabase.js';
+import { generateIdenticonAvatarUrl } from '../utils/avatarUtils.js';
+
+// ================== User Registration / Login / Password Reset / Logout ===========================
+/**
+ * sign in (email + pwd/otp)
+ * @param {Object} credentials
+ * @param {string} [credentials.account] - email address
+ * @param {string} [credentials.password] - password
+ * @param {string} [credentials.otp]
+ * @param {string} [credentials.loginType] - 'password' | 'otp'
+ */
+export const signIn = async ({ account, password, otp, loginType = 'password' }) => {
+  try {
+    let email = account;
+
+    const updateProfileOnSignIn = async (user) => {
+      if (!user?.id) return;
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ email: user.email })
+        .eq('id', user.id);
+      if (profileError) {
+        console.warn('Profile update on sign-in failed:', profileError);
+      }
+    };
+
+    //password login
+    if (loginType === 'password') {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+      if (error) throw error;
+      await updateProfileOnSignIn(data?.user);
+      return { success: true, data };
+    }
+    //otp login
+    else if (loginType === 'otp') {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'email',
+      });
+      if (error) throw error;
+      await updateProfileOnSignIn(data?.user);
+      return { success: true, data };
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Send register otp
+ * @param {string} email
+ */
+export const sendRegisterOtp = async (email) => {
+  const normalizedEmail = email?.trim();
+  const { data: existingProfiles, error: existingProfileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', normalizedEmail)
+    .limit(1);
+  if (existingProfileError) return { success: false, error: existingProfileError.message };
+  if (existingProfiles?.length) {
+    return { success: false, error: '用户已经存在，请登录' };
+  }
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email: normalizedEmail,
+    options: {
+      shouldCreateUser: true,
+      data: {},
+    },
+  });
+  if (error) return { success: false, error: error.message };
+  return { success: true, message: `验证码已经发送至${email}` };
+};
+
+/**
+ * send login otp
+ * @param {string} email
+ */
+export const sendLoginOtp = async (email) => {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+  });
+  if (error) return { success: false, error: error.message };
+  return { success: true, message: `验证码已经发送至${email}` };
+};
+
+/**
+ *  send password reset otp
+ * @param {string} email
+ */
+export const sendPasswordResetOtp = async (email) => {
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) return { success: false, error: error.message };
+  return { success: true, message: `密码重置链接已经发送至${email}` };
+};
+
+/**
+ * confirm password reset
+ * @param {string} email
+ * @param {string} otp
+ * @param {string} newPassword
+ */
+export const resetPasswordConfirm = async (email, otp, newPassword) => {
+  try {
+    // verify otp
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: 'recovery',
+    });
+    if (verifyError) throw verifyError;
+
+    // update password
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (updateError) throw updateError;
+
+    return { success: true, message: '密码重置成功' };
+  } catch (error) {
+    console.error('Password reset error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Add register user profile
+ * @param {Object} params
+ * @param {string} params.email
+ * @param {string} params.otp
+ * @param {string} params.password
+ * @param {string} params.nickname
+ */
+export const signUpVerifyAndSetInfo = async ({ email, otp, password, nickname }) => {
+  try {
+    // verify otp and set password
+    const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: 'email',
+    });
+    if (verifyError) throw verifyError;
+
+    const user = authData.user;
+    if (password) {
+      const { error: pwdError } = await supabase.auth.updateUser({
+        password: password,
+      });
+      if (pwdError) throw pwdError;
+    }
+
+    const avatarUrl = generateIdenticonAvatarUrl(user.id ? user.id : email);
+
+    // update profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ nickname: nickname, avatar_url: avatarUrl })
+      .eq('id', user.id); // update the nickname of the user whose id is equal to the current user id
+
+    if (profileError) throw profileError;
+
+    return { success: true, data: authData };
+  } catch (error) {
+    console.error('SignUp error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+  return { success: true };
+};
+
+/**
+ * Get current signed-in user
+ */
+export const getCurrentUser = async () => {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return { success: false, error: error.message };
+  return { success: true, user: data?.user || null };
+};
+
+// ================== END OF User Registration / Login / Password Reset / Logout ===========================
+
+// ================== User Profile Management ===========================
+/**
+ * Submit guest identity upgrade request
+ * @param {Object} params
+ * @param {string} params.evidence
+ * @param {string|null} params.nickname
+ */
+export const submitGuestIdentityUpgradeRequest = async ({ evidence, nickname }) => {
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error('You are not signed in.');
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('identity_type, role')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error('加载用户资料失败');
+    }
+    if (profile.identity_type === 'alumni' || profile.identity_type === 'classmate') {
+      return { success: false, error: '您已是校友或本班同学，无需申请' };
+    }
+
+    const now = new Date().toISOString();
+    const payload = {
+      requester_id: user.id,
+      evidence: JSON.stringify({
+        message: evidence?.trim() || '',
+        nickname: nickname || null,
+      }),
+      status: 'pending',
+      created_at: now,
+    };
+
+    const { error: insertError } = await supabase.from('upgrade_requests').insert(payload);
+
+    if (insertError) {
+      throw new Error(insertError.message || 'Failed to submit request.');
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Guest identity upgrade request error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Get current user's profile details
+ */
+export const getProfileDetails = async () => {
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('You are not signed in.');
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('nickname, bio, email')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      throw new Error(profileError.message || 'Failed to load profile.');
+    }
+
+    return { success: true, profile };
+  } catch (error) {
+    console.error('Fetch profile error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Update current user's profile fields
+ * @param {Object} params
+ * @param {string} params.nickname
+ * @param {string} params.bio
+ */
+export const updateProfileDetails = async ({ nickname, bio }) => {
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('You are not signed in.');
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ nickname, bio })
+      .eq('id', user.id);
+
+    if (updateError) {
+      throw new Error(updateError.message || 'Failed to update profile.');
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return { success: false, error: error.message };
+  }
+};
+// ================== END OF User Profile Management ===========================

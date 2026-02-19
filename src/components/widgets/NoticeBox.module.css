@@ -1,0 +1,32 @@
+.noticeBox {
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 18px rgba(18, 32, 60, 0.08);
+}
+
+.noticeText {
+  color: inherit;
+}
+
+.info {
+  background: rgba(55, 120, 210, 0.12);
+  color: #1f4b99;
+  border: 1px solid rgba(55, 120, 210, 0.25);
+}
+
+.success {
+  background: rgba(46, 165, 110, 0.12);
+  color: #1f7a4c;
+  border: 1px solid rgba(46, 165, 110, 0.25);
+}
+
+.error {
+  background: rgba(210, 80, 80, 0.12);
+  color: #a33434;
+  border: 1px solid rgba(210, 80, 80, 0.25);
+}
