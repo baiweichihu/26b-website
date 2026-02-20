@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from './Header.module.css';
 import { useIrisTransition } from '../ui/IrisTransition';
 import { supabase } from '../../lib/supabase';
+import UserDock from './UserDock';
 
 const Header = () => {
   const headerRef = useRef(null);
@@ -45,8 +46,10 @@ const Header = () => {
 
     const checkLoginAndNotifications = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
         if (!user) {
           setIsLoggedIn(false);
           setUnreadCount(0);
@@ -203,18 +206,13 @@ const Header = () => {
                 >
                   <i className={`fas fa-bell ${styles.notificationIcon}`}></i>
                   {unreadCount > 0 && (
-                    <span className={styles.notificationBadge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
+                    <span className={styles.notificationBadge}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
                   )}
                 </Link>
               )}
-              <Link
-                to="/contact"
-                className={styles.contactBtn}
-                onClick={(event) => triggerIris?.(event, '/contact')}
-              >
-                <i className={`fas fa-envelope ${styles.contactIcon}`}></i>
-                <span className={styles.contactText}>联系我们</span>
-              </Link>
+              <UserDock />
             </div>
           </div>
         </div>

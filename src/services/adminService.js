@@ -37,11 +37,7 @@ export async function getAdminPermissions(adminId) {
  * @param {string} grantedBy - 授权者ID（Superuser）
  * @returns {Promise<Object>}
  */
-export async function updateAdminPermissions(
-  adminId,
-  permissions,
-  grantedBy
-) {
+export async function updateAdminPermissions(adminId, permissions, grantedBy) {
   if (!adminId || !permissions || !grantedBy) {
     return {
       data: null,
@@ -73,14 +69,12 @@ export async function updateAdminPermissions(
  * @returns {Promise<Object>}
  */
 export async function getUpgradeRequests(status = null) {
-  let query = supabase
-    .from('upgrade_requests')
-    .select(
-      `
+  let query = supabase.from('upgrade_requests').select(
+    `
       *,
       requester:requester_id(id, nickname, email, avatar_url)
     `
-    );
+  );
 
   if (status) {
     query = query.eq('status', status);
@@ -89,6 +83,73 @@ export async function getUpgradeRequests(status = null) {
   const { data, error } = await query.order('created_at', {
     ascending: false,
   });
+
+  return { data, error };
+}
+
+/**
+ * 获取单条举报详情
+ * @param {string} reportId - 举报ID
+ * @returns {Promise<Object>}
+ */
+export async function getContentReportById(reportId) {
+  if (!reportId) return { data: null, error: '缺少 reportId' };
+
+  const { data, error } = await supabase
+    .from('content_reports')
+    .select(
+      `
+      id,
+      reporter_id,
+      target_type,
+      target_id,
+      target_content,
+      target_author_id,
+      target_author_nickname,
+      reason,
+      suggestion,
+      status,
+      admin_note,
+      created_at,
+      updated_at,
+      reporter:reporter_id(id, nickname, email, avatar_url)
+    `
+    )
+    .eq('id', reportId)
+    .maybeSingle();
+
+  return { data, error };
+}
+
+/**
+ * 获取某用户的举报历史
+ * @param {string} userId - 用户ID
+ * @returns {Promise<Object>}
+ */
+export async function getReportsByUser(userId) {
+  if (!userId) return { data: [], error: '缺少 userId' };
+
+  const { data, error } = await supabase
+    .from('content_reports')
+    .select(
+      `
+      id,
+      reporter_id,
+      target_type,
+      target_id,
+      target_content,
+      target_author_id,
+      target_author_nickname,
+      reason,
+      suggestion,
+      status,
+      admin_note,
+      created_at,
+      updated_at
+    `
+    )
+    .eq('reporter_id', userId)
+    .order('created_at', { ascending: false });
 
   return { data, error };
 }
@@ -145,12 +206,7 @@ export async function approveUpgradeRequest(requestId, handledBy) {
     }
 
     // 4. 发送审核通过通知
-    await createAuditResultNotification(
-      request.requester_id,
-      'approved',
-      '升级为校友',
-      requestId
-    );
+    await createAuditResultNotification(request.requester_id, 'approved', '升级为校友', requestId);
 
     return { data: updatedRequest, error: null };
   } catch (error) {
@@ -200,12 +256,7 @@ export async function rejectUpgradeRequest(requestId, handledBy) {
     }
 
     // 3. 发送审核驳回通知
-    await createAuditResultNotification(
-      request.requester_id,
-      'rejected',
-      '升级为校友',
-      requestId
-    );
+    await createAuditResultNotification(request.requester_id, 'rejected', '升级为校友', requestId);
 
     return { data: updatedRequest, error: null };
   } catch (error) {
@@ -224,10 +275,8 @@ export async function rejectUpgradeRequest(requestId, handledBy) {
  * @returns {Promise<Object>}
  */
 export async function getUsersByIdentity(identityType) {
-  let query = supabase
-    .from('profiles')
-    .select(
-      `
+  let query = supabase.from('profiles').select(
+    `
       id,
       nickname,
       email,
@@ -237,7 +286,7 @@ export async function getUsersByIdentity(identityType) {
       is_banned,
       created_at
     `
-    );
+  );
 
   // 如果指定了 identityType，则过滤；否则获取所有用户
   if (identityType) {
@@ -252,10 +301,9 @@ export async function getUsersByIdentity(identityType) {
 /**
  * 禁言用户
  * @param {string} userId - 用户ID
- * @param {string} reason - 禁言原因
  * @returns {Promise<Object>}
  */
-export async function banUser(userId, reason = '') {
+export async function banUser(userId) {
   if (!userId) {
     return { data: null, error: '缺少必要参数：userId' };
   }
@@ -300,10 +348,8 @@ export async function unbanUser(userId) {
  * @returns {Promise<Object>}
  */
 export async function getContentReports(status = null) {
-  let query = supabase
-    .from('content_reports')
-    .select(
-      `
+  let query = supabase.from('content_reports').select(
+    `
       id,
       reporter_id,
       target_type,
@@ -319,7 +365,7 @@ export async function getContentReports(status = null) {
       updated_at,
       reporter:reporter_id(id, nickname, email, avatar_url)
     `
-    );
+  );
 
   if (status) {
     query = query.eq('status', status);
@@ -454,8 +500,8 @@ export async function deletePost(postId, deletedBy) {
   }
 
   try {
-    // 1. 获取帖子信息（用于后续可能的日志记录）
-    const { data: post, error: fetchError } = await supabase
+    // 1. 获取帖子信息（用于权限检查）
+    const { error: fetchError } = await supabase
       .from('posts')
       .select('author_id')
       .eq('id', postId)
@@ -466,10 +512,7 @@ export async function deletePost(postId, deletedBy) {
     }
 
     // 2. 删除帖子
-    const { error: deleteError } = await supabase
-      .from('posts')
-      .delete()
-      .eq('id', postId);
+    const { error: deleteError } = await supabase.from('posts').delete().eq('id', postId);
 
     if (deleteError) {
       return { data: null, error: deleteError.message };
@@ -494,10 +537,7 @@ export async function deleteComment(commentId, deletedBy) {
 
   try {
     // 删除评论
-    const { error: deleteError } = await supabase
-      .from('comments')
-      .delete()
-      .eq('id', commentId);
+    const { error: deleteError } = await supabase.from('comments').delete().eq('id', commentId);
 
     if (deleteError) {
       return { data: null, error: deleteError.message };
@@ -521,14 +561,12 @@ export async function deleteComment(commentId, deletedBy) {
  * @returns {Promise<Object>}
  */
 export async function getJournalAccessRequests(status = null) {
-  let query = supabase
-    .from('journal_access_requests')
-    .select(
-      `
+  let query = supabase.from('journal_access_requests').select(
+    `
       *,
       requester:requester_id(id, nickname, email, avatar_url)
     `
-    );
+  );
 
   if (status) {
     query = query.eq('status', status);
@@ -603,12 +641,7 @@ export async function approveJournalAccess(requestId, handledBy) {
     }
 
     // 4. 发送审核通过通知
-    await createAuditResultNotification(
-      request.requester_id,
-      'approved',
-      '班日志查档',
-      requestId
-    );
+    await createAuditResultNotification(request.requester_id, 'approved', '班日志查档', requestId);
 
     return { data: updatedRequest, error: null };
   } catch (error) {
@@ -658,12 +691,7 @@ export async function rejectJournalAccess(requestId, handledBy) {
     }
 
     // 3. 发送审核驳回通知
-    await createAuditResultNotification(
-      request.requester_id,
-      'rejected',
-      '班日志查档',
-      requestId
-    );
+    await createAuditResultNotification(request.requester_id, 'rejected', '班日志查档', requestId);
 
     return { data: updatedRequest, error: null };
   } catch (error) {
@@ -684,11 +712,7 @@ export async function rejectJournalAccess(requestId, handledBy) {
  * @param {string} reason - 申请理由
  * @returns {Promise<Object>}
  */
-export async function submitPermissionChangeRequest(
-  requesterId,
-  requestedPermissions,
-  reason
-) {
+export async function submitPermissionChangeRequest(requesterId, requestedPermissions, reason) {
   if (!requesterId || !requestedPermissions || !reason) {
     return {
       data: null,
@@ -718,15 +742,13 @@ export async function submitPermissionChangeRequest(
  * @returns {Promise<Object>}
  */
 export async function getPermissionChangeRequests(status = null) {
-  let query = supabase
-    .from('admin_requests')
-    .select(
-      `
+  let query = supabase.from('admin_requests').select(
+    `
       *,
       requester:requester_id(id, nickname, email, role),
       handler:handled_by(id, nickname)
     `
-    );
+  );
 
   if (status) {
     query = query.eq('status', status);
@@ -795,12 +817,7 @@ export async function approvePermissionChangeRequest(requestId, handledBy, admin
     }
 
     // 4. 发送通知
-    await createAuditResultNotification(
-      request.requester_id,
-      'approved',
-      '权限变更',
-      requestId
-    );
+    await createAuditResultNotification(request.requester_id, 'approved', '权限变更', requestId);
 
     return { data: updatedRequest, error: null };
   } catch (error) {
@@ -854,12 +871,7 @@ export async function rejectPermissionChangeRequest(requestId, handledBy, adminN
     }
 
     // 3. 发送通知
-    await createAuditResultNotification(
-      request.requester_id,
-      'rejected',
-      '权限变更',
-      requestId
-    );
+    await createAuditResultNotification(request.requester_id, 'rejected', '权限变更', requestId);
 
     return { data: updatedRequest, error: null };
   } catch (error) {
@@ -996,10 +1008,8 @@ export async function removeAdmin(adminId, removedBy) {
  */
 export async function getAllAdmins() {
   try {
-    const { data, error } = await supabase
-      .from('admin_permissions')
-      .select(
-        `
+    const { data, error } = await supabase.from('admin_permissions').select(
+      `
         *,
         admin:admin_id(
           id,
@@ -1010,7 +1020,7 @@ export async function getAllAdmins() {
           created_at
         )
       `
-      );
+    );
 
     return { data, error };
   } catch (error) {
@@ -1038,10 +1048,5 @@ export async function publishSystemAnnouncement(
   publishedBy,
   targetIdentities = []
 ) {
-  return await createSystemAnnouncementNotification(
-    title,
-    content,
-    publishedBy,
-    targetIdentities
-  );
+  return await createSystemAnnouncementNotification(title, content, publishedBy, targetIdentities);
 }

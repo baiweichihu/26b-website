@@ -198,7 +198,6 @@ const UserDock = () => {
           )}
           <span className={styles.userMeta}>
             <span className={styles.userName}>{displayName}</span>
-            <span className={styles.userRole}>{displayRole}</span>
           </span>
           <i
             className={`fas fa-chevron-down ${styles.chevron} ${open ? styles.chevronOpen : ''}`}
@@ -261,9 +260,7 @@ const UserDock = () => {
                     className={styles.panelItem}
                     onClick={(event) => triggerIris?.(event, '/admin/dashboard')}
                   >
-                    <span>
-                      {profile?.role === 'superuser' ? '管理面板' : '管理员面板'}
-                    </span>
+                    <span>{profile?.role === 'superuser' ? '管理面板' : '管理员面板'}</span>
                     <span className={styles.panelMeta}>Admin</span>
                   </Link>
                 )}

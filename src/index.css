@@ -57,7 +57,6 @@ body {
 }
 
 [data-theme='dark'] body {
-  
 }
 
 #root {
@@ -127,7 +126,7 @@ main {
     radial-gradient(circle at 85% 12%, rgba(124, 197, 255, 0.25), transparent 55%);
   filter: blur(8px);
   opacity: 0.8;
-  z-index: 0
+  z-index: 0;
 }
 
 .scene-surface,
@@ -284,13 +283,17 @@ textarea {
 }
 
 [data-theme='dark'] .form-select {
-  background: rgba(16, 24, 44, 0.9) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e0e0e0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") right 0.75rem center/16px 12px no-repeat !important;
+  background: rgba(16, 24, 44, 0.9)
+    url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e0e0e0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e")
+    right 0.75rem center/16px 12px no-repeat !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: #e0e0e0 !important;
 }
 
 [data-theme='dark'] .form-select:focus {
-  background: rgba(16, 24, 44, 0.95) url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e0e0e0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") right 0.75rem center/16px 12px no-repeat !important;
+  background: rgba(16, 24, 44, 0.95)
+    url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e0e0e0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e")
+    right 0.75rem center/16px 12px no-repeat !important;
   border-color: #6b7bff !important;
   color: #e0e0e0 !important;
   box-shadow: 0 0 0 0.2rem rgba(107, 123, 255, 0.25) !important;
@@ -351,6 +354,10 @@ textarea {
   transition:
     transform 0.35s ease,
     box-shadow 0.35s ease;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
 }
 
 .scene-card::after {

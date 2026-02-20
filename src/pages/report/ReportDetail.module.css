@@ -1,0 +1,193 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 15px;
+  gap: 15px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #e8eef5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.3s;
+}
+
+.backBtn:hover {
+  background-color: #d8dde8;
+  border-color: #4c6ef5;
+  color: #4c6ef5;
+}
+
+.content h1 {
+  margin: 0 0 20px 0;
+  font-size: 28px;
+  color: #333;
+}
+
+.card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field p {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.code {
+  font-family: 'Courier New', monospace;
+  background-color: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.contentBlock {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.resultCard {
+  background-color: #f0f9ff;
+  border: 1px solid #a8d8ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.resultCard h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #4c6ef5;
+}
+
+.loading,
+.error {
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.loading {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.error {
+  background-color: #ffe0e0;
+  color: #d9534f;
+}
+
+.empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: #999;
+}
+
+/* ===== 深色模式适配 ===== */
+[data-theme='dark'] .container {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .backBtn {
+  background-color: #2d3748;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .backBtn:hover {
+  background-color: #374151;
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .content h1 {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .card {
+  background-color: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .field label {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .field p {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .code {
+  background-color: rgba(0, 0, 0, 0.3);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .contentBlock {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .resultCard {
+  background-color: rgba(76, 110, 245, 0.1);
+  border-color: rgba(107, 123, 255, 0.3);
+}
+
+[data-theme='dark'] .resultCard h3 {
+  color: #6b7bff;
+}

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import {
   getAllNotifications,
-  getUnreadNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   subscribeToNotifications,
@@ -83,9 +82,7 @@ function Notifications() {
         } else if (payload.type === 'UPDATE') {
           // 通知状态更新，更新列表
           setNotifications((prev) =>
-            prev.map((notif) =>
-              notif.id === payload.data.id ? payload.data : notif
-            )
+            prev.map((notif) => (notif.id === payload.data.id ? payload.data : notif))
           );
         }
       });
@@ -140,16 +137,16 @@ function Notifications() {
         navigate(`/admin/user-permissions?request=${notification.related_resource_id}`);
         break;
       case 'content_reports':
-        // 跳转到举报管理页面
-        navigate(`/admin/content-reports?report=${notification.related_resource_id}`);
+        // 跳转到单条举报详情页面（用户举报历史/详情）
+        navigate(`/reports/${notification.related_resource_id}`);
         break;
       case 'post':
         // 跳转到帖子详情
-        navigate(`/post/${notification.related_resource_id}`);
+        navigate(`/posts/${notification.related_resource_id}`);
         break;
       case 'comment':
         // 跳转到帖子（评论在帖子详情中显示）
-        navigate(`/post?comment=${notification.related_resource_id}`);
+        navigate(`/posts?comment=${notification.related_resource_id}`);
         break;
       default:
         break;
@@ -191,11 +188,7 @@ function Notifications() {
   return (
     <div className={styles.notificationsContainer}>
       <div className={styles.header}>
-        <button
-          className={styles.backBtn}
-          onClick={() => navigate('/')}
-          title="返回首页"
-        >
+        <button className={styles.backBtn} onClick={() => navigate('/')} title="返回首页">
           <i className="fas fa-arrow-left"></i> 返回
         </button>
         <h1>通知中心</h1>
@@ -205,10 +198,7 @@ function Notifications() {
             {unreadCount} 条未读
           </span>
           {unreadCount > 0 && (
-            <button
-              className={styles.markAllButton}
-              onClick={handleMarkAllAsRead}
-            >
+            <button className={styles.markAllButton} onClick={handleMarkAllAsRead}>
               全部标记为已读
             </button>
           )}
@@ -216,26 +206,25 @@ function Notifications() {
       </div>
 
       <div className={styles.filterBar}>
-        {['all', 'unread', 'audit_result', 'report_feedback', 'interaction', 'system_announcement'].map(
-          (f) => (
-            <button
-              key={f}
-              className={`${styles.filterBtn} ${
-                filter === f ? styles.active : ''
-              }`}
-              onClick={() => {
-                setFilter(f);
-                setCurrentPage(1);
-              }}
-            >
-              {f === 'all'
-                ? '全部'
-                : f === 'unread'
-                ? '未读'
-                : getTypeLabel(f)}
-            </button>
-          )
-        )}
+        {[
+          'all',
+          'unread',
+          'audit_result',
+          'report_feedback',
+          'interaction',
+          'system_announcement',
+        ].map((f) => (
+          <button
+            key={f}
+            className={`${styles.filterBtn} ${filter === f ? styles.active : ''}`}
+            onClick={() => {
+              setFilter(f);
+              setCurrentPage(1);
+            }}
+          >
+            {f === 'all' ? '全部' : f === 'unread' ? '未读' : getTypeLabel(f)}
+          </button>
+        ))}
       </div>
 
       <div className={styles.notificationsList}>
@@ -250,9 +239,7 @@ function Notifications() {
         {filteredNotifications.map((notification) => (
           <div
             key={notification.id}
-            className={`${styles.notificationItem} ${
-              !notification.is_read ? styles.unread : ''
-            }`}
+            className={`${styles.notificationItem} ${!notification.is_read ? styles.unread : ''}`}
             onClick={() => handleNotificationClick(notification)}
           >
             <div className={styles.notifHeader}>
@@ -291,15 +278,10 @@ function Notifications() {
 
       {filteredNotifications.length > 0 && (
         <div className={styles.pagination}>
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-          >
+          <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
             上一页
           </button>
-          <span>
-            第 {currentPage} 页
-          </span>
+          <span>第 {currentPage} 页</span>
           <button
             disabled={filteredNotifications.length < itemsPerPage}
             onClick={() => setCurrentPage((p) => p + 1)}

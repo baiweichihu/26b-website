@@ -6,9 +6,9 @@ import styles from './CornerNav.module.css';
 
 const NAV_LINKS = [
   { to: '/lobby', label: '大厅', icon: 'fa-compass' },
-  { to: '/introduction', label: '人物', icon: 'fa-users' },
-  { to: '/activities', label: '大事纪', icon: 'fa-images' },
   { to: '/journal', label: '班日志', icon: 'fa-book-open' },
+  { to: '/introduction', label: '人物志', icon: 'fa-users' },
+  { to: '/activities', label: '大事记', icon: 'fa-images' },
   { to: '/wall', label: '班级墙', icon: 'fa-pen-square' },
   { to: '/contact', label: '联系我们', icon: 'fa-envelope' },
 ];
@@ -16,6 +16,7 @@ const NAV_LINKS = [
 const CornerNav = () => {
   const [open, setOpen] = useState(false);
   const itemsRef = useRef([]);
+  const navRef = useRef(null);
   const closeNav = () => setOpen(false);
   const { triggerIris } = useIrisTransition();
 
@@ -23,6 +24,39 @@ const CornerNav = () => {
     triggerIris?.(event, to);
     closeNav();
   };
+
+  // hover 打开/延迟关闭，避免在 orb 与菜单之间快速移动时误关闭
+  useEffect(() => {
+    const navElement = navRef.current;
+    if (!navElement) return;
+
+    const timerRef = { current: null };
+
+    const handleMouseEnter = () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      setOpen(true);
+    };
+
+    const handleMouseLeave = () => {
+      // 延迟关闭，给用户一点时间移动到菜单
+      timerRef.current = setTimeout(() => {
+        setOpen(false);
+        timerRef.current = null;
+      }, 200);
+    };
+
+    navElement.addEventListener('mouseenter', handleMouseEnter);
+    navElement.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      navElement.removeEventListener('mouseenter', handleMouseEnter);
+      navElement.removeEventListener('mouseleave', handleMouseLeave);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const gsap = window.gsap;
@@ -58,14 +92,13 @@ const CornerNav = () => {
   }, [open]);
 
   return (
-    <div className={styles.cornerNav} data-open={open}>
+    <div className={styles.cornerNav} data-open={open} ref={navRef}>
       <div className={styles.orbStack}>
         <button
           type="button"
           className={styles.orb}
-          aria-label={open ? '关闭导航' : '打开导航'}
+          aria-label={open ? '导航已打开' : '导航已打开'}
           aria-expanded={open}
-          onClick={() => setOpen((prev) => !prev)}
         >
           <span className={styles.orbCore} />
           <span className={styles.orbText}>NAV</span>

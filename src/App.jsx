@@ -31,6 +31,7 @@ import UserManagement from './pages/user/UserManagement';
 import ResetPassword from './pages/user/ResetPassword';
 import EditProfile from './pages/user/EditProfile';
 import Notifications from './pages/notifications/Notifications';
+import ReportDetail from './pages/report/ReportDetail';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserPermissions from './pages/admin/UserPermissions';
 import ContentReports from './pages/admin/ContentReports';
@@ -50,7 +51,6 @@ const AppLayout = () => {
     <>
       {!isLobby && <CornerNav />}
       {!isLobby && <Header />}
-      {!isLobby && <UserDock />}
       <main className={isLobby ? 'lobby-main' : 'scene-main'}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -65,6 +65,7 @@ const AppLayout = () => {
           <Route path="/posts/:postId" element={<PostDetail />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/reports/:reportId" element={<ReportDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/guest-update-identity" element={<GuestUpdateIdentity />} />
@@ -74,7 +75,6 @@ const AppLayout = () => {
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/user-permissions" element={<UserPermissions />} />
           <Route path="/admin/content-reports" element={<ContentReports />} />
-          <Route path="/admin/journal-approval" element={<JournalApproval />} />
           <Route path="/admin/permission-request" element={<PermissionRequest />} />
           <Route path="/admin/permission-approvals" element={<PermissionApprovals />} />
           <Route path="/admin/superuser-panel" element={<SuperuserPanel />} />

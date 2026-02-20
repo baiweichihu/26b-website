@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import {
   getContentReports,
@@ -16,10 +16,11 @@ import styles from './ContentReports.module.css';
  */
 function ContentReports() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [userId, setUserId] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [reports, setReports] = useState([]);
-  const [filter, setFilter] = useState('pending'); // pending, approved, rejected
+  const [filter, setFilter] = useState('all'); // pending, approved, rejected, all
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [processingReportId, setProcessingReportId] = useState(null);
@@ -51,12 +52,6 @@ function ContentReports() {
           return;
         }
 
-        // 只有管理员和 superuser 可以访问
-        if (profile.role !== 'admin' && profile.role !== 'superuser') {
-          navigate('/');
-          return;
-        }
-
         setUserId(user.id);
         setUserRole(profile.role);
       } catch (error) {
@@ -71,24 +66,44 @@ function ContentReports() {
   // 加载举报列表
   useEffect(() => {
     const loadReports = async () => {
+      if (!userId) return;
+
       setLoading(true);
       setError(null);
 
-      const { data, error } = await getContentReports(
-        filter === 'all' ? null : filter
-      );
+      const { data, error } = await getContentReports(filter === 'all' ? null : filter);
 
       if (error) {
         setError(error.message || '加载举报列表失败');
+        setReports([]);
       } else {
-        setReports(data || []);
+        // 如果是普通用户，只显示自己的举报
+        let filteredReports = data || [];
+        if (userRole !== 'admin' && userRole !== 'superuser') {
+          filteredReports = filteredReports.filter((r) => r.reporter_id === userId);
+        }
+        setReports(filteredReports);
       }
 
       setLoading(false);
     };
 
     loadReports();
-  }, [filter]);
+  }, [filter, userId, userRole]);
+
+  const reportId = searchParams.get('report');
+
+  // 自动选中查询参数中的举报
+  useEffect(() => {
+    if (!reportId || reports.length === 0 || !selectedReport || selectedReport.id === reportId)
+      return;
+
+    const report = reports.find((r) => r.id === reportId);
+    if (report) {
+      setSelectedReport(report);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportId]);
 
   // 处理举报为已解决
   const handleResolveReport = async (reportId) => {
@@ -108,9 +123,7 @@ function ContentReports() {
       } else {
         // 从列表中移除或更新状态
         setReports((prev) =>
-          prev.map((r) =>
-            r.id === reportId ? { ...r, status: 'approved' } : r
-          )
+          prev.map((r) => (r.id === reportId ? { ...r, status: 'approved' } : r))
         );
         setSelectedReport(null);
         setAdminNote('');
@@ -140,9 +153,7 @@ function ContentReports() {
         setError(error.message || '驳回举报失败');
       } else {
         setReports((prev) =>
-          prev.map((r) =>
-            r.id === reportId ? { ...r, status: 'rejected' } : r
-          )
+          prev.map((r) => (r.id === reportId ? { ...r, status: 'rejected' } : r))
         );
         setSelectedReport(null);
         setAdminNote('');
@@ -205,45 +216,47 @@ function ContentReports() {
     return labels[reason] || reason;
   };
 
-  const filteredReports = reports.filter(
-    (r) => filter === 'all' || r.status === filter
-  );
+  const filteredReports = reports.filter((r) => filter === 'all' || r.status === filter);
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <button
           className={styles.backBtn}
-          onClick={() => navigate('/admin/dashboard')}
-          title="返回管理员中心"
+          onClick={() =>
+            navigate(userRole === 'admin' || userRole === 'superuser' ? '/admin/dashboard' : '/')
+          }
+          title={userRole === 'admin' || userRole === 'superuser' ? '返回管理员中心' : '返回首页'}
         >
           <i className="fas fa-arrow-left"></i> 返回
         </button>
-        <h1>内容管理 - 举报处理</h1>
+        <h1>
+          {userRole === 'admin' || userRole === 'superuser' ? '内容管理 - 举报处理' : '我的举报'}
+        </h1>
       </div>
 
       {error && <div className={styles.errorBanner}>{error}</div>}
 
-      <div className={styles.filterBar}>
-        <label>状态过滤：</label>
-        {['all', 'pending', 'approved', 'rejected'].map((status) => (
-          <button
-            key={status}
-            className={`${styles.filterBtn} ${
-              filter === status ? styles.active : ''
-            }`}
-            onClick={() => setFilter(status)}
-          >
-            {status === 'all'
-              ? '全部'
-              : status === 'pending'
-              ? '待处理'
-              : status === 'approved'
-              ? '已处理'
-              : '已驳回'}
-          </button>
-        ))}
-      </div>
+      {(userRole === 'admin' || userRole === 'superuser') && (
+        <div className={styles.filterBar}>
+          <label>状态过滤：</label>
+          {['all', 'pending', 'approved', 'rejected'].map((status) => (
+            <button
+              key={status}
+              className={`${styles.filterBtn} ${filter === status ? styles.active : ''}`}
+              onClick={() => setFilter(status)}
+            >
+              {status === 'all'
+                ? '全部'
+                : status === 'pending'
+                  ? '待处理'
+                  : status === 'approved'
+                    ? '已处理'
+                    : '已驳回'}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className={styles.mainContent}>
         {/* 举报列表 */}
@@ -262,14 +275,12 @@ function ContentReports() {
                 onClick={() => setSelectedReport(report)}
               >
                 <div className={styles.reportCardHeader}>
-                  <span
-                    className={`${styles.statusBadge} ${styles[report.status]}`}
-                  >
+                  <span className={`${styles.statusBadge} ${styles[report.status]}`}>
                     {report.status === 'pending'
                       ? '待处理'
                       : report.status === 'approved'
-                      ? '已处理'
-                      : '已驳回'}
+                        ? '已处理'
+                        : '已驳回'}
                   </span>
                   <span className={styles.timestamp}>
                     {new Date(report.created_at).toLocaleString('zh-CN')}
@@ -284,8 +295,7 @@ function ContentReports() {
                   </div>
                   <div>
                     <p>
-                      <strong>内容类型：</strong>{' '}
-                      {report.target_type === 'post' ? '帖子' : '评论'}
+                      <strong>内容类型：</strong> {report.target_type === 'post' ? '帖子' : '评论'}
                     </p>
                   </div>
                   <div>
@@ -349,9 +359,7 @@ function ContentReports() {
                   {selectedReport.target_content ? (
                     <div>
                       <strong>内容：</strong>
-                      <div className={styles.contentText}>
-                        {selectedReport.target_content}
-                      </div>
+                      <div className={styles.contentText}>{selectedReport.target_content}</div>
                     </div>
                   ) : (
                     <p style={{ color: '#d9534f' }}>
@@ -364,14 +372,12 @@ function ContentReports() {
               {selectedReport.status !== 'pending' ? (
                 <div className={styles.detailSection}>
                   <h3>处理结果</h3>
-                  <div className={styles.notesBox}>
-                    {selectedReport.admin_note}
-                  </div>
+                  <div className={styles.notesBox}>{selectedReport.admin_note}</div>
                   <p className={styles.handledInfo}>
                     处理时间：{new Date(selectedReport.updated_at).toLocaleString('zh-CN')}
                   </p>
                 </div>
-              ) : (
+              ) : userRole === 'admin' || userRole === 'superuser' ? (
                 <div className={styles.detailSection}>
                   <h3>处理此举报</h3>
                   <textarea
@@ -391,24 +397,22 @@ function ContentReports() {
                     <button
                       className={styles.resolveBtn}
                       onClick={() => handleResolveReport(selectedReport.id)}
-                      disabled={
-                        processingReportId === selectedReport.id ||
-                        !adminNote.trim()
-                      }
+                      disabled={processingReportId === selectedReport.id || !adminNote.trim()}
                     >
                       标记为已处理
                     </button>
                     <button
                       className={styles.dismissBtn}
                       onClick={() => handleDismissReport(selectedReport.id)}
-                      disabled={
-                        processingReportId === selectedReport.id ||
-                        !adminNote.trim()
-                      }
+                      disabled={processingReportId === selectedReport.id || !adminNote.trim()}
                     >
                       驳回举报
                     </button>
                   </div>
+                </div>
+              ) : (
+                <div className={styles.detailSection}>
+                  <p>举报已提交，等待管理员处理...</p>
                 </div>
               )}
             </>
