@@ -94,16 +94,19 @@ const Register = () => {
     return () => ctx.revert();
   }, []);
 
+  const passwordTooShort = Boolean(formData.password) && formData.password.length < 6;
+
   const canSubmit = useMemo(() => {
     return (
       Boolean(formData.email.trim()) &&
       Boolean(formData.otp.trim()) &&
       Boolean(formData.password) &&
+      !passwordTooShort &&
       Boolean(formData.confirmPassword) &&
       formData.password === formData.confirmPassword &&
       Boolean(formData.nickname.trim())
     );
-  }, [formData]);
+  }, [formData, passwordTooShort]);
 
   const confirmPasswordMismatch =
     Boolean(formData.confirmPassword) && formData.password !== formData.confirmPassword;
@@ -132,6 +135,10 @@ const Register = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (passwordTooShort) {
+      setNotice({ type: 'error', message: '密码长度至少需要 6 个字符。' });
+      return;
+    }
     if (confirmPasswordMismatch) {
       setNotice({ type: 'error', message: '密码不匹配' });
       return;
