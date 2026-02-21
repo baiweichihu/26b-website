@@ -21,6 +21,32 @@ const CreatePost = () => {
   const [hasFileError, setHasFileError] = useState(false);
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    const checkPermission = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        // Not logged in handled by service or AuthGate, but good to check
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_banned')
+        .eq('id', user.id)
+        .single();
+
+      if (profile?.is_banned) {
+        window.alert('你已被禁言');
+        navigate('/wall');
+      }
+    };
+
+    checkPermission();
+  }, [navigate]);
+
   const allowedTypes = new Set([
     'image/jpeg',
     'image/png',

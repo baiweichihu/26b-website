@@ -21,7 +21,8 @@ const AlumniJournalAccess = () => {
 
   const panelRef = useRef(null);
   const [formData, setFormData] = useState({
-    days: '',
+    startTime: '',
+    endTime: '',
     reason: '',
   });
 
@@ -75,7 +76,7 @@ const AlumniJournalAccess = () => {
     try {
       const { data, error } = await supabase
         .from('journal_access_requests')
-        .select('id, status, requested_access_days, requested_access_start_time, requested_access_end_time, reason, created_at, handled_at')
+        .select('id, status, request_access_start_time, request_access_end_time, reason, created_at, handled_at')
         .eq('requester_id', userId)
         .order('created_at', { ascending: false });
 
@@ -87,45 +88,112 @@ const AlumniJournalAccess = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`alumni-journal-access:${userId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'journal_access_requests' },
+        () => {
+          void loadCurrentRequests(userId);
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId, loadCurrentRequests]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => {
+      if (name === 'startTime') {
+        const next = {
+          ...prev,
+          startTime: value,
+        };
+        if (value) {
+          const base = new Date(value);
+          if (!Number.isNaN(base.getTime())) {
+            const end = new Date(base.getTime() + 3 * 60 * 60 * 1000);
+            const pad = (n) => String(n).padStart(2, '0');
+            const endStr = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(
+              end.getDate()
+            )}T${pad(end.getHours())}:${pad(end.getMinutes())}`;
+            if (!prev.endTime || prev.endTime <= value) {
+              next.endTime = endStr;
+            }
+          }
+        }
+        return next;
+      }
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setNotice(null);
 
-    // 验证表单
-    const daysNum = parseInt(formData.days, 10);
-    if (!formData.days || isNaN(daysNum) || daysNum < 1 || daysNum > 30) {
-      setNotice({ type: 'error', message: '申请查档天数必须为 1-30 之间的整数' });
+    const trimmedReason = formData.reason.trim();
+    if (!trimmedReason) {
+      setNotice({
+        type: 'error',
+        message: '请填写申请说明（说明你的身份和申请意图等）',
+      });
+      return;
+    }
+
+    if (!formData.startTime || !formData.endTime) {
+      setNotice({ type: 'error', message: '请填写起始时间和终止时间' });
+      return;
+    }
+
+    if (formData.endTime < formData.startTime) {
+      setNotice({ type: 'error', message: '终止时间不能早于起始时间' });
+      return;
+    }
+
+    const startMs = new Date(formData.startTime).getTime();
+    const endMs = new Date(formData.endTime).getTime();
+    if (Number.isNaN(startMs) || Number.isNaN(endMs)) {
+      setNotice({ type: 'error', message: '时间格式不正确，请重新选择' });
+      return;
+    }
+
+    const diffMs = endMs - startMs;
+    const maxMs = 3 * 60 * 60 * 1000;
+    if (diffMs > maxMs) {
+      setNotice({ type: 'error', message: '查档时间范围最长为 3 小时' });
       return;
     }
 
     setSubmitting(true);
 
     try {
-      // 申请时，管理员还未批准，所以先不设置时间范围
-      // 等管理员批准时，才会设置实际的时间范围
+      const startIso = new Date(formData.startTime).toISOString();
+      const endIso = new Date(formData.endTime).toISOString();
+
       const { error } = await supabase
         .from('journal_access_requests')
         .insert([
           {
             requester_id: userId,
             status: 'pending',
-            requested_access_days: daysNum,
-            reason: formData.reason.trim() || null,
+            request_access_start_time: startIso,
+            request_access_end_time: endIso,
+            reason: trimmedReason,
           },
         ]);
 
       if (error) throw error;
 
       setNotice({ type: 'success', message: '申请已提交，请等待管理员审核' });
-      setFormData({ days: '', reason: '' });
+      setFormData({ startTime: '', endTime: '', reason: '' });
 
       // 重新加载申请列表
       await loadCurrentRequests(userId);
@@ -203,19 +271,17 @@ const AlumniJournalAccess = () => {
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '1rem' }}>
                 <label
-                  htmlFor="journal-access-days"
+                  htmlFor="journal-access-start"
                   style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem' }}
                 >
-                  申请查档天数 *
+                  查档起始时间 *（最长 3 小时）
                 </label>
                 <input
-                  id="journal-access-days"
-                  type="number"
-                  name="days"
-                  value={formData.days}
+                  id="journal-access-start"
+                  type="datetime-local"
+                  name="startTime"
+                  value={formData.startTime}
                   onChange={handleInputChange}
-                  min="1"
-                  max="30"
                   style={{
                     width: '100%',
                     padding: '0.6rem 0.8rem',
@@ -227,9 +293,32 @@ const AlumniJournalAccess = () => {
                   }}
                   required
                 />
-                <small style={{ color: '#999', display: 'block', marginTop: '0.3rem' }}>
-                  管理员批准后，将从批准日期开始计算（最多申请30天）
-                </small>
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label
+                  htmlFor="journal-access-end"
+                  style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem' }}
+                >
+                  查档终止时间 *
+                </label>
+                <input
+                  id="journal-access-end"
+                  type="datetime-local"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleInputChange}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 0.8rem',
+                    border: '1px solid var(--panel-border)',
+                    borderRadius: '6px',
+                    fontSize: '0.9rem',
+                    background: 'var(--input-bg)',
+                    color: 'var(--text-primary)',
+                  }}
+                  required
+                />
               </div>
 
               <div style={{ marginBottom: '1rem' }}>
@@ -237,7 +326,7 @@ const AlumniJournalAccess = () => {
                   htmlFor="journal-access-reason"
                   style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem' }}
                 >
-                  申请说明（可选）
+                  申请理由 *
                 </label>
                 <textarea
                   id="journal-access-reason"
@@ -246,6 +335,7 @@ const AlumniJournalAccess = () => {
                   onChange={handleInputChange}
                   rows="3"
                   maxLength="200"
+                  placeholder="请简单说明你的身份（如：某届校友）和申请意图"
                   style={{
                     width: '100%',
                     padding: '0.6rem 0.8rem',
@@ -257,6 +347,7 @@ const AlumniJournalAccess = () => {
                     resize: 'vertical',
                     fontFamily: 'inherit',
                   }}
+                  required
                 />
                 <small style={{ color: '#999', display: 'block', marginTop: '0.3rem' }}>
                   {formData.reason.length}/200
@@ -310,7 +401,7 @@ const AlumniJournalAccess = () => {
                         状态
                       </th>
                       <th style={{ padding: '0.8rem', textAlign: 'left', fontWeight: '600' }}>
-                        申请天数
+                        申请时长
                       </th>
                       <th style={{ padding: '0.8rem', textAlign: 'left', fontWeight: '600' }}>
                         实际查档时段
@@ -326,7 +417,19 @@ const AlumniJournalAccess = () => {
                   <tbody>
                     {currentRequests.map((request) => {
                       const statusInfo = getStatusLabel(request.status);
-                      const hasTimeRange = request.requested_access_start_time && request.requested_access_end_time;
+                      const hasTimeRange = request.request_access_start_time && request.request_access_end_time;
+                      let hoursText = '-';
+                      if (hasTimeRange) {
+                        const start = new Date(request.request_access_start_time);
+                        const end = new Date(request.request_access_end_time);
+                        const diffMs = end - start;
+                        if (!Number.isNaN(diffMs) && diffMs >= 0) {
+                          const hours = diffMs / (1000 * 60 * 60);
+                          const rounded = Math.round(hours * 10) / 10;
+                          const isInt = Math.abs(rounded - Math.round(rounded)) < 1e-6;
+                          hoursText = isInt ? `${Math.round(rounded)} 小时` : `${rounded.toFixed(1)} 小时`;
+                        }
+                      }
                       return (
                         <tr key={request.id} style={{ borderBottom: '1px solid var(--panel-border)' }}>
                           <td style={{ padding: '0.8rem' }}>
@@ -345,11 +448,11 @@ const AlumniJournalAccess = () => {
                             </span>
                           </td>
                           <td style={{ padding: '0.8rem' }}>
-                            {request.requested_access_days || '-'} 天
+                            {hoursText}
                           </td>
                           <td style={{ padding: '0.8rem' }}>
                             {hasTimeRange ? (
-                              `${formatDate(request.requested_access_start_time)} ~ ${formatDate(request.requested_access_end_time)}`
+                              `${formatDate(request.request_access_start_time)} ~ ${formatDate(request.request_access_end_time)}`
                             ) : (
                               '-'
                             )}
