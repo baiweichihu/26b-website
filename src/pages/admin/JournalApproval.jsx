@@ -5,6 +5,7 @@ import {
   getJournalAccessRequests,
   approveJournalAccess,
   rejectJournalAccess,
+  getAdminPermissions,
 } from '../../services/adminService';
 import styles from './JournalApproval.module.css';
 
@@ -43,6 +44,14 @@ function JournalApproval() {
         if (profile.role !== 'admin' && profile.role !== 'superuser') {
           navigate('/');
           return;
+        }
+
+        if (profile.role === 'admin') {
+          const { data: perms } = await getAdminPermissions(user.id);
+          if (!perms?.can_manage_journal) {
+            navigate('/admin/dashboard');
+            return;
+          }
         }
 
         setUserId(user.id);
@@ -117,7 +126,14 @@ function JournalApproval() {
   const formatDate = (value) => {
     if (!value) return '-';
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleDateString('zh-CN');
+    if (Number.isNaN(date.getTime())) return '-';
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   return (
@@ -164,9 +180,10 @@ function JournalApproval() {
         <div className={styles.table}>
           <div className={styles.tableHeader}>
             <div className={styles.col1}>申请人</div>
-            <div className={styles.col2}>申请天数</div>
-            <div className={styles.col3}>申请理由</div>
-            <div className={styles.col4}>操作</div>
+            <div className={styles.col2}>查档时段</div>
+            <div className={styles.col3}>申请时长</div>
+            <div className={styles.col4}>申请理由</div>
+            <div className={styles.col5}>操作</div>
           </div>
           {requests.map((request) => (
             <div key={request.id} className={styles.tableRow}>
@@ -182,10 +199,28 @@ function JournalApproval() {
                 </div>
               </div>
               <div className={styles.col2}>
-                {request.requested_access_days || '-'} 天
+                {request.request_access_start_time && request.request_access_end_time
+                  ? `${formatDate(request.request_access_start_time)} ~ ${formatDate(
+                      request.request_access_end_time
+                    )}`
+                  : '-'}
               </div>
-              <div className={styles.col3}>{request.reason || '-'}</div>
-              <div className={styles.col4}>
+              <div className={styles.col3}>
+                {request.request_access_start_time && request.request_access_end_time
+                  ? (() => {
+                      const start = new Date(request.request_access_start_time);
+                      const end = new Date(request.request_access_end_time);
+                      const diffMs = end - start;
+                      if (Number.isNaN(diffMs) || diffMs <= 0) return '-';
+                      const hours = diffMs / (1000 * 60 * 60);
+                      const rounded = Math.round(hours * 10) / 10;
+                      const isInt = Math.abs(rounded - Math.round(rounded)) < 1e-6;
+                      return isInt ? `${Math.round(rounded)} 小时` : `${rounded.toFixed(1)} 小时`;
+                    })()
+                  : '-'}
+              </div>
+              <div className={styles.col4}>{request.reason || '-'}</div>
+              <div className={styles.col5}>
                 {request.status === 'pending' ? (
                   <>
                     <button

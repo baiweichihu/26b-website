@@ -33,7 +33,8 @@ import EditProfile from './pages/user/EditProfile';
 import Notifications from './pages/notifications/Notifications';
 import ReportDetail from './pages/report/ReportDetail';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import UserPermissions from './pages/admin/UserPermissions';
+import UpgradeApprovals from './pages/admin/UpgradeApprovals';
+import BanUsers from './pages/admin/BanUsers';
 import ContentReports from './pages/admin/ContentReports';
 import JournalApproval from './pages/admin/JournalApproval';
 import PermissionRequest from './pages/admin/PermissionRequest';
@@ -73,8 +74,10 @@ const AppLayout = () => {
           <Route path="/user/manage" element={<UserManagement />} />
           <Route path="/user/edit-profile" element={<EditProfile />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/user-permissions" element={<UserPermissions />} />
+          <Route path="/admin/upgrade-approvals" element={<UpgradeApprovals />} />
+          <Route path="/admin/ban-users" element={<BanUsers />} />
           <Route path="/admin/content-reports" element={<ContentReports />} />
+          <Route path="/admin/journal-approval" element={<JournalApproval />} />
           <Route path="/admin/permission-request" element={<PermissionRequest />} />
           <Route path="/admin/permission-approvals" element={<PermissionApprovals />} />
           <Route path="/admin/superuser-panel" element={<SuperuserPanel />} />

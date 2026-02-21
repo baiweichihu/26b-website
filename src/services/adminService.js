@@ -3,6 +3,7 @@ import {
   createAuditResultNotification,
   createReportFeedbackNotification,
   createSystemAnnouncementNotification,
+  createSystemNotification,
 } from './inboxService.js';
 
 /**
@@ -301,9 +302,10 @@ export async function getUsersByIdentity(identityType) {
 /**
  * 禁言用户
  * @param {string} userId - 用户ID
+ * @param {string} reason - 禁言原因
  * @returns {Promise<Object>}
  */
-export async function banUser(userId) {
+export async function banUser(userId, reason = '') {
   if (!userId) {
     return { data: null, error: '缺少必要参数：userId' };
   }
@@ -313,6 +315,10 @@ export async function banUser(userId) {
     .update({ is_banned: true })
     .eq('id', userId)
     .select();
+
+  if (!error) {
+    await createSystemNotification(userId, '账号状态变更', `你已被禁言。原因：${reason || '违反社区规定'}`);
+  }
 
   return { data, error };
 }
@@ -333,6 +339,10 @@ export async function unbanUser(userId) {
     .eq('id', userId)
     .select();
 
+  if (!error) {
+    await createSystemNotification(userId, '账号状态变更', '你的账号已被解除禁言。');
+  }
+    
   return { data, error };
 }
 
@@ -500,8 +510,8 @@ export async function deletePost(postId, deletedBy) {
   }
 
   try {
-    // 1. 获取帖子信息（用于权限检查）
-    const { error: fetchError } = await supabase
+    // 1. 获取帖子信息（用于后续可能的日志记录）
+        const { data: post, error: fetchError } = await supabase
       .from('posts')
       .select('author_id')
       .eq('id', postId)
@@ -594,10 +604,9 @@ export async function approveJournalAccess(requestId, handledBy) {
   }
 
   try {
-    // 1. 获取申请信息，包含查档天数
     const { data: request, error: fetchError } = await supabase
       .from('journal_access_requests')
-      .select('requester_id, requested_access_days')
+      .select('requester_id')
       .eq('id', requestId)
       .single();
 
@@ -605,31 +614,10 @@ export async function approveJournalAccess(requestId, handledBy) {
       return { data: null, error: fetchError.message };
     }
 
-    if (!request.requested_access_days) {
-      return { data: null, error: '申请中缺少查档天数信息' };
-    }
-
-    // 2. 计算时间范围
-    // 开始时间 = 批准时的日期的 00:00:00
-    // 结束时间 = 开始时间 + 申请天数天
-    const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + request.requested_access_days);
-    const startDateStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(
-      startDate.getDate()
-    ).padStart(2, '0')}`;
-    const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(
-      endDate.getDate()
-    ).padStart(2, '0')}`;
-
-    // 3. 更新申请状态为批准，并设置时间范围
     const { data: updatedRequest, error: updateError } = await supabase
       .from('journal_access_requests')
       .update({
         status: 'approved',
-        requested_access_start_time: startDateStr,
-        requested_access_end_time: endDateStr,
         handled_by: handledBy,
         handled_at: new Date().toISOString(),
       })
@@ -949,6 +937,8 @@ export async function appointAdmin(userId, permissions, grantedBy) {
       return { data: null, error: permError.message };
     }
 
+    await createSystemNotification(userId, '权限变更', '你已被任命为管理员。');
+
     return { data: adminPermData, error: null };
   } catch (error) {
     return {
@@ -992,6 +982,8 @@ export async function removeAdmin(adminId, removedBy) {
     if (permError) {
       return { data: null, error: permError.message };
     }
+
+    await createSystemNotification(adminId, '权限变更', '你的管理员身份已被撤销。');
 
     return { data: { removedAdminId: adminId }, error: null };
   } catch (error) {

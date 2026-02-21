@@ -178,13 +178,21 @@ function AdminDashboard() {
 
   const baseMenuItems = [
     {
-      title: '普通用户权限管理',
-      description: '审核游客升级校友申请、禁言用户',
+      title: '升级校友申请',
+      description: '审核游客升级为校友的申请',
       icon: '👤',
-      path: '/admin/user-permissions',
+      path: '/admin/upgrade-approvals',
       count: stats.pendingUpgrades,
       permission: permissions?.can_manage_user_permissions,
-      requiredRole: 'admin', // admin 和 superuser 都可以
+      requiredRole: 'admin',
+    },
+    {
+      title: '禁言用户',
+      description: '管理普通用户的禁言/解禁',
+      icon: '🚫',
+      path: '/admin/ban-users',
+      permission: permissions?.can_ban_users,
+      requiredRole: 'admin',
     },
     {
       title: '内容管理',
@@ -196,12 +204,20 @@ function AdminDashboard() {
       requiredRole: 'admin',
     },
     {
-      title: '班日志审核',
+      title: '班日志查档审批',
       description: '审核校友查档申请',
       icon: '📖',
       path: '/admin/journal-approval',
       count: stats.pendingJournalRequests,
       permission: permissions?.can_manage_journal,
+      requiredRole: 'admin',
+    },
+    {
+      title: '相册管理',
+      description: '模块建设中',
+      icon: '🖼️',
+      path: null,
+      permission: permissions?.can_manage_album,
       requiredRole: 'admin',
     },
     {
@@ -247,9 +263,10 @@ function AdminDashboard() {
     if (item.requiredRole === 'superuser') {
       return userRole === 'superuser';
     }
-    // admin 和 superuser 都可以看 admin 的菜单项
     if (item.requiredRole === 'admin') {
-      return userRole === 'admin' || userRole === 'superuser';
+      const roleOk = userRole === 'admin' || userRole === 'superuser';
+      const permOk = userRole === 'superuser' ? true : item.permission !== false;
+      return roleOk && permOk;
     }
     return item.permission !== false;
   });
@@ -288,20 +305,31 @@ function AdminDashboard() {
           {permissions && (
             <div className={styles.permissionsCard}>
               <h2>您的权限</h2>
-              <div className={styles.permissionsList}>
-                {permissions.can_manage_user_permissions && (
-                  <span className={styles.permissionBadge}>用户权限管理</span>
-                )}
-                {permissions.can_manage_content && (
-                  <span className={styles.permissionBadge}>内容管理</span>
-                )}
-                {permissions.can_manage_journal && (
-                  <span className={styles.permissionBadge}>班日志审核</span>
-                )}
-                {permissions.can_ban_users && (
-                  <span className={styles.permissionBadge}>禁言管理</span>
-                )}
-              </div>
+              {(permissions.can_manage_user_permissions ||
+                permissions.can_manage_content ||
+                permissions.can_manage_journal ||
+                permissions.can_ban_users ||
+                permissions.can_manage_album) ? (
+                <div className={styles.permissionsList}>
+                  {permissions.can_manage_user_permissions && (
+                    <span className={styles.permissionBadge}>用户权限管理</span>
+                  )}
+                  {permissions.can_manage_content && (
+                    <span className={styles.permissionBadge}>内容管理</span>
+                  )}
+                  {permissions.can_manage_journal && (
+                    <span className={styles.permissionBadge}>班日志查档审批</span>
+                  )}
+                  {permissions.can_ban_users && (
+                    <span className={styles.permissionBadge}>禁言管理</span>
+                  )}
+                  {permissions.can_manage_album && (
+                    <span className={styles.permissionBadge}>相册管理</span>
+                  )}
+                </div>
+              ) : (
+                <div className={styles.permissionsEmpty}>您暂时没有权限，快去申请吧</div>
+              )}
             </div>
           )}
 
@@ -339,13 +367,13 @@ function AdminDashboard() {
 
           {/* 快速操作菜单 */}
           <div className={styles.menuSection}>
-            <h2>快速操作</h2>
+            <h2>管理选项</h2>
             <div className={styles.menuGrid}>
               {accessibleMenuItems.map((item) => (
                 <div
                   key={item.path}
                   className={styles.menuCard}
-                  onClick={() => handleNavigate(item.path)}
+                  onClick={() => item.path && handleNavigate(item.path)}
                 >
                   <div className={styles.cardIcon}>{item.icon}</div>
                   <div className={styles.cardContent}>
