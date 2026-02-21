@@ -144,6 +144,33 @@ export async function createInteractionNotification(
 }
 
 /**
+ * 发送系统通知给指定用户
+ * @param {string} userId - 接收用户ID
+ * @param {string} title - 通知标题
+ * @param {string} content - 通知内容
+ * @returns {Promise<Object>}
+ */
+export async function createSystemNotification(userId, title, content) {
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert([
+      {
+        recipient_id: userId,
+        type: 'system_announcement',
+        title: title,
+        content: content,
+        related_resource_type: null,
+        related_resource_id: null,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      },
+    ])
+    .select();
+
+  return { data, error };
+}
+
+/**
  * 订阅用户的实时通知（WebSocket）
  * @param {string} userId - 用户ID
  * @param {Function} onNotification - 收到通知时的回调函数

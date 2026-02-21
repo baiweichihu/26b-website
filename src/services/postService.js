@@ -118,6 +118,7 @@ const buildProcessedPost = (post, role, userId, liked = false) => ({
   author: buildListAuthor(post, role),
   is_owner: userId ? post.author_id === userId : false,
   liked: Boolean(liked),
+  viewer_role: role,
 });
 
 const buildDetailAuthor = (post, role) => {
@@ -186,7 +187,12 @@ const canViewPost = (post, user, profile) => {
 export const createPost = async (postData) => {
   try {
     // 1. 获取当前登录用户与身份信息
-    const { user, profile } = await getUserAndProfile();
+    const { user, profile } = await getUserAndProfile('identity_type, role, is_banned');
+
+    // 禁言用户禁止发布
+    if (profile.is_banned) {
+      throw new Error('你已被禁言，无法发布帖子');
+    }
 
     // 3. 检查发布权限（仅本班同学和校友可以发布）
     const canCreatePost =
@@ -383,17 +389,18 @@ export const getPosts = async () => {
     let likedPostIds = new Set();
 
     if (user?.id && postIds.length > 0) {
-      const { data: likedRows, error: likedError } = await supabase
-        .from('post_likes')
-        .select('post_id')
-        .eq('user_id', user.id)
-        .in('post_id', postIds);
-
-      if (likedError) {
-        throw new Error(`获取点赞状态失败: ${likedError.message}`);
+      try {
+        const { data: likedRows, error: likedError } = await supabase
+          .from('post_likes')
+          .select('post_id')
+          .eq('user_id', user.id)
+          .in('post_id', postIds);
+        if (!likedError && likedRows) {
+          likedPostIds = new Set((likedRows || []).map((row) => row.post_id));
+        }
+      } catch (e) {
+        likedPostIds = new Set();
       }
-
-      likedPostIds = new Set((likedRows || []).map((row) => row.post_id));
     }
 
     // 8. 处理数据：格式化统计信息，处理匿名帖子
@@ -495,18 +502,22 @@ export const getPostById = async (postId, options = {}) => {
     // 6. 获取点赞状态
     let liked = false;
     if (user?.id) {
-      const { data: existingLike, error: likeError } = await supabase
-        .from('post_likes')
-        .select('post_id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .single();
-
-      if (likeError && likeError.code !== 'PGRST116') {
-        throw new Error(`查询点赞状态失败: ${likeError.message}`);
+      try {
+        const { data: existingLike, error: likeError } = await supabase
+          .from('post_likes')
+          .select('post_id')
+          .eq('post_id', postId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (likeError) {
+          throw new Error(`获取点赞状态失败: ${likeError.message}`);
+        }
+        if (existingLike) {
+          liked = true;
+        }
+      } catch (e) {
+        liked = false;
       }
-
-      liked = Boolean(existingLike);
     }
 
     // 7. 处理匿名帖子的作者信息
@@ -515,6 +526,7 @@ export const getPostById = async (postId, options = {}) => {
       author: buildDetailAuthor(post, userRole),
       is_owner: user?.id ? post.author_id === user.id : false,
       liked,
+      viewer_role: userRole,
     };
 
     // 8. 格式化统计信息
@@ -562,9 +574,9 @@ export const togglePostLike = async (postId) => {
       .select('post_id')
       .eq('post_id', postId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (likeError && likeError.code !== 'PGRST116') {
+    if (likeError) {
       throw new Error(`查询点赞状态失败: ${likeError.message}`);
     }
 
@@ -739,6 +751,17 @@ export const addComment = async (postId, content, parentId = null, replyToUserId
     }
 
     const user = await getAuthenticatedUser();
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_banned')
+      .eq('id', user.id)
+      .single();
+    if (profileError) {
+      throw new Error(`无法验证禁言状态: ${profileError.message}`);
+    }
+    if (profile?.is_banned) {
+      throw new Error('你已被禁言，无法发表评论');
+    }
 
     const { data: createdComment, error: insertError } = await supabase
       .from('comments')
@@ -813,9 +836,9 @@ export const toggleCommentLike = async (commentId) => {
       .select('comment_id')
       .eq('comment_id', commentId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (likeError && likeError.code !== 'PGRST116') {
+    if (likeError) {
       throw new Error(`查询点赞状态失败: ${likeError.message}`);
     }
 

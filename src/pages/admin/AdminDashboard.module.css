@@ -86,6 +86,13 @@
   gap: 12px;
 }
 
+.permissionsEmpty {
+  padding: 24px 0;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
 .permissionBadge {
   background-color: #4c6ef5;
   color: white;

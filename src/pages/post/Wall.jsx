@@ -148,22 +148,28 @@ const Wall = () => {
       const heroItems = panel.querySelectorAll('[data-animate="hero"]');
       const toolbarItems = panel.querySelectorAll('[data-animate="toolbar"]');
       gsap.from(panel, { opacity: 0, y: 14, duration: 0.45, ease: 'power2.out' });
-      gsap.from(heroItems, {
-        opacity: 0,
-        y: 18,
-        duration: 0.6,
-        ease: 'power2.out',
-        stagger: 0.08,
-        delay: 0.1,
-      });
-      gsap.from(toolbarItems, {
-        opacity: 0,
-        y: 14,
-        duration: 0.5,
-        ease: 'power2.out',
-        stagger: 0.06,
-        delay: 0.15,
-      });
+      
+      if (heroItems.length > 0) {
+        gsap.from(heroItems, {
+          opacity: 0,
+          y: 18,
+          duration: 0.6,
+          ease: 'power2.out',
+          stagger: 0.08,
+          delay: 0.1,
+        });
+      }
+
+      if (toolbarItems.length > 0) {
+        gsap.from(toolbarItems, {
+          opacity: 0,
+          y: 14,
+          duration: 0.5,
+          ease: 'power2.out',
+          stagger: 0.06,
+          delay: 0.15,
+        });
+      }
     }, panel);
 
     return () => ctx.revert();
@@ -364,9 +370,14 @@ const Wall = () => {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('identity_type, role')
+      .select('identity_type, role, is_banned')
       .eq('id', user.id)
       .single();
+
+    if (profile?.is_banned) {
+      window.alert('你已被禁言');
+      return;
+    }
 
     const canCreatePost =
       profile?.identity_type === 'classmate' ||

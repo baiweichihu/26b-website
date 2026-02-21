@@ -163,8 +163,8 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 - **主键 (PK):** `id` (UUID)
 - **外键 (FK):** `requester_id` (申请人，关联 `profiles.id`)
 - **重要字段:**
-  - `requested_access_start_time`: 申请的查档起始时间
-  - `requested_access_end_time`: 申请的查档结束时间
+  - `request_access_start_time`: 申请的查档起始时间
+  - `request_access_end_time`: 申请的查档结束时间
   - `reason`: 申请理由
   - `status`: `pending`, `approved`, `rejected`
   - `handled_by`: 处理该请求的管理员/superuser ID

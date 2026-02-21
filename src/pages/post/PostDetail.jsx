@@ -102,12 +102,25 @@ const PostDetail = () => {
     }
   }, [postId]);
 
+  const [currentUserRole, setCurrentUserRole] = useState(null);
+  const [isBanned, setIsBanned] = useState(false);
+
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       setCurrentUserId(user?.id || null);
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, is_banned')
+          .eq('id', user.id)
+          .single();
+        setCurrentUserRole(profile?.role || null);
+        setIsBanned(profile?.is_banned || false);
+      }
     };
 
     fetchCurrentUser();
@@ -131,27 +144,31 @@ const PostDetail = () => {
     }
 
     const ctx = gsap.context(() => {
-      const headerItems = panel.querySelectorAll('[data-animate="detail"]');
-      const contentItems = panel.querySelectorAll('[data-animate="content"]');
-      const commentItems = panel.querySelectorAll('[data-animate="comment"]');
+      const headerItems = Array.from(panel.querySelectorAll('[data-animate="detail"]'));
+      const contentItems = Array.from(panel.querySelectorAll('[data-animate="content"]'));
+      const commentItems = Array.from(panel.querySelectorAll('[data-animate="comment"]'));
 
       gsap.from(panel, { opacity: 0, y: 14, duration: 0.45, ease: 'power2.out' });
-      gsap.from(headerItems, {
-        opacity: 0,
-        y: 16,
-        duration: 0.55,
-        ease: 'power2.out',
-        stagger: 0.08,
-        delay: 0.05,
-      });
-      gsap.from(contentItems, {
-        opacity: 0,
-        y: 16,
-        duration: 0.55,
-        ease: 'power2.out',
-        stagger: 0.08,
-        delay: 0.15,
-      });
+      if (headerItems.length > 0) {
+        gsap.from(headerItems, {
+          opacity: 0,
+          y: 16,
+          duration: 0.55,
+          ease: 'power2.out',
+          stagger: 0.08,
+          delay: 0.05,
+        });
+      }
+      if (contentItems.length > 0) {
+        gsap.from(contentItems, {
+          opacity: 0,
+          y: 16,
+          duration: 0.55,
+          ease: 'power2.out',
+          stagger: 0.08,
+          delay: 0.15,
+        });
+      }
       if (commentItems.length > 0) {
         gsap.from(commentItems, {
           opacity: 0,
@@ -236,6 +253,11 @@ const PostDetail = () => {
       return;
     }
 
+    if (isBanned) {
+      window.alert('你已被禁言');
+      return;
+    }
+
     const replyTargetComment = replyTarget
       ? comments.find((commentItem) => commentItem.id === replyTarget)
       : null;
@@ -256,6 +278,9 @@ const PostDetail = () => {
       await loadComments();
       await loadPostDetail({ incrementView: false });
     } else {
+      if ((result.error || '').includes('禁言')) {
+        window.alert('你已被禁言');
+      }
       setNotice({ type: 'error', message: result.error || '发表评论失败' });
     }
 
@@ -418,6 +443,11 @@ const PostDetail = () => {
     private: { label: '仅自己可见', icon: 'fa-lock' },
   };
   const visibilityMeta = visibilityConfig[post?.visibility] || visibilityConfig.public;
+  
+  const showVisibilityBadge =
+    Boolean(post?.is_owner) ||
+    currentUserRole === 'admin' || 
+    currentUserRole === 'superuser';
 
   if (loading) {
     return (
@@ -463,10 +493,12 @@ const PostDetail = () => {
             </h1>
             <div className={detailStyles.headerMeta} data-animate="detail">
               <span>{formattedDate}</span>
-              <span className={detailStyles.metaBadge}>
-                <i className={`fas ${visibilityMeta.icon}`} aria-hidden="true"></i>
-                {visibilityMeta.label}
-              </span>
+              {showVisibilityBadge && (
+                <span className={detailStyles.metaBadge}>
+                  <i className={`fas ${visibilityMeta.icon}`} aria-hidden="true"></i>
+                  {visibilityMeta.label}
+                </span>
+              )}
             </div>
           </div>
           <button

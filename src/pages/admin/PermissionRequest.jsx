@@ -74,11 +74,9 @@ function PermissionRequest() {
           }
         }
 
-        // 获取历史申请
         const { data: requests, error: historyError } = await getPermissionChangeRequests();
         if (!historyError && requests) {
-          // 只显示当前用户的申请
-          setHistoryRequests(requests.filter(req => req.requester_id === authUser.id));
+          setHistoryRequests((requests || []).filter(req => req.requester_id === authUser.id));
         }
       } catch (err) {
         console.error('页面初始化失败:', err);
@@ -107,27 +105,28 @@ function PermissionRequest() {
       setErrorMessage('请至少选择一个权限');
       return;
     }
+    if (!reason.trim()) {
+      setErrorMessage('请填写申请理由');
+      return;
+    }
 
     setSubmitting(true);
     setErrorMessage('');
 
     try {
-      const { data, error } = await submitPermissionChangeRequest(
+      const { error } = await submitPermissionChangeRequest(
         user.id,
         requestedPermissions,
-        reason
+        reason.trim()
       );
-
       if (error) {
         setErrorMessage(`提交失败: ${error.message || error}`);
       } else {
         setSuccessMessage('权限申请已提交，等待superuser审批！');
         setReason('');
         setRequestedPermissions({});
-        setTimeout(() => {
-          // 重新加载历史申请
-          window.location.reload();
-        }, 2000);
+        const { data: requests } = await getPermissionChangeRequests();
+        setHistoryRequests((requests || []).filter(req => req.requester_id === user.id));
       }
     } catch (err) {
       setErrorMessage(`提交失败: ${err.message}`);
@@ -193,36 +192,52 @@ function PermissionRequest() {
         </div>
 
         {/* 权限申请表单 */}
-        {userRole !== 'superuser' && (
+        {userRole !== 'superuser' && (() => {
+          const allOwned = permissionFields.every(f => currentPermissions[f] === true);
+          if (allOwned) {
+            return (
+              <div className={styles.contentBox}>
+                <h2>申请新的权限</h2>
+                <div className={permStyles.superuserNote}>
+                  您已拥有所有管理员权限
+                </div>
+              </div>
+            );
+          }
+          return (
           <div className={styles.contentBox}>
             <h2>申请新的权限</h2>
             <form onSubmit={handleSubmit} className={permStyles.form}>
             <div className={permStyles.formSection}>
               <label>选择要申请的权限：</label>
               <div className={permStyles.permissionGrid}>
-                {permissionFields.map(field => (
+                {permissionFields.map(field => {
+                  const alreadyHas = currentPermissions[field] === true;
+                  return (
                   <div key={field} className={permStyles.permissionItem}>
                     <label>
                       <input
                         type="checkbox"
                         checked={requestedPermissions[field] || false}
                         onChange={() => handlePermissionChange(field)}
+                        disabled={alreadyHas}
                       />
                       <span>{PERMISSION_LABELS[field]}</span>
                     </label>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
 
             <div className={permStyles.formSection}>
-              <label htmlFor="reason">申请理由（可选）:</label>
+              <label htmlFor="reason">申请理由 *</label>
               <textarea
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows="5"
                 className={permStyles.reasonInput}
+                required
               />
             </div>
 
@@ -238,7 +253,8 @@ function PermissionRequest() {
             </button>
           </form>
           </div>
-        )}
+          );
+        })()}
 
         {/* 申请历史 */}
         {user?.role !== 'superuser' && historyRequests.length > 0 && (
@@ -258,9 +274,21 @@ function PermissionRequest() {
                     </span>
                   </div>
                   <div className={permStyles.historyContent}>
-                    <p><strong>申请的权限:</strong> {Object.entries(req.requested_permissions).filter(([_, v]) => v).map(([k]) => PERMISSION_LABELS[k]).join(', ')}</p>
-                    <p><strong>申请理由:</strong> {req.reason}</p>
-                    {req.admin_note && <p><strong>审批意见:</strong> {req.admin_note}</p>}
+                    <p>
+                      <strong>申请的权限:</strong>{' '}
+                      {Object.entries(req.requested_permissions || {})
+                        .filter(([_, v]) => v)
+                        .map(([k]) => PERMISSION_LABELS[k])
+                        .join(', ') || '-'}
+                    </p>
+                    <p>
+                      <strong>申请理由:</strong> {req.reason || '-'}
+                    </p>
+                    {req.handled_at && (
+                      <p>
+                        <strong>处理时间:</strong> {new Date(req.handled_at).toLocaleString('zh-CN')}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

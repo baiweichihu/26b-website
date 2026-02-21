@@ -465,6 +465,7 @@ function SuperuserPanel() {
         ) : (
           <div className={superuserStyles.usersTable}>
             <div className={superuserStyles.tableHeader}>
+              <div>头像</div>
               <div>昵称</div>
               <div>邮箱</div>
               <div>角色</div>
@@ -474,6 +475,15 @@ function SuperuserPanel() {
             </div>
             {allUsers.map(u => (
               <div key={u.id} className={superuserStyles.tableRow}>
+                <div className={superuserStyles.avatarCell}>
+                  {u.avatar_url ? (
+                    <img src={u.avatar_url} alt={u.nickname || '头像'} className={superuserStyles.avatarImg} />
+                  ) : (
+                    <div className={superuserStyles.avatarFallback}>
+                      {(u.nickname || u.email || 'U').slice(0,1).toUpperCase()}
+                    </div>
+                  )}
+                </div>
                 <div className={superuserStyles.userInfo}>
                   <p className={superuserStyles.nickname}>{u.nickname}</p>
                 </div>
