@@ -26,25 +26,37 @@ npm run build
 npm run deploy
 ```
 
+## 技术栈
+
+- **前端框架**: React 19.2.0 + React Router DOM 7.12.0
+- **构建工具**: Vite 7.2.4
+- **样式框架**: Bootstrap 5.3.8 + React Bootstrap 2.10.10
+- **数据库**: Supabase (PostgreSQL)
+- **Markdown支持**: React Markdown + 语法高亮
+- **PDF支持**: React PDF
+- **代码质量**: ESLint + Prettier + Husky
+- **测试框架**: Jest
+- **部署**: GitHub Pages
+
 ## 文件结构
 
 ```
 src/
-├── App.jsx                    # 应用主组件
+├── App.jsx                    # 应用主组件和路由配置
 ├── main.jsx                   # 应用入口
 ├── index.css                  # 全局样式
 ├── lib/
 │   └── supabase.js            # Supabase 客户端初始化
 ├── utils/
 │   └── avatarUtils.js         # 头像工具
-├── services/                  # API 层
+├── services/                  # API 服务层
 │   ├── adminService.js        # 管理服务
 │   ├── albumService.js        # 相册服务
 │   ├── inboxService.js        # 通知服务
 │   ├── journalService.js      # 日志服务
 │   ├── postService.js         # 帖子服务
 │   └── userService.js         # 用户服务
-├── components/                # UI 组件
+├── components/                # 可复用 UI 组件
 │   ├── features/              # 业务功能组件
 │   │   ├── journal/
 │   │   │   ├── JournalLayout.jsx
@@ -101,30 +113,57 @@ src/
 │   └── widgets/
 │       ├── NoticeBox.jsx
 │       └── NoticeBox.module.css
-└── pages/                     # 路由页面
-    ├── journal/
+└── pages/                     # 路由页面组件
+    ├── admin/                 # 管理后台页面
+    │   ├── AdminDashboard.jsx
+    │   ├── AdminDashboard.module.css
+    │   ├── Announcement.jsx
+    │   ├── Announcement.module.css
+    │   ├── BanUsers.jsx
+    │   ├── ContentReports.jsx
+    │   ├── ContentReports.module.css
+    │   ├── JournalApproval.jsx
+    │   ├── JournalApproval.module.css
+    │   ├── PermissionApprovals.jsx
+    │   ├── PermissionApprovals.module.css
+    │   ├── PermissionRequest.jsx
+    │   ├── PermissionRequest.module.css
+    │   ├── SuperuserPanel.jsx
+    │   ├── SuperuserPanel.module.css
+    │   ├── UpgradeApprovals.jsx
+    │   └── UserPermissions.jsx
+    ├── album/                 # 相册页面
+    │   └── .gitkeep
+    ├── journal/               # 日志相关页面
+    │   ├── AlumniJournalAccess.jsx
     │   ├── Journal.jsx
     │   └── Journal.module.css
-    ├── post/
-    │   ├── Wall.jsx
-    │   ├── Wall.module.css
+    ├── notifications/         # 通知页面
+    │   ├── Notifications.jsx
+    │   └── Notifications.module.css
+    ├── post/                  # 帖子相关页面
     │   ├── CreatePost.jsx
     │   ├── PostDetail.jsx
-    │   └── PostDetail.module.css
-    ├── static/
-    │   ├── Home.jsx
-    │   ├── Lobby.jsx
+    │   ├── PostDetail.module.css
+    │   ├── Wall.jsx
+    │   └── Wall.module.css
+    ├── report/                # 报告页面
+    │   ├── ReportDetail.jsx
+    │   └── ReportDetail.module.css
+    ├── static/                # 静态页面
     │   ├── Activities.jsx
-    │   ├── Introduction.jsx
     │   ├── Contact.jsx
-    │   └── Contact.module.css
-    └── user/
+    │   ├── Contact.module.css
+    │   ├── Home.jsx
+    │   ├── Introduction.jsx
+    │   └── Lobby.jsx
+    └── user/                  # 用户相关页面
+        ├── Auth.module.css
+        ├── EditProfile.jsx
+        ├── GuestUpdateIdentity.jsx
         ├── Login.jsx
         ├── Register.jsx
         ├── ResetPassword.jsx
-        ├── EditProfile.jsx
-        ├── GuestUpdateIdentity.jsx
         ├── UserManagement.jsx
-        ├── UserManagement.module.css
-        └── Auth.module.css
+        └── UserManagement.module.css
 ```
