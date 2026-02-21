@@ -177,7 +177,7 @@ function PermissionApprovals() {
             </div>
           ) : (
             filteredRequests.map(request => (
-              <div key={request.id} className={permApprovalStyles.requestCard}>
+              <div key={request.id} className={`${permApprovalStyles.requestCard} ${permApprovalStyles[request.status]}`}>
                 <div className={permApprovalStyles.requestHeader}>
                   <div className={permApprovalStyles.requesterInfo}>
                     <h3>{request.requester?.nickname || '未知'}</h3>
