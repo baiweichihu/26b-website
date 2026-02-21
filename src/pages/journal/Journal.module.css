@@ -558,6 +558,7 @@
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.2s;
+  color: var(--text-color);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -581,12 +582,34 @@
 }
 
 .pageInput input {
-  width: 50px;
-  padding: 4px 8px;
+  width: auto;
+  min-width: 50px;
+  padding: 3px 6px;
   border: 1px solid var(--panel-border);
   border-radius: 4px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  background: white;
+  color: #333;
+}
+
+.pageInput input:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #7cc5ff;
+  outline: none;
+}
+
+[data-theme='dark'] .pageInput input {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pageInput input:focus {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: #6b7bff;
+  color: #e0e0e0;
+  outline: none;
 }
 
 /* PDF 查看器容器 */
@@ -630,17 +653,22 @@
 .fontControls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: white;
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 4px 10px;
+  border-radius: 6px;
   border: 1px solid #e0e6ed;
+  color: #2c3e50;
+  font-size: 0.85rem;
 }
 
-.fontControls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+[data-theme='dark'] .zoomControls,
+[data-theme='dark'] .pageControls,
+[data-theme='dark'] .sectionControls,
+[data-theme='dark'] .fontControls {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
 }
 
 .mdToolbar .controlLabel {
@@ -670,6 +698,7 @@
   font-weight: bold;
   transition: all 0.2s;
   font-size: 0.85rem;
+  color: #2c3e50;
 }
 
 .toolbarButton:hover {
@@ -1329,4 +1358,192 @@
   height: 100%;
   overflow: auto;
   min-height: 0;
+}
+
+/* ===== 深色模式适配 ===== */
+[data-theme='dark'] .controls {
+  background: rgba(12, 18, 32, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .controlButton {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .controlButton:hover {
+  background: rgba(55, 65, 81, 0.9);
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .controlLabel {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .fontSizeDisplay {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pdfInfo {
+  background: rgba(107, 123, 255, 0.2);
+  color: #a3c9e8;
+}
+
+[data-theme='dark'] .tocTitle {
+  background: linear-gradient(120deg, #4a5568, #2d3748);
+}
+
+[data-theme='dark'] .tocLink {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tocLink:hover {
+  background: rgba(107, 123, 255, 0.15);
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .tocItemActive .tocLink {
+  background: rgba(107, 123, 255, 0.25);
+  color: #6b7bff;
+  border-left-color: #6b7bff;
+}
+
+[data-theme='dark'] .tocFooter {
+  background: rgba(30, 41, 59, 0.7);
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .loadingOverlay {
+  background: rgba(12, 18, 32, 0.9);
+}
+
+[data-theme='dark'] .spinner {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-top-color: #6b7bff;
+}
+
+[data-theme='dark'] .pdfLoading,
+[data-theme='dark'] .tocEmpty p {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .sectionHeader {
+  background: rgba(30, 41, 59, 0.9);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .tocButton {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tocButton:hover {
+  background: #6b7bff;
+}
+
+[data-theme='dark'] .tocDropdown {
+  background: rgba(12, 18, 32, 0.95);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .tocDropdownHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .tocDropdownLink {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tocDropdownLink:hover {
+  color: #6b7bff;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: rgba(74, 85, 104, 0.9);
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
+}
+
+[data-theme='dark'] .mdContent::-webkit-scrollbar-track,
+[data-theme='dark'] .pdfContent::-webkit-scrollbar-track,
+[data-theme='dark'] .tocContent::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+[data-theme='dark'] .mdContent::-webkit-scrollbar-thumb,
+[data-theme='dark'] .pdfContent::-webkit-scrollbar-thumb,
+[data-theme='dark'] .tocContent::-webkit-scrollbar-thumb {
+  background: rgba(74, 85, 104, 0.9);
+}
+
+[data-theme='dark'] .mdContent::-webkit-scrollbar-thumb:hover,
+[data-theme='dark'] .pdfContent::-webkit-scrollbar-thumb:hover,
+[data-theme='dark'] .tocContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
+}
+
+[data-theme='dark'] .pageButton {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pageButton:hover:not(:disabled) {
+  background: rgba(55, 65, 81, 0.9);
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .mdPageInfo {
+  color: #a3c9e8;
+}
+
+[data-theme='dark'] .toolbarButton {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .toolbarButton:hover {
+  background: #6b7bff;
+  color: white;
+  border-color: #6b7bff;
+}
+
+[data-theme='dark'] .pdfToolbar,
+[data-theme='dark'] .mdToolbar {
+  background: rgba(12, 18, 32, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .zoomDisplay,
+[data-theme='dark'] .pageInputWrapper input,
+[data-theme='dark'] .pageInputLabel {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pdfSection:fullscreen .sectionHeader,
+[data-theme='dark'] .mdSection:fullscreen .sectionHeader {
+  background: rgba(12, 18, 32, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pdfSection:fullscreen .pdfToolbar {
+  background: rgba(12, 18, 32, 0.98);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pdfSection:fullscreen .pdfContent,
+[data-theme='dark'] .mdSection:fullscreen .mdViewerContainer {
+  background: rgba(12, 18, 32, 0.95) !important;
 }

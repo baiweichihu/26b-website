@@ -83,6 +83,8 @@
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.75);
+  color: #333;
+  font-family: inherit;
 }
 
 .textarea {
@@ -132,4 +134,28 @@
   background: rgba(16, 24, 44, 0.75);
   border-color: rgba(255, 255, 255, 0.12);
   color: var(--text-color);
+}
+
+[data-theme='dark'] .select:focus,
+[data-theme='dark'] .textarea:focus {
+  background: rgba(16, 24, 44, 0.85);
+  border-color: #6b7bff;
+  color: var(--text-color);
+  outline: none;
+}
+
+/* Bootstrap form 元素深色模式覆盖 */
+[data-theme='dark'] .select.form-select,
+[data-theme='dark'] .textarea.form-control {
+  background-color: rgba(16, 24, 44, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #e0e0e0 !important;
+}
+
+[data-theme='dark'] .select.form-select:focus,
+[data-theme='dark'] .textarea.form-control:focus {
+  background-color: rgba(16, 24, 44, 0.95) !important;
+  border-color: #6b7bff !important;
+  color: #e0e0e0 !important;
+  box-shadow: 0 0 0 0.2rem rgba(107, 123, 255, 0.25) !important;
 }

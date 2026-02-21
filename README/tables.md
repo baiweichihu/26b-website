@@ -86,6 +86,9 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 - **重要字段:**
   - `target_type`: 枚举 (`post`, `comment`)
   - `target_id`: UUID (被举报的帖子/评论ID)
+  - `target_content`: TEXT (被举报内容的快照，用于在内容被删除后依然能查看)
+  - `target_author_id`: UUID (被举报内容的作者ID，用于内容被删除后仍能查看)
+  - `target_author_nickname`: TEXT (被举报内容的作者昵称快照)
   - `reason`: 举报原因
   - `suggestion`: 举报人建议的处理方式 (可选)
   - `status`: `pending`, `resolved` (已处理), `dismissed` (驳回)

@@ -64,7 +64,7 @@ const ReportGateOverlay = ({
     return () => ctx.revert();
   }, []);
 
-  const canSubmit = Boolean(reason) && !submitting && !isAnonymous && Boolean(targetId);
+  const canSubmit = Boolean(reason) && reason !== '请选择原因' && !submitting && !isAnonymous && Boolean(targetId);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

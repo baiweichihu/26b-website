@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 import { sendRegisterOtp, signUpVerifyAndSetInfo } from '../../services/userService';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import { useIrisTransition } from '../../components/ui/IrisTransition';
@@ -27,6 +28,22 @@ const Register = () => {
   const { triggerIris } = useIrisTransition();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // 检查用户是否已登录
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (!error && user) {
+          // 用户已登录，重定向到首页
+          navigate('/', { replace: true });
+        }
+      } catch (err) {
+        console.error('检查登录状态失败:', err);
+      }
+    };
+    checkUserStatus();
+  }, [navigate]);
   const fromPath = useMemo(() => {
     const rawFrom = location.state?.from;
     if (!rawFrom) return '/';

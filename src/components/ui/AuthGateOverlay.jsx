@@ -3,10 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useIrisTransition } from './IrisTransition';
 import styles from './AuthGateOverlay.module.css';
 
-const AuthGateOverlay = ({ mode = 'anonymous', title, message }) => {
+const AuthGateOverlay = ({ mode = 'anonymous', title, message, isApplyRequired = false }) => {
   const cardRef = useRef(null);
   const { triggerIris } = useIrisTransition();
-  const isGuest = mode === 'guest';
+  const isGuest = mode === 'guest' || isApplyRequired;
   const location = useLocation();
   const fromPath = `${location.pathname}${location.search || ''}${location.hash || ''}`;
 
@@ -42,20 +42,41 @@ const AuthGateOverlay = ({ mode = 'anonymous', title, message }) => {
         <div className={styles.gateActions}>
           {isGuest ? (
             <>
-              <Link
-                to="/guest-update-identity"
-                className="scene-button primary"
-                onClick={(event) => triggerIris?.(event, '/guest-update-identity')}
-              >
-                验证校友身份
-              </Link>
-              <Link
-                to="/"
-                className="scene-button ghost"
-                onClick={(event) => triggerIris?.(event, '/')}
-              >
-                返回首页
-              </Link>
+              {isApplyRequired ? (
+                <>
+                  <Link
+                    to="/journal/access-request"
+                    className="scene-button primary"
+                    onClick={(event) => triggerIris?.(event, '/journal/access-request')}
+                  >
+                    去申请
+                  </Link>
+                  <Link
+                    to="/"
+                    className="scene-button ghost"
+                    onClick={(event) => triggerIris?.(event, '/')}
+                  >
+                    返回首页
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/guest-update-identity"
+                    className="scene-button primary"
+                    onClick={(event) => triggerIris?.(event, '/guest-update-identity')}
+                  >
+                    验证校友身份
+                  </Link>
+                  <Link
+                    to="/"
+                    className="scene-button ghost"
+                    onClick={(event) => triggerIris?.(event, '/')}
+                  >
+                    返回首页
+                  </Link>
+                </>
+              )}
             </>
           ) : (
             <>

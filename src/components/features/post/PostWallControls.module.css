@@ -28,17 +28,8 @@
   position: relative;
 }
 
-.inputIcon {
-  position: absolute;
-  left: 0.85rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--muted-color);
-  font-size: 0.9rem;
-}
-
 .input {
-  padding-left: 2.3rem;
+  padding-left: 1rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.7);

@@ -10,6 +10,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
+const CMAP_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/cmaps/`;
+
 const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale = 1.0 }) => {
   const [filePages, setFilePages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -144,6 +146,8 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
           <Document
             key={pdfFile}
             file={pdfFile}
+            cMapUrl={CMAP_URL}
+            cMapPacked={true}
             onLoadSuccess={handleLoadSuccess(index)}
             onLoadError={(error) => {
               console.error('PDF加载失败:', error);

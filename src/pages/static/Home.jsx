@@ -37,26 +37,38 @@ const Home = () => {
       </section>
 
       <section className="scene-grid">
-        <div className="scene-card">
+        <Link
+          to="/introduction"
+          className="scene-card"
+          onClick={(event) => triggerIris?.(event, '/introduction')}
+        >
           <i className="fas fa-users scene-icon"></i>
           <h3>人物志</h3>
           <p>认识我们优秀的教师团队，展示少26B班风采</p>
-        </div>
-        <div className="scene-card">
+        </Link>
+        <Link
+          to="/activities"
+          className="scene-card"
+          onClick={(event) => triggerIris?.(event, '/activities')}
+        >
           <i className="fas fa-camera scene-icon"></i>
           <h3>大事纪</h3>
           <p>记录精彩的班级活动瞬间</p>
-        </div>
-        <div className="scene-card">
+        </Link>
+        <Link to="/wall" className="scene-card" onClick={(event) => triggerIris?.(event, '/wall')}>
           <i className="fas fa-pen scene-icon"></i>
           <h3>班级墙</h3>
           <p>畅谈往事近况</p>
-        </div>
-        <div className="scene-card">
+        </Link>
+        <Link
+          to="/contact"
+          className="scene-card"
+          onClick={(event) => triggerIris?.(event, '/contact')}
+        >
           <i className="fas fa-envelope scene-icon"></i>
           <h3>联系我们</h3>
           <p>欢迎联系我们！</p>
-        </div>
+        </Link>
       </section>
     </div>
   );

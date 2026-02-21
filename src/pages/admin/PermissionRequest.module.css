@@ -1,0 +1,253 @@
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.superuserNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 6px;
+  color: #856404;
+  font-size: 14px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .superuserNote {
+  background-color: #5a4a1f;
+  border-color: #8b7a12;
+  color: #ffd700;
+}
+
+.permissionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.permissionItem {
+  display: flex;
+}
+
+.permissionItem label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+}
+
+.permissionItem input[type='checkbox'] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.permissionItem input[type='checkbox']:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.formSection label {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.reasonInput {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color 0.3s;
+  cursor: text;
+}
+
+.reasonInput:focus {
+  outline: none;
+  border-color: #4c6ef5;
+  box-shadow: 0 0 0 2px rgba(76, 110, 245, 0.1);
+}
+
+.submitBtn {
+  padding: 10px 24px;
+  background-color: #4c6ef5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: #3d5ad8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 110, 245, 0.3);
+}
+
+.submitBtn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.errorMessage {
+  padding: 12px;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 6px;
+  color: #c33;
+  font-size: 14px;
+}
+
+.successMessage {
+  padding: 12px;
+  background-color: #efe;
+  border: 1px solid #cfc;
+  border-radius: 6px;
+  color: #3c3;
+  font-size: 14px;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.historyItem {
+  padding: 16px;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status.approved {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status.rejected {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.date {
+  font-size: 12px;
+  color: #999;
+}
+
+.historyContent {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #666;
+}
+
+.historyContent p {
+  margin: 4px 0;
+}
+
+.historyContent strong {
+  color: #333;
+}
+
+/* Dark mode support */
+[data-theme='dark'] .formSection label,
+[data-theme='dark'] .Form label {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .reasonInput {
+  background-color: #1a202c;
+  border-color: #4a5568;
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .reasonInput:focus {
+  border-color: #6b7bff;
+  box-shadow: 0 0 0 2px rgba(107, 123, 255, 0.2);
+}
+
+[data-theme='dark'] .submitBtn {
+  background-color: #5a6fd8;
+}
+
+[data-theme='dark'] .submitBtn:hover:not(:disabled) {
+  background-color: #4c5ec8;
+}
+
+[data-theme='dark'] .errorMessage {
+  background-color: #3d2424;
+  border-color: #5d3434;
+  color: #ff9999;
+}
+
+[data-theme='dark'] .successMessage {
+  background-color: #243d24;
+  border-color: #345d34;
+  color: #99ff99;
+}
+
+[data-theme='dark'] .historyItem {
+  background-color: #2d3748;
+  border-color: #4a5568;
+}
+
+[data-theme='dark'] .historyContent {
+  color: #b0b0b0;
+}
+
+[data-theme='dark'] .historyContent strong {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .date {
+  color: #888;
+}
+
+[data-theme='dark'] .permissionItem label {
+  color: #e0e0e0;
+}

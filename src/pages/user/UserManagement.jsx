@@ -278,6 +278,11 @@ const UserManagement = () => {
                 <span className={styles.actionMeta}>Sign out</span>
               </button>
             </div>
+            {profile?.identity_type === 'alumni' && (
+              <div className={styles.alumniHint}>
+                <p>ⓘ 如果你的身份不是校友，而是少26B班级同学，请联系我们解决</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
