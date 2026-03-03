@@ -12,7 +12,16 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 
 const CMAP_URL = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/cmaps/`;
 
-const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale = 1.0 }) => {
+const PDFViewer = ({
+  file,
+  files,
+  currentPage,
+  onLoadSuccess,
+  onFilePages,
+  scale = 1.0,
+  containerClassName = '',
+  contentClassName = '',
+}) => {
   const [filePages, setFilePages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -132,7 +141,7 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
   }, []);
 
   return (
-    <div className={styles.pdfViewerContainer} ref={containerRef}>
+    <div className={`${styles.pdfViewerContainer} ${containerClassName}`.trim()} ref={containerRef}>
       {isLoading && (
         <div className={styles.loadingOverlay}>
           <div className={styles.spinner}></div>
@@ -141,7 +150,7 @@ const PDFViewer = ({ file, files, currentPage, onLoadSuccess, onFilePages, scale
       )}
 
       {/* PDF 渲染区域 */}
-      <div className={styles.pdfContent}>
+      <div className={`${styles.pdfContent} ${contentClassName}`.trim()}>
         {fileList.map((pdfFile, index) => (
           <Document
             key={pdfFile}

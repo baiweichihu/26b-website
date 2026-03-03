@@ -1,0 +1,68 @@
+.mainContentOverride {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+.controlPanelInline {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 1.5rem;
+}
+
+.controlGroupInline {
+  flex-wrap: nowrap;
+}
+
+.controlNoWrap {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.a4Stage {
+  flex: 1;
+  width: 100%;
+  aspect-ratio: 210 / 297;
+  min-height: 0;
+  margin: 0;
+  overflow: visible;
+  display: flex;
+}
+
+.a4Stage > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.handbookPdfSection {
+  overflow-y: auto;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+.handbookViewer {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+
+.handbookPdfContent {
+  width: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: 210 / 297 !important;
+}
+
+@media (max-width: 900px) {
+  .controlPanelInline {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .a4Stage {
+    width: 100%;
+    aspect-ratio: 210 / 297;
+  }
+}
