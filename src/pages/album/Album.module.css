@@ -1,0 +1,307 @@
+.pageContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.layoutContainer {
+  display: flex;
+  gap: 2rem;
+  align-items: stretch;
+  height: 100%;
+  min-height: 0;
+}
+
+.contentPanel {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  padding: clamp(1.5rem, 3vw, 2.6rem);
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  position: relative;
+  overflow-y: auto;
+}
+
+.albumHeader {
+  margin-bottom: 1.8rem;
+}
+
+.stateBlock {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.stateText {
+  margin-top: 1rem;
+  color: var(--muted-color);
+}
+
+.emptyState {
+  padding: 2.5rem 1.5rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed rgba(255, 255, 255, 0.6);
+  color: var(--muted-color);
+}
+
+.noticeWrap {
+  margin-top: 0.6rem;
+}
+
+.folderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .layoutContainer {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .folderGrid {
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .photoGrid {
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .folderGrid {
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  }
+  
+  .photoGrid {
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 0.65rem;
+  }
+}
+
+[data-theme='dark'] .emptyState {
+  background: rgba(16, 24, 44, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .contentPanel {
+  background: #000;
+  border-color: #000;
+  color: #f2f2f2;
+}
+
+[data-theme='dark'] .stateText,
+[data-theme='dark'] .stateBlock,
+[data-theme='dark'] .noticeWrap {
+  color: #d7d7d7;
+}
+
+.folderCard {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.folderCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.folderIcon {
+  font-size: 2rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.folderTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.folderStats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  color: var(--muted-color);
+}
+
+.photoCard {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.photoCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.photoImage {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: #f8f9fa;
+}
+
+.photoInfo {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.photoTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.photoActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.likeButton {
+  background: none;
+  border: none;
+  color: var(--muted-color);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.likeButton:hover {
+  color: var(--danger-color);
+}
+
+.likeButton.liked {
+  color: var(--danger-color);
+}
+
+.likeCount {
+  font-size: 0.9rem;
+  color: var(--muted-color);
+}
+
+[data-theme='dark'] .folderCard,
+[data-theme='dark'] .photoCard {
+  background: rgba(16, 24, 44, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .folderCard:hover,
+[data-theme='dark'] .photoCard:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.folderHeader {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  margin-bottom: 1.5rem;
+}
+
+.folderTitleSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.folderTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.folderDate {
+  font-size: 0.9rem;
+  color: var(--muted-color);
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.folderDescription {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 1rem;
+}
+
+.folderDescription p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--text-color);
+  margin: 0;
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .folderHeader {
+    padding: 1.5rem;
+  }
+  
+  .folderTitleSection {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .folderTitle {
+    font-size: 1.6rem;
+  }
+  
+  .folderDescription p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .folderHeader {
+    padding: 1rem;
+  }
+  
+  .folderTitle {
+    font-size: 1.4rem;
+  }
+}
+
+[data-theme='dark'] .folderHeader {
+  background: rgba(16, 24, 44, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+}

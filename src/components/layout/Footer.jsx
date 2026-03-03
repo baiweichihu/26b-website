@@ -7,6 +7,20 @@ const Footer = () => {
   const blobRef = useRef(null);
 
   useLayoutEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+
+    const updateFooterOffset = () => {
+      document.documentElement.style.setProperty('--footer-offset', `${footer.offsetHeight}px`);
+    };
+
+    updateFooterOffset();
+    window.addEventListener('resize', updateFooterOffset);
+
+    return () => window.removeEventListener('resize', updateFooterOffset);
+  }, []);
+
+  useLayoutEffect(() => {
     const gsap = window.gsap;
     const footer = footerRef.current;
     if (!gsap || !footer || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

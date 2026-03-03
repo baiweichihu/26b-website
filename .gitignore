@@ -38,3 +38,6 @@ coverage/
 ._*
 legacy/
 .husky/_
+
+# Test files
+src/tests/

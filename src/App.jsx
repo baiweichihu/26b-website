@@ -21,6 +21,7 @@ import Activities from './pages/static/Activities';
 import Journal from './pages/journal/Journal';
 import AlumniJournalAccess from './pages/journal/AlumniJournalAccess';
 import Wall from './pages/post/Wall';
+import Album from './pages/album/Album';
 import Contact from './pages/static/Contact';
 import CreatePost from './pages/post/CreatePost';
 import PostDetail from './pages/post/PostDetail';
@@ -47,12 +48,13 @@ import EasterEgg from './components/features/media/EasterEgg';
 const AppLayout = () => {
   const location = useLocation();
   const isLobby = location.pathname === '/lobby';
+  const isAlbum = location.pathname === '/album' || location.pathname.startsWith('/album/');
 
   return (
     <>
       {!isLobby && <CornerNav />}
       {!isLobby && <Header />}
-      <main className={isLobby ? 'lobby-main' : 'scene-main'}>
+      <main className={isLobby ? 'lobby-main' : `scene-main${isAlbum ? ' album-main' : ''}`}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Navigate to="/" replace />} />
@@ -62,6 +64,8 @@ const AppLayout = () => {
           <Route path="/journal" element={<Journal />} />
           <Route path="/journal/access-request" element={<AlumniJournalAccess />} />
           <Route path="/wall" element={<Wall />} />
+          <Route path="/album" element={<Album />} />
+          <Route path="/album/:folderId" element={<Album />} />
           <Route path="/posts/new" element={<CreatePost />} />
           <Route path="/posts/:postId" element={<PostDetail />} />
           <Route path="/contact" element={<Contact />} />

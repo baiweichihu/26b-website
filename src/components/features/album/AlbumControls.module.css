@@ -1,0 +1,412 @@
+.controlsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.headerSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.navButtons {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.folderMetaLine {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+}
+
+.folderName {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.folderDate {
+  margin-left: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted-color);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.backButton {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.backButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.backButton:disabled:hover {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.folderPath {
+  margin-left: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted-color);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.searchSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.searchBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  min-width: 300px;
+}
+
+.searchBox i {
+  color: var(--muted-color);
+  margin-right: 0.5rem;
+}
+
+.searchInput {
+  border: none;
+  background: none;
+  outline: none;
+  flex: 1;
+  color: var(--text-color);
+}
+
+.searchInput::placeholder {
+  color: var(--muted-color);
+}
+
+.clearSearch {
+  background: none;
+  border: none;
+  color: var(--muted-color);
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clearSearch:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-color);
+}
+
+.statsSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stats {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted-color);
+  font-size: 0.9rem;
+}
+
+.statItem i {
+  font-size: 1rem;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.deleteFolderButton {
+  background: #d32f2f !important;
+  color: #ffffff !important;
+  border: 1px solid #d32f2f !important;
+}
+
+.deleteFolderButton:hover {
+  background: #b71c1c !important;
+  color: #ffffff !important;
+  border-color: #b71c1c !important;
+}
+
+.deleteFolderButton:disabled {
+  background: #d32f2f !important;
+  color: #ffffff !important;
+  border-color: #d32f2f !important;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--bg-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--muted-color);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-color);
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.fileList {
+  margin-top: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fileListHeader {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.8rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  gap: 0.8rem;
+}
+
+.fileItem:last-child {
+  border-bottom: none;
+}
+
+.fileName {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.fileSize {
+  font-size: 0.8rem;
+  color: var(--muted-color);
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .fileItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+  
+  .fileSize {
+    align-self: flex-end;
+  }
+}
+
+.fileInputWrapper {
+  position: relative;
+}
+
+.fileInfo {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--muted-color);
+}
+
+@media (max-width: 768px) {
+  .folderMetaLine {
+    flex-wrap: wrap;
+    row-gap: 0.2rem;
+  }
+
+  .folderPath {
+    width: 100%;
+    margin-left: 0;
+    padding-left: 0;
+  }
+
+  .headerSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchBox {
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .statsSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .stats {
+    justify-content: space-around;
+    gap: 1rem;
+  }
+  
+  .actionButtons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .modal {
+    margin: 1rem;
+    padding: 1rem;
+  }
+  
+  .modalActions {
+    flex-direction: column;
+  }
+}
+
+[data-theme='dark'] .searchBox,
+[data-theme='dark'] .backButton {
+  background: #000;
+  border-color: #000;
+}
+
+[data-theme='dark'] .searchBox:hover,
+[data-theme='dark'] .backButton:hover {
+  background: #000;
+  border-color: #111;
+}
+
+[data-theme='dark'] .controlsPanel,
+[data-theme='dark'] .pageTitle,
+[data-theme='dark'] .folderName,
+[data-theme='dark'] .searchInput,
+[data-theme='dark'] .clearSearch {
+  color: #f2f2f2;
+}
+
+[data-theme='dark'] .folderDate,
+[data-theme='dark'] .folderPath,
+[data-theme='dark'] .statItem,
+[data-theme='dark'] .searchBox i,
+[data-theme='dark'] .searchInput::placeholder {
+  color: #bdbdbd;
+}
+
+[data-theme='dark'] .fileInfo {
+  background: rgba(255, 255, 255, 0.1);
+}
