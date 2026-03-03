@@ -28,14 +28,6 @@ const Home = () => {
               <i className="fas fa-book-open"></i>
               班级日志
             </Link>
-            <Link
-              to="/album"
-              className="scene-button ghost"
-              onClick={(event) => triggerIris?.(event, '/album')}
-            >
-              <i className="fas fa-images"></i>
-              班级相册
-            </Link>
           </div>
         </div>
         <div className="scene-orb" aria-hidden="true">
