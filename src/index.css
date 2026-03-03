@@ -14,6 +14,8 @@
   --panel-border: rgba(255, 255, 255, 0.6);
   --panel-shadow: 0 24px 50px rgba(17, 29, 54, 0.18);
   --panel-glow: rgba(255, 200, 140, 0.3);
+  --header-offset: 0px;
+  --footer-offset: 0px;
 }
 
 [data-theme='dark'] {
@@ -91,6 +93,14 @@ main {
 
 .scene-main {
   padding: 2.5rem clamp(1.5rem, 4vw, 4rem) 4rem;
+}
+
+.scene-main.album-main {
+  padding: 0.75rem clamp(1rem, 2.2vw, 2rem);
+  height: calc(100vh - var(--header-offset) - var(--footer-offset));
+  min-height: calc(100vh - var(--header-offset) - var(--footer-offset));
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .lobby-main {

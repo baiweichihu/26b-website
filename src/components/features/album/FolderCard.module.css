@@ -1,0 +1,96 @@
+.folderCard {
+  aspect-ratio: 1 / 1;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 0.9rem;
+  border: 1px solid rgba(130, 146, 170, 0.3);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  position: relative;
+}
+
+.folderCard:hover {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(70, 118, 197, 0.55);
+  transform: translateY(-2px);
+}
+
+.folderIconWrap {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.folderIcon {
+  width: 82px;
+  height: 82px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d6a300;
+  font-size: 3rem;
+  background: linear-gradient(160deg, rgba(255, 240, 180, 0.45), rgba(255, 220, 120, 0.22));
+}
+
+.folderContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: center;
+  text-align: center;
+}
+
+.folderName {
+  max-width: 100%;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folderDate {
+  font-size: 0.8rem;
+  color: var(--muted-color);
+  opacity: 0.8;
+  line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+  .folderCard {
+    padding: 0.75rem;
+  }
+  
+  .folderIcon {
+    width: 70px;
+    height: 70px;
+    font-size: 2.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .folderName {
+    font-size: 0.9rem;
+  }
+}
+
+[data-theme='dark'] .folderCard {
+  background: rgba(16, 24, 44, 0.72);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .folderCard:hover {
+  border-color: rgba(102, 156, 245, 0.6);
+  background: rgba(20, 30, 54, 0.82);
+}
