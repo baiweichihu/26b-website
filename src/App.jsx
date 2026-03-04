@@ -16,6 +16,7 @@ import BackgroundParticles from './components/layout/BackgroundParticles';
 import IrisTransition from './components/ui/IrisTransition';
 import Lobby from './pages/static/Lobby';
 import Home from './pages/static/Home';
+import Handbook from './pages/static/Handbook';
 import Introduction from './pages/static/Introduction';
 import Activities from './pages/static/Activities';
 import Journal from './pages/journal/Journal';
@@ -62,6 +63,7 @@ const AppLayout = () => {
           <Route path="/introduction" element={<Introduction />} />
           <Route path="/activities" element={<Activities />} />
           <Route path="/journal" element={<Journal />} />
+          <Route path="/handbook" element={<Handbook />} />
           <Route path="/journal/access-request" element={<AlumniJournalAccess />} />
           <Route path="/wall" element={<Wall />} />
           <Route path="/album" element={<Album />} />

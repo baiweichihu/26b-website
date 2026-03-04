@@ -4,37 +4,14 @@ import ThemeToggle from '../ui/ThemeToggle';
 import { useIrisTransition } from '../ui/IrisTransition';
 import styles from './Navbar.module.css';
 
-const NAV_ITEMS = [
-  {
-    to: '/introduction',
-    label: '介绍',
-    subtitle: '人物与故事',
-    icon: 'fa-users',
-  },
-  {
-    to: '/activities',
-    label: '大事纪',
-    subtitle: '影像与瞬间',
-    icon: 'fa-images',
-  },
-  {
-    to: '/journal',
-    label: '班日志',
-    subtitle: '分享学习与生活点滴',
-    icon: 'fa-book-open',
-  },
-  {
-    to: '/wall',
-    label: '班级墙',
-    subtitle: '留言与回响',
-    icon: 'fa-pen-square',
-  },
-  {
-    to: '/contact',
-    label: '联系我们',
-    subtitle: '给可爱的白尾赤狐发送邮件吧',
-    icon: 'fa-envelope',
-  },
+const LOBBY_ITEMS = [
+  { to: '/journal', label: '班日志', subtitle: '分享学习与生活点滴', icon: 'fa-book-open' },
+  { to: '/handbook', label: '成长手册', subtitle: '年级成长记录', icon: 'fa-book' },
+  { to: '/album', label: '班级相册', subtitle: '图片与视频回忆', icon: 'fa-images' },
+  { to: '/introduction', label: '人物志', subtitle: '人物与故事', icon: 'fa-users' },
+  { to: '/activities', label: '大事纪', subtitle: '影像与瞬间', icon: 'fa-camera-retro' },
+  { to: '/wall', label: '班级墙', subtitle: '留言与回响', icon: 'fa-pen-square' },
+  { to: '/contact', label: '联系我们', subtitle: '给可爱的白尾赤狐发送邮件吧', icon: 'fa-envelope' },
 ];
 
 const Navbar = () => {
@@ -57,7 +34,8 @@ const Navbar = () => {
               title="返回主页"
               aria-label="返回主页"
             >
-              &lt;
+              <i className="fas fa-arrow-left" aria-hidden="true"></i>
+              返回
             </button>
             <div>
               <p className={styles.kicker}>旅程的起点...</p>
@@ -70,23 +48,7 @@ const Navbar = () => {
           </div>
 
           <ul className={styles.lobbyGrid}>
-            {[
-              {
-                to: '/journal',
-                label: '班日志',
-                subtitle: '分享学习与生活点滴',
-                icon: 'fa-book-open',
-              },
-              { to: '/introduction', label: '人物志', subtitle: '人物与故事', icon: 'fa-users' },
-              { to: '/activities', label: '大事纪', subtitle: '影像与瞬间', icon: 'fa-images' },
-              { to: '/wall', label: '班级墙', subtitle: '留言与回响', icon: 'fa-pen-square' },
-              {
-                to: '/contact',
-                label: '联系我们',
-                subtitle: '给可爱的白尾赤狐发送邮件吧',
-                icon: 'fa-envelope',
-              },
-            ].map((item) => (
+            {LOBBY_ITEMS.map((item) => (
               <li key={item.to} className={styles.gridItem}>
                 <NavLink
                   to={item.to}

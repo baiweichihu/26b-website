@@ -7,6 +7,8 @@ import styles from './CornerNav.module.css';
 const NAV_LINKS = [
   { to: '/lobby', label: '大厅', icon: 'fa-compass' },
   { to: '/journal', label: '班日志', icon: 'fa-book-open' },
+  { to: '/handbook', label: '成长手册', icon: 'fa-book' },
+  { to: '/album', label: '班级相册', icon: 'fa-images' },
   { to: '/introduction', label: '人物志', icon: 'fa-users' },
   { to: '/activities', label: '大事记', icon: 'fa-images' },
   { to: '/wall', label: '班级墙', icon: 'fa-pen-square' },
