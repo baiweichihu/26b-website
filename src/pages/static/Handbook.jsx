@@ -439,7 +439,7 @@ const Handbook = () => {
                   </div>
                 )}
               </div>
-              {selectedFile ? (
+              {!isLocked && selectedFile ? (
                 <div className={handbookStyles.a4Stage}>
                   <PDFViewer
                     file={selectedFile.url}
@@ -450,6 +450,8 @@ const Handbook = () => {
                     contentClassName={handbookStyles.handbookPdfContent}
                   />
                 </div>
+              ) : isLocked ? (
+                <div className={styles.pdfLoading}>暂无权限加载成长手册内容</div>
               ) : (
                 <div className={styles.pdfLoading}>暂无可用的成长手册文件</div>
               )}

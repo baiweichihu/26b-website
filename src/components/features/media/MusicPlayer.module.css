@@ -88,6 +88,7 @@
   justify-content: center;
   align-items: center;
   background: #ffeb3b;
+  color: #2b2b2b;
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -96,8 +97,8 @@
 }
 
 .musicToggle:hover {
-  background-color: #444;
-  color: #ffeb3b;
+  background-color: #f2dd30;
+  color: #1f1f1f;
 }
 
 /* Dark theme */
@@ -110,5 +111,6 @@
   color: #ffeb3b;
 }
 [data-theme='dark'] .musicToggle:hover {
-  background: #666;
+  background: #383838;
+  color: #ffe96a;
 }
