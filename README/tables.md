@@ -1,5 +1,5 @@
-初步设置6s个service：
-**UserService**、**PostService**、**AlbumService**、**TagService**、**AdminService**和**InboxService**。
+当前按业务拆分的核心 service 包括：
+**UserService**、**PostService**、**AlbumService**、**AdminService**、**JournalService**、**PeopleService** 和 **InboxService**。
 
 ---
 
@@ -180,21 +180,37 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 
 #### **`people_profiles`**
 
-用于存储人物志动态数据（学生/教师），并与用户一一对应。
+用于存储人物志动态数据（学生/教师），支持“先创建档案，再分配归属用户”。
 
 - **主键 (PK):** `id` (UUID)
-- **外键 (FK):** `owner_user_id` (关联 `auth.users.id`)
-- **唯一约束:** `owner_user_id`（每个用户仅对应一条人物档案）
+- **外键 (FK):**
+  - `owner_user_id` (关联 `auth.users.id`，可为空；为空表示尚未分配用户归属)
+  - `created_by_user_id` (关联 `auth.users.id`，记录创建人)
 - **重要字段:**
+  - `student_no`: 学号（学生使用）
   - `name`: 姓名
   - `gender`: `male`, `female`
   - `role`: `student`, `teacher`
-  - `status`: 在读/在职/退休等状态文案
+  - `status`: 状态文案（默认建议 `未设置`）
   - `description`, `bio`: 人物描述
   - `hobbies`, `skills`, `phone`, `social`: JSON 字段
-  - `avatar_path`: 人物志照片在 Supabase Storage 中的路径（建议 `${owner_user_id}/xxx.jpg`）
+  - `avatar_path`: 人物志照片在 Supabase Storage 中的路径
   - `sort_order`: 排序值
   - `updated_at`, `created_at`: 时间戳
+
+> 约束建议：
+> - 保留 `owner_user_id` 的“非空唯一索引”（`where owner_user_id is not null`），保证一个用户最多归属一条人物。
+> - `owner_user_id` 允许为空，配合 superuser 创建后再分配归属。
+> - `created_by_user_id` 建议 `not null`，便于审计。
+
+> 当前前端/服务层权限模型（与页面行为一致）：
+> - 仅 `superuser` 可创建人物与删除人物；
+> - `superuser` 可修改 `owner_user_id`（用户归属）；
+> - 普通用户仅可修改归属到自己的人物资料。
+
+> 当前前端路由：
+> - 人物目录：`/introduction/students`、`/introduction/teachers`
+> - 人物编辑：`/people/edit/:profileId`
 
 #### **Storage Bucket：`people-avatars`**
 
