@@ -6,6 +6,7 @@ import TableOfContents from '../../components/features/journal/TableOfContents';
 import JournalLayout from '../../components/features/journal/JournalLayout';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
+import { hasValidArchiveAccess } from '../../utils/archiveAccess';
 import styles from './Journal.module.css';
 
 const Journal = () => {
@@ -88,19 +89,15 @@ const Journal = () => {
 
       // 校友需要检查是否有有效的查档申请
       if (profile.identity_type === 'alumni') {
-        const now = new Date().toISOString();
-        const { data: accessRequest, error: requestError } = await supabase
-          .from('journal_access_requests')
-          .select('status, requested_access_start_time, requested_access_end_time')
+        const { data: accessRequests, error: requestError } = await supabase
+          .from('access_requests')
+          .select('status, archive_category, request_access_start_time, request_access_end_time, reason')
           .eq('requester_id', user.id)
           .eq('status', 'approved')
-          .lte('requested_access_start_time', now)
-          .gte('requested_access_end_time', now)
           .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .limit(50);
 
-        if (!requestError && accessRequest) {
+        if (!requestError && hasValidArchiveAccess(accessRequests, 'journal')) {
           // 有有效的查档申请
           setAuthStatus('member');
         } else {

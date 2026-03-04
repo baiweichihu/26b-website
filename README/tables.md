@@ -156,13 +156,14 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 
 ### 5. **JournalService**
 
-#### **`journal_access_requests`**
+#### **`access_requests`**
 
-用于处理校友申请班日志查档的请求。
+用于处理校友申请各类档案查档的请求（班级日志/成长手册/班级相册/人物志/大事记）。
 
 - **主键 (PK):** `id` (UUID)
 - **外键 (FK):** `requester_id` (申请人，关联 `profiles.id`)
 - **重要字段:**
+  - `archive_category`: 查档类别，建议枚举值：`journal`、`handbook`、`album`、`introduction`、`activities`
   - `request_access_start_time`: 申请的查档起始时间
   - `request_access_end_time`: 申请的查档结束时间
   - `reason`: 申请理由
@@ -171,7 +172,44 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
   - `created_at`: 申请时间
   - `handled_at`: 处理时间
 
-### 6. **InboxService**
+> 前端路由说明：查档申请页面已通用化为 `/archive/access-request`，不再使用仅面向班日志语义的页面命名。
+
+---
+
+### 6. **PeopleService**
+
+#### **`people_profiles`**
+
+用于存储人物志动态数据（学生/教师），并与用户一一对应。
+
+- **主键 (PK):** `id` (UUID)
+- **外键 (FK):** `owner_user_id` (关联 `auth.users.id`)
+- **唯一约束:** `owner_user_id`（每个用户仅对应一条人物档案）
+- **重要字段:**
+  - `name`: 姓名
+  - `gender`: `male`, `female`
+  - `role`: `student`, `teacher`
+  - `status`: 在读/在职/退休等状态文案
+  - `description`, `bio`: 人物描述
+  - `hobbies`, `skills`, `phone`, `social`: JSON 字段
+  - `avatar_path`: 人物志照片在 Supabase Storage 中的路径（建议 `${owner_user_id}/xxx.jpg`）
+  - `sort_order`: 排序值
+  - `updated_at`, `created_at`: 时间戳
+
+#### **Storage Bucket：`people-avatars`**
+
+人物志照片文件使用独立桶：`people-avatars`（注意：这不是用户账户头像）。
+
+- **FILE SIZE LIMIT:** `2MB`
+- **ALLOWED MIME TYPES:** `image/jpeg`, `image/png`, `image/webp`
+- **路径约定:** `${owner_user_id}/filename.ext`
+  - 用户仅可写入/更新/删除自己的目录
+  - 管理员/超级管理员可管理所有目录
+  - 读取权限跟随人物志查档权限策略
+
+> 补充说明：用户帐户头像仍使用 `profiles.avatar_url`（identicon 方案），不支持用户上传；`people-avatars` 仅用于人物志页面展示的个人照片。
+
+### 7. **InboxService**
 
 #### **`notifications`**
 

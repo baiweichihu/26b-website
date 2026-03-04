@@ -9,7 +9,7 @@
 由于这个网站的定位是**档案馆**（archive），我们希望营造一种温暖的校园回忆氛围，同时用GSAP增加一些视觉动效，让用户体验更流畅。
 
 - **情绪氛围**：温暖、明亮、带轻微科技感与未来感的校园回忆氛围。  
-  参考页面：`src/pages/Home.jsx`、`src/pages/Journal.jsx`
+  参考页面：`src/pages/static/Home.jsx`、`src/pages/static/Journal.jsx`
 - **阅读体验**：信息层级清晰、文字可读性高、页面节奏适中。  
   参考样式：`src/index.css`（`scene-title` / `scene-subtitle` / `scene-kicker`）
 - **一致性**：按钮、卡片、表单、动效统一风格。  

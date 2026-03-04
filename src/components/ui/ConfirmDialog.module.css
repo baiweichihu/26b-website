@@ -1,0 +1,68 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 1rem;
+}
+
+.dialog {
+  width: min(420px, 100%);
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.28);
+  padding: 1rem 1.1rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--muted-color);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.cancel,
+.confirm {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.cancel {
+  background: rgba(130, 146, 170, 0.2);
+  color: var(--text-color);
+}
+
+.confirm {
+  background: rgba(190, 44, 72, 0.9);
+  color: #fff;
+}
+
+.confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+[data-theme='dark'] .dialog {
+  background: rgba(16, 24, 44, 0.95);
+  border-color: rgba(255, 255, 255, 0.12);
+}

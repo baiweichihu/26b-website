@@ -157,7 +157,7 @@ function AdminDashboard() {
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'journal_access_requests' },
+        { event: '*', schema: 'public', table: 'access_requests' },
         () => loadData(false)
       )
       .on(
