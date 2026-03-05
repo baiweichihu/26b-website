@@ -9,7 +9,7 @@
 由于这个网站的定位是**档案馆**（archive），我们希望营造一种温暖的校园回忆氛围，同时用GSAP增加一些视觉动效，让用户体验更流畅。
 
 - **情绪氛围**：温暖、明亮、带轻微科技感与未来感的校园回忆氛围。  
-  参考页面：`src/pages/Home.jsx`、`src/pages/Journal.jsx`
+  参考页面：`src/pages/static/Home.jsx`、`src/pages/static/Journal.jsx`
 - **阅读体验**：信息层级清晰、文字可读性高、页面节奏适中。  
   参考样式：`src/index.css`（`scene-title` / `scene-subtitle` / `scene-kicker`）
 - **一致性**：按钮、卡片、表单、动效统一风格。  
@@ -50,7 +50,7 @@
   定义位置：`src/index.css`（`body`）
 - **混排原则**：  
   中文为主、英文为辅，常见于按钮与辅助标签。  
-  参考页面：`src/pages/UserManagement.jsx`、`src/components/layout/UserDock.jsx`
+  参考页面：`src/pages/user/UserManagement.jsx`、`src/components/layout/UserDock.jsx`
 
 ---
 
@@ -64,7 +64,7 @@
   参考文件：`src/App.jsx`
 - **内容间距**：  
   大范围使用网格/间距控制，避免过度拥挤  
-  参考页面：`src/pages/UserManagement.jsx`（`manageGrid`）
+  参考页面：`src/pages/user/UserManagement.jsx`（`manageGrid`）
 
 ---
 
@@ -75,27 +75,34 @@
 - 主按钮：`scene-button primary`
 - 次按钮：`scene-button ghost`  
   定义位置：`src/index.css`  
-  使用示例：`src/pages/Login.jsx`、`src/pages/Register.jsx`
+  使用示例：`src/pages/user/Login.jsx`、`src/pages/user/Register.jsx`
 
 ### 5.2 卡片 / 面板
 
 - 面板统一使用 `scene-panel`，并结合 `panel-bg` 与 `panel-border`。  
   定义位置：`src/index.css`  
-  使用示例：`src/pages/UserManagement.jsx`、`src/pages/ResetPassword.jsx`
+  使用示例：`src/pages/user/UserManagement.jsx`、`src/pages/user/ResetPassword.jsx`
 
 ### 5.3 表单
 
 - 输入控件多使用 Bootstrap 的 `form-control`。  
-  使用示例：`src/pages/ResetPassword.jsx`、`src/components/features/user/RegisterForm.jsx`
+  使用示例：`src/pages/user/ResetPassword.jsx`、`src/components/features/user/RegisterForm.jsx`
 - 自定义表单卡片与布局：  
   `Auth.module.css`（`formCard` / `formHeader` / `field` 等）  
-  参考文件：`src/pages/ResetPassword.jsx`、`src/pages/EditProfile.jsx`
+  参考文件：`src/pages/user/ResetPassword.jsx`、`src/pages/user/EditProfile.jsx`
 
 ### 5.4 用户信息区
 
 - 头像与角色信息统一布局  
-  参考样式：`src/pages/UserManagement.module.css`、`src/components/layout/UserDock.module.css`  
-  参考组件：`src/pages/UserManagement.jsx`、`src/components/layout/UserDock.jsx`
+  参考样式：`src/pages/user/UserManagement.module.css`、`src/components/layout/UserDock.module.css`  
+  参考组件：`src/pages/user/UserManagement.jsx`、`src/components/layout/UserDock.jsx`
+
+### 5.5 人物志卡片
+
+- 人物目录页采用单列卡片，支持折叠/展开，箭头为纯 CSS chevron。  
+  参考文件：`src/pages/people/PeopleCenter.jsx`、`src/pages/people/PeopleCenter.module.css`
+- 修改资料表单区分学生/教师字段，并支持社交媒体动态行编辑。  
+  参考文件：`src/pages/people/PeopleProfileEdit.jsx`、`src/pages/people/PeopleProfileEdit.module.css`
 
 ---
 
@@ -131,6 +138,6 @@
 ## 9. 文案风格
 
 - 中文为主、语气友好；英文为辅助说明。后续有可能考虑增加英文  
-  参考页面：`src/pages/UserManagement.jsx`、`src/components/layout/UserDock.jsx`
+  参考页面：`src/pages/user/UserManagement.jsx`、`src/components/layout/UserDock.jsx`
 - 错误/提示信息强调易读性与明确性。  
   参考组件：`src/components/widgets/NoticeBox.jsx`

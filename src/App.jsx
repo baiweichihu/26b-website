@@ -17,10 +17,11 @@ import IrisTransition from './components/ui/IrisTransition';
 import Lobby from './pages/static/Lobby';
 import Home from './pages/static/Home';
 import Handbook from './pages/static/Handbook';
-import Introduction from './pages/static/Introduction';
+import PeopleCenter from './pages/people/PeopleCenter';
+import PeopleProfileEdit from './pages/people/PeopleProfileEdit';
 import Activities from './pages/static/Activities';
-import Journal from './pages/journal/Journal';
-import AlumniJournalAccess from './pages/journal/AlumniJournalAccess';
+import Journal from './pages/static/Journal';
+import ArchiveAccessRequest from './pages/static/ArchiveAccessRequest';
 import Wall from './pages/post/Wall';
 import Album from './pages/album/Album';
 import Contact from './pages/static/Contact';
@@ -60,11 +61,16 @@ const AppLayout = () => {
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Navigate to="/" replace />} />
           <Route path="/lobby" element={<Lobby />} />
-          <Route path="/introduction" element={<Introduction />} />
+          <Route path="/introduction" element={<Navigate to="/introduction/students" replace />} />
+          <Route path="/introduction/students" element={<PeopleCenter />} />
+          <Route path="/introduction/teachers" element={<PeopleCenter />} />
+          <Route path="/people/edit" element={<PeopleProfileEdit />} />
+          <Route path="/people/edit/:profileId" element={<PeopleProfileEdit />} />
           <Route path="/activities" element={<Activities />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/handbook" element={<Handbook />} />
-          <Route path="/journal/access-request" element={<AlumniJournalAccess />} />
+          <Route path="/archive/access-request" element={<ArchiveAccessRequest />} />
+          <Route path="/journal/access-request" element={<Navigate to="/archive/access-request" replace />} />
           <Route path="/wall" element={<Wall />} />
           <Route path="/album" element={<Album />} />
           <Route path="/album/:folderId" element={<Album />} />

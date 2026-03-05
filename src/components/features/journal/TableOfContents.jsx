@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '../../../pages/journal/Journal.module.css';
+import styles from '../../../pages/static/Journal.module.css';
 
 const TableOfContents = ({ toc, currentSection, onTocClick }) => {
   if (!toc || toc.length === 0) {

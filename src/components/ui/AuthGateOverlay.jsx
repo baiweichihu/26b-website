@@ -45,9 +45,9 @@ const AuthGateOverlay = ({ mode = 'anonymous', title, message, isApplyRequired =
               {isApplyRequired ? (
                 <>
                   <Link
-                    to="/journal/access-request"
+                    to="/archive/access-request"
                     className="scene-button primary"
-                    onClick={(event) => triggerIris?.(event, '/journal/access-request')}
+                    onClick={(event) => triggerIris?.(event, '/archive/access-request')}
                   >
                     去申请
                   </Link>

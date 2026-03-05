@@ -81,34 +81,34 @@
 
 ### 页面
 
-1. `src/pages/Login.jsx`
+1. `src/pages/user/Login.jsx`
    - 登录入口页
    - 调用：`sendLoginOtp`、`signIn`
    - 负责 OTP 登录与密码登录流程切换。由于一些不知名原因（实际上是没有debug， userService的signIn函数发的是MagicLink，不过也能凑合用，所以就没改
 
-2. `src/pages/Register.jsx`
+2. `src/pages/user/Register.jsx`
    - 注册入口页
    - 调用：`sendRegisterOtp`、`signUpVerifyAndSetInfo`
    - 注册后设置昵称与头像
 
-3. `src/pages/ResetPassword.jsx`
+3. `src/pages/user/ResetPassword.jsx`
    - 重置密码页
    - 调用：`getCurrentUser`、`signIn`、`sendPasswordResetOtp`、`resetPasswordConfirm`、`signOut`
    - 流程：验证旧密码 → 发送 OTP → 验证 OTP → 重置密码 → 退出登录
 
-4. `src/pages/UserManagement.jsx`
+4. `src/pages/user/UserManagement.jsx`
    - 用户中心/管理页
    - 读取 Supabase `profiles` 展示资料
    - 提供入口：
      - 修改资料（跳转 `EditProfile`）
      - 重置密码（跳转 `ResetPassword`）
 
-5. `src/pages/EditProfile.jsx`
+5. `src/pages/user/EditProfile.jsx`
    - 用户资料编辑页
    - 调用：`getCurrentUser`、`getProfileDetails`、`updateProfileDetails`
    - 保存成功后跳转回用户中心
 
-6. `src/pages/GuestUpdateIdentity.jsx`
+6. `src/pages/user/GuestUpdateIdentity.jsx`
    - 游客身份升级申请页
    - 调用：`submitGuestIdentityUpgradeRequest`
 
@@ -135,5 +135,7 @@
 
 ### 更改说明
 
-- 由于supabase storage的存储限制，本项目暂时不提供头像上传功能，改为自动生成 identicon 头像并写入 `profiles` 的 `avatar_url` 字段。用户资料页和用户浮动菜单会展示这个头像。这个头像的白色部分是透明的，所以在浅色模式下会显示为灰白色，在深色模式下会显示为纯白色。
+- 由于supabase storage的存储限制，本项目暂时不提供用户头像上传功能，改为自动生成 identicon 头像并写入 `profiles` 的 `avatar_url` 字段。用户资料页和用户浮动菜单会展示这个头像。这个头像的白色部分是透明的，所以在浅色模式下会显示为灰白色，在深色模式下会显示为纯白色。
+- `people-avatars` 桶用于人物志页面的个人照片展示，和用户账户头像是两套独立机制。
+- 人物创建/删除与归属分配已由 `PeopleService` 管理（`src/services/peopleService.js`），不属于 `userService` 职责范围。
 - 后续更改请在这里添加

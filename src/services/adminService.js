@@ -571,7 +571,7 @@ export async function deleteComment(commentId, deletedBy) {
  * @returns {Promise<Object>}
  */
 export async function getJournalAccessRequests(status = null) {
-  let query = supabase.from('journal_access_requests').select(
+  let query = supabase.from('access_requests').select(
     `
       *,
       requester:requester_id(id, nickname, email, avatar_url)
@@ -605,7 +605,7 @@ export async function approveJournalAccess(requestId, handledBy) {
 
   try {
     const { data: request, error: fetchError } = await supabase
-      .from('journal_access_requests')
+      .from('access_requests')
       .select('requester_id')
       .eq('id', requestId)
       .single();
@@ -615,7 +615,7 @@ export async function approveJournalAccess(requestId, handledBy) {
     }
 
     const { data: updatedRequest, error: updateError } = await supabase
-      .from('journal_access_requests')
+      .from('access_requests')
       .update({
         status: 'approved',
         handled_by: handledBy,
@@ -654,7 +654,7 @@ export async function rejectJournalAccess(requestId, handledBy) {
   try {
     // 1. 获取申请信息
     const { data: request, error: fetchError } = await supabase
-      .from('journal_access_requests')
+      .from('access_requests')
       .select('requester_id')
       .eq('id', requestId)
       .single();
@@ -665,7 +665,7 @@ export async function rejectJournalAccess(requestId, handledBy) {
 
     // 2. 更新申请状态为驳回
     const { data: updatedRequest, error: updateError } = await supabase
-      .from('journal_access_requests')
+      .from('access_requests')
       .update({
         status: 'rejected',
         handled_by: handledBy,

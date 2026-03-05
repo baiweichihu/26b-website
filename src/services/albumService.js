@@ -326,7 +326,6 @@ export const albumService = {
         title: fileNameBase,
         url: publicUrl,
         file_path: filePath,
-        file_size: Number(file?.size) || 0,
         width: mediaDimensions.width,
         height: mediaDimensions.height,
       })

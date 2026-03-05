@@ -9,6 +9,7 @@ import AlbumEmptyState from '../../components/features/album/AlbumEmptyState';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import { albumService } from '../../services/albumService';
+import { hasValidArchiveAccess } from '../../utils/archiveAccess';
 import styles from './Album.module.css';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
 
@@ -54,24 +55,63 @@ const Album = () => {
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        setAuthStatus('unauthenticated');
+        setAuthStatus('anonymous');
         setCurrentUserId(null);
         setIsSuperuser(false);
       } else {
-        setAuthStatus('authenticated');
         setCurrentUserId(user.id);
 
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('role')
+          .select('identity_type, role')
           .eq('id', user.id)
           .single();
 
+        if (profileError || !profile) {
+          setAuthStatus('anonymous');
+          setIsSuperuser(false);
+          return;
+        }
+
         setIsSuperuser(profile?.role === 'superuser');
+
+        if (profile.role === 'admin' || profile.role === 'superuser') {
+          setAuthStatus('member');
+          return;
+        }
+
+        if (profile.identity_type === 'classmate') {
+          setAuthStatus('member');
+          return;
+        }
+
+        if (profile.identity_type === 'guest') {
+          setAuthStatus('guest');
+          return;
+        }
+
+        if (profile.identity_type === 'alumni') {
+          const { data: accessRequests, error: requestError } = await supabase
+            .from('access_requests')
+            .select('status, archive_category, request_access_start_time, request_access_end_time, reason')
+            .eq('requester_id', user.id)
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+          if (!requestError && hasValidArchiveAccess(accessRequests, 'album')) {
+            setAuthStatus('member');
+          } else {
+            setAuthStatus('guest');
+          }
+          return;
+        }
+
+        setAuthStatus('member');
       }
     } catch (err) {
       console.error('认证状态加载失败:', err);
-      setAuthStatus('unauthenticated');
+      setAuthStatus('anonymous');
       setIsSuperuser(false);
     }
   }, []);
@@ -160,7 +200,7 @@ const Album = () => {
   }, [folderId, loadPhotos, loadFolders]);
 
   const handleToggleLike = useCallback(async (photoId) => {
-    if (authStatus !== 'authenticated') {
+    if (authStatus !== 'member') {
       setNotice({ type: 'warning', message: '请先登录后再点赞' });
       return;
     }
@@ -243,7 +283,7 @@ const Album = () => {
   }, [authStatus, photos]);
 
   const handleCreateFolder = useCallback(async (title) => {
-    if (authStatus !== 'authenticated') {
+    if (authStatus !== 'member') {
       setNotice({ type: 'warning', message: '请先登录后再创建文件夹' });
       return;
     }
@@ -263,7 +303,7 @@ const Album = () => {
   }, [authStatus, folderId, loadFolders, loadAllFolders]);
 
   const handleUploadPhoto = useCallback(async (files, title) => {
-    if (authStatus !== 'authenticated') {
+    if (authStatus !== 'member') {
       setNotice({ type: 'warning', message: '请先登录后再上传媒体' });
       return;
     }
@@ -295,7 +335,7 @@ const Album = () => {
   }, [authStatus, folderId, loadPhotos]);
 
   const handleDeletePhoto = useCallback(async (photoId) => {
-    if (authStatus !== 'authenticated') {
+    if (authStatus !== 'member') {
       setNotice({ type: 'warning', message: '请先登录后再操作' });
       return;
     }
@@ -315,7 +355,7 @@ const Album = () => {
   }, [authStatus, loadPhotos]);
 
   const handleRenamePhoto = useCallback(async (photoId, newName) => {
-    if (authStatus !== 'authenticated') {
+    if (authStatus !== 'member') {
       setNotice({ type: 'warning', message: '请先登录后再操作' });
       return;
     }
@@ -335,7 +375,7 @@ const Album = () => {
   }, [authStatus, loadPhotos]);
 
   const handleMovePhoto = useCallback(async (photoId, targetFolderId) => {
-    if (authStatus !== 'authenticated') {
+    if (authStatus !== 'member') {
       setNotice({ type: 'warning', message: '请先登录后再操作' });
       return;
     }
@@ -360,7 +400,7 @@ const Album = () => {
   }, [authStatus, loadFolders, loadPhotos]);
 
   const handleDeleteFolder = useCallback(async () => {
-    if (authStatus !== 'authenticated') {
+    if (authStatus !== 'member') {
       setNotice({ type: 'warning', message: '请先登录后再操作' });
       return;
     }
@@ -423,6 +463,15 @@ const Album = () => {
   }, [loadAuthStatus]);
 
   useEffect(() => {
+    if (authStatus !== 'member') {
+      setLoading(false);
+      setFolders([]);
+      setAllFolders([]);
+      setPhotos([]);
+      setCurrentFolder(null);
+      return;
+    }
+
     loadFolders();
     loadAllFolders();
 
@@ -434,7 +483,7 @@ const Album = () => {
       setCurrentFolder(null);
       setPhotos([]);
     }
-  }, [folderId, loadFolders, loadAllFolders, loadPhotos, loadCurrentFolder]);
+  }, [authStatus, folderId, loadFolders, loadAllFolders, loadPhotos, loadCurrentFolder]);
 
   useEffect(() => {
     if (notice && notice.type !== 'error') {
@@ -447,6 +496,28 @@ const Album = () => {
   const hasContent = folders.length > 0 || photos.length > 0;
   const showFolders = !isSearching;
   const showPhotos = folderId || isSearching;
+  const isLocked = authStatus === 'loading' || authStatus === 'anonymous' || authStatus === 'guest';
+  const gateCopy = useMemo(() => {
+    if (authStatus === 'loading') {
+      return {
+        title: '加载中',
+        message: '正在验证您的身份和权限...',
+      };
+    }
+
+    if (authStatus === 'guest') {
+      return {
+        title: '需要申请查档权限',
+        message: '校友需要向管理员申请查档时间，批准后方可在约定的时间内浏览班级相册',
+        isApplyRequired: true,
+      };
+    }
+
+    return {
+      title: '请登录',
+      message: '校友登录后方可浏览班级相册',
+    };
+  }, [authStatus]);
 
   return (
     <div className={styles.pageContent}>
@@ -543,11 +614,12 @@ const Album = () => {
           </>
         )}
         
-        {authStatus === 'unauthenticated' && (
+        {isLocked && (
           <AuthGateOverlay
-            title="访问相册"
-            message="登录后即可浏览和上传照片"
-            className={gateStyles.overlay}
+            mode={authStatus === 'guest' ? 'guest' : 'anonymous'}
+            title={gateCopy.title}
+            message={gateCopy.message}
+            isApplyRequired={gateCopy.isApplyRequired}
           />
         )}
       </div>

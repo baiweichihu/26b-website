@@ -1,26 +1,24 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import NoticeBox from '../../components/widgets/NoticeBox';
-import { useIrisTransition } from '../../components/ui/IrisTransition';
+import { ARCHIVE_CATEGORIES } from '../../utils/archiveAccess';
 import styles from './Journal.module.css';
 
 /**
  * 校友查档申请页面
- * 允许校友申请班级日志查档权限
+ * 允许校友申请班级资料查档权限
  */
-const AlumniJournalAccess = () => {
+const ArchiveAccessRequest = () => {
   const navigate = useNavigate();
-  const { triggerIris } = useIrisTransition();
   const [status, setStatus] = useState('loading');
   const [userId, setUserId] = useState(null);
-  const [userIdentity, setUserIdentity] = useState(null);
   const [currentRequests, setCurrentRequests] = useState([]);
   const [notice, setNotice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const panelRef = useRef(null);
   const [formData, setFormData] = useState({
+    category: '',
     startTime: '',
     endTime: '',
     reason: '',
@@ -58,7 +56,6 @@ const AlumniJournalAccess = () => {
         }
 
         setUserId(user.id);
-        setUserIdentity(profile.identity_type);
         setStatus('ready');
 
         // 加载当前查档申请
@@ -75,8 +72,8 @@ const AlumniJournalAccess = () => {
   const loadCurrentRequests = useCallback(async (userId) => {
     try {
       const { data, error } = await supabase
-        .from('journal_access_requests')
-        .select('id, status, request_access_start_time, request_access_end_time, reason, created_at, handled_at')
+        .from('access_requests')
+        .select('id, status, archive_category, request_access_start_time, request_access_end_time, reason, created_at, handled_at')
         .eq('requester_id', userId)
         .order('created_at', { ascending: false });
 
@@ -94,7 +91,7 @@ const AlumniJournalAccess = () => {
       .channel(`alumni-journal-access:${userId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'journal_access_requests' },
+        { event: '*', schema: 'public', table: 'access_requests' },
         () => {
           void loadCurrentRequests(userId);
         }
@@ -140,6 +137,11 @@ const AlumniJournalAccess = () => {
     setNotice(null);
 
     const trimmedReason = formData.reason.trim();
+    if (!formData.category) {
+      setNotice({ type: 'error', message: '请选择查档类别' });
+      return;
+    }
+
     if (!trimmedReason) {
       setNotice({
         type: 'error',
@@ -179,10 +181,11 @@ const AlumniJournalAccess = () => {
       const endIso = new Date(formData.endTime).toISOString();
 
       const { error } = await supabase
-        .from('journal_access_requests')
+        .from('access_requests')
         .insert([
           {
             requester_id: userId,
+            archive_category: formData.category,
             status: 'pending',
             request_access_start_time: startIso,
             request_access_end_time: endIso,
@@ -193,7 +196,7 @@ const AlumniJournalAccess = () => {
       if (error) throw error;
 
       setNotice({ type: 'success', message: '申请已提交，请等待管理员审核' });
-      setFormData({ startTime: '', endTime: '', reason: '' });
+      setFormData({ category: '', startTime: '', endTime: '', reason: '' });
 
       // 重新加载申请列表
       await loadCurrentRequests(userId);
@@ -229,12 +232,19 @@ const AlumniJournalAccess = () => {
     });
   };
 
+  const isSubmitDisabled =
+    submitting ||
+    !formData.category ||
+    !formData.startTime ||
+    !formData.endTime ||
+    !formData.reason.trim();
+
   if (status === 'loading') {
     return (
       <div className="page-content scene-page">
-        <section className={`scene-panel ${styles.journalPanel}`} ref={panelRef}>
+        <section className={`scene-panel ${styles.journalPanel}`}>
           <div style={{ padding: '2rem', textAlign: 'center' }}>
-            <p className="scene-kicker">班级日志</p>
+            <p className="scene-kicker">档案中心</p>
             <h1 className="scene-title">加载中...</h1>
             <p className="scene-subtitle">正在加载查档申请信息</p>
           </div>
@@ -245,12 +255,12 @@ const AlumniJournalAccess = () => {
 
   return (
     <div className="page-content scene-page">
-      <section className={`scene-panel ${styles.journalPanel}`} ref={panelRef}>
+      <section className={`scene-panel ${styles.journalPanel}`}>
         <div style={{ padding: 'clamp(1.8rem, 4vw, 3rem)' }}>
           <div style={{ marginBottom: '1.6rem' }}>
-            <p className="scene-kicker">班级日志</p>
+            <p className="scene-kicker">档案中心</p>
             <h1 className="scene-title">查档申请</h1>
-            <p className="scene-subtitle">申请班级日志查档时间权限</p>
+            <p className="scene-subtitle">申请班级资料查档权限</p>
           </div>
 
           {notice && <NoticeBox type={notice.type} message={notice.message} />}
@@ -271,8 +281,32 @@ const AlumniJournalAccess = () => {
             <form onSubmit={handleSubmit}>
               <div style={{ marginBottom: '1rem' }}>
                 <label
+                  htmlFor="journal-access-category"
+                  className={styles.formLabel}
+                >
+                  查档类别 *
+                </label>
+                <select
+                  id="journal-access-category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className={`form-select ${styles.formSelect}`}
+                  required
+                >
+                  <option value="">--请选择--</option>
+                  {ARCHIVE_CATEGORIES.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label
                   htmlFor="journal-access-start"
-                  style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem' }}
+                  className={styles.formLabel}
                 >
                   查档起始时间 *（最长 3 小时）
                 </label>
@@ -282,15 +316,7 @@ const AlumniJournalAccess = () => {
                   name="startTime"
                   value={formData.startTime}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.6rem 0.8rem',
-                    border: '1px solid var(--panel-border)',
-                    borderRadius: '6px',
-                    fontSize: '0.9rem',
-                    background: 'var(--input-bg)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className={`form-control ${styles.formControl}`}
                   required
                 />
               </div>
@@ -298,7 +324,7 @@ const AlumniJournalAccess = () => {
               <div style={{ marginBottom: '1rem' }}>
                 <label
                   htmlFor="journal-access-end"
-                  style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem' }}
+                  className={styles.formLabel}
                 >
                   查档终止时间 *
                 </label>
@@ -308,15 +334,7 @@ const AlumniJournalAccess = () => {
                   name="endTime"
                   value={formData.endTime}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '0.6rem 0.8rem',
-                    border: '1px solid var(--panel-border)',
-                    borderRadius: '6px',
-                    fontSize: '0.9rem',
-                    background: 'var(--input-bg)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className={`form-control ${styles.formControl}`}
                   required
                 />
               </div>
@@ -324,7 +342,7 @@ const AlumniJournalAccess = () => {
               <div style={{ marginBottom: '1rem' }}>
                 <label
                   htmlFor="journal-access-reason"
-                  style={{ display: 'block', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem' }}
+                  className={styles.formLabel}
                 >
                   申请理由 *
                 </label>
@@ -336,20 +354,10 @@ const AlumniJournalAccess = () => {
                   rows="3"
                   maxLength="200"
                   placeholder="请简单说明你的身份（如：某届校友）和申请意图"
-                  style={{
-                    width: '100%',
-                    padding: '0.6rem 0.8rem',
-                    border: '1px solid var(--panel-border)',
-                    borderRadius: '6px',
-                    fontSize: '0.9rem',
-                    background: 'var(--input-bg)',
-                    color: 'var(--text-primary)',
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
-                  }}
+                  className={`form-control ${styles.formControl} ${styles.formTextarea}`}
                   required
                 />
-                <small style={{ color: '#999', display: 'block', marginTop: '0.3rem' }}>
+                <small className={styles.formHint}>
                   {formData.reason.length}/200
                 </small>
               </div>
@@ -357,9 +365,9 @@ const AlumniJournalAccess = () => {
               <div style={{ display: 'flex', gap: '0.8rem' }}>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={isSubmitDisabled}
                   className="scene-button primary"
-                  style={{ opacity: submitting ? 0.6 : 1 }}
+                  style={{ opacity: isSubmitDisabled ? 0.6 : 1 }}
                 >
                   {submitting ? '提交中...' : '提交申请'}
                 </button>
@@ -398,6 +406,9 @@ const AlumniJournalAccess = () => {
                   <thead>
                     <tr style={{ borderBottom: '2px solid var(--panel-border)' }}>
                       <th style={{ padding: '0.8rem', textAlign: 'left', fontWeight: '600' }}>
+                        查档类别
+                      </th>
+                      <th style={{ padding: '0.8rem', textAlign: 'left', fontWeight: '600' }}>
                         状态
                       </th>
                       <th style={{ padding: '0.8rem', textAlign: 'left', fontWeight: '600' }}>
@@ -417,6 +428,10 @@ const AlumniJournalAccess = () => {
                   <tbody>
                     {currentRequests.map((request) => {
                       const statusInfo = getStatusLabel(request.status);
+                      const requestCategory = request.archive_category || 'journal';
+                      const requestCategoryLabel =
+                        ARCHIVE_CATEGORIES.find((item) => item.value === requestCategory)?.label ||
+                        '班级资料';
                       const hasTimeRange = request.request_access_start_time && request.request_access_end_time;
                       let hoursText = '-';
                       if (hasTimeRange) {
@@ -432,6 +447,7 @@ const AlumniJournalAccess = () => {
                       }
                       return (
                         <tr key={request.id} style={{ borderBottom: '1px solid var(--panel-border)' }}>
+                          <td style={{ padding: '0.8rem' }}>{requestCategoryLabel}</td>
                           <td style={{ padding: '0.8rem' }}>
                             <span
                               style={{
@@ -489,4 +505,4 @@ const AlumniJournalAccess = () => {
   );
 };
 
-export default AlumniJournalAccess;
+export default ArchiveAccessRequest;
