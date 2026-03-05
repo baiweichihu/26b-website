@@ -1,5 +1,6 @@
 .wrap {
-  margin-top: 1rem;
+  margin-top: 0.2rem;
+  position: relative;
 }
 
 .row {
@@ -9,11 +10,16 @@
 }
 
 .createPanel {
-  margin-top: 0.8rem;
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 50;
+  width: min(680px, 86vw);
   border: 1px solid var(--panel-border);
   background: var(--panel-bg);
   border-radius: 12px;
   padding: 1rem;
+  box-shadow: var(--panel-shadow);
 }
 
 .createTitle {
@@ -39,4 +45,12 @@
 
 .notice {
   margin-top: 0.8rem;
+}
+
+@media (max-width: 900px) {
+  .createPanel {
+    left: 0;
+    right: auto;
+    width: min(680px, 94vw);
+  }
 }
