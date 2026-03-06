@@ -38,7 +38,6 @@ const socialEntries = (social) => {
   if (!social || typeof social !== 'object') return [];
 
   const items = [];
-  if (hasValue(social.email)) items.push(`邮箱：${social.email}`);
   if (hasValue(social.wechat)) items.push(`微信：${social.wechat}`);
   if (hasValue(social.qq)) items.push(`QQ：${social.qq}`);
   if (hasValue(social.github)) items.push(`GitHub：${social.github}`);
@@ -53,6 +52,17 @@ const socialEntries = (social) => {
 
   return items;
 };
+
+const toStatusDisplay = (status) => {
+  const text = String(status || '').trim();
+  if (!text || text === '未设置') return '未设置状态';
+  return text;
+};
+
+const pinyinNameCollator = new Intl.Collator('zh-u-co-pinyin', {
+  sensitivity: 'base',
+  numeric: true,
+});
 
 const PeopleCenter = () => {
   const navigate = useNavigate();
@@ -212,7 +222,37 @@ const PeopleCenter = () => {
   }, [authStatus]);
 
   const visiblePeople = useMemo(() => {
-    return people.filter((person) => person.role === directoryRole);
+    const filtered = people.filter((person) => person.role === directoryRole);
+
+    if (directoryRole === 'student') {
+      return [...filtered].sort((left, right) => {
+        const leftStudentNo = Number.isFinite(left.student_no) ? left.student_no : Number.MAX_SAFE_INTEGER;
+        const rightStudentNo = Number.isFinite(right.student_no) ? right.student_no : Number.MAX_SAFE_INTEGER;
+
+        if (leftStudentNo !== rightStudentNo) {
+          return leftStudentNo - rightStudentNo;
+        }
+
+        const leftSort = Number.isFinite(left.sort_order) ? left.sort_order : Number.MAX_SAFE_INTEGER;
+        const rightSort = Number.isFinite(right.sort_order) ? right.sort_order : Number.MAX_SAFE_INTEGER;
+
+        if (leftSort !== rightSort) {
+          return leftSort - rightSort;
+        }
+
+        return String(left.name || '').localeCompare(String(right.name || ''), 'zh-CN');
+      });
+    }
+
+    if (directoryRole === 'teacher') {
+      return [...filtered].sort((left, right) => {
+        const leftName = String(left.name || '').trim();
+        const rightName = String(right.name || '').trim();
+        return pinyinNameCollator.compare(leftName, rightName);
+      });
+    }
+
+    return filtered;
   }, [people, directoryRole]);
 
   const toggleExpanded = (personId) => {
@@ -227,26 +267,34 @@ const PeopleCenter = () => {
       <section className={`scene-panel ${styles.panel} ${gateStyles.lockedContainer}`}>
         <div className={`${gateStyles.lockedContent} ${isLocked ? gateStyles.isLocked : ''}`} aria-hidden={isLocked}>
           <div className={styles.header}>
-            <p className="scene-kicker">人物中心</p>
-            <h1 className="scene-title">{directoryRole === 'teacher' ? '教师介绍' : '学生介绍'}</h1>
-            <p className="scene-subtitle">珍惜每一次来之不易的相遇</p>
+            <div className={styles.headerTop}>
+              <div>
+                <p className="scene-kicker">人物中心</p>
+                <h1 className="scene-title">{directoryRole === 'teacher' ? '教师介绍' : '学生介绍'}</h1>
+                <p className="scene-subtitle">珍惜每一次来之不易的相遇</p>
+              </div>
+              <div className={styles.headerAction}>
+                <PeopleProfileActionBar onChanged={loadPeople} showInfoNotice={false} />
+              </div>
+            </div>
+
             <div className={styles.directoryTabs}>
               <button
                 type="button"
-                className={`scene-button ${directoryRole === 'student' ? 'primary' : 'ghost'}`}
+                className={`scene-button ${styles.directoryTabButton} ${directoryRole === 'student' ? 'primary' : 'ghost'}`}
                 onClick={() => navigate('/introduction/students')}
               >
                 学生目录
               </button>
               <button
                 type="button"
-                className={`scene-button ${directoryRole === 'teacher' ? 'primary' : 'ghost'}`}
+                className={`scene-button ${styles.directoryTabButton} ${directoryRole === 'teacher' ? 'primary' : 'ghost'}`}
                 onClick={() => navigate('/introduction/teachers')}
               >
                 教师目录
               </button>
             </div>
-            <PeopleProfileActionBar onChanged={loadPeople} />
+            {directoryRole === 'teacher' && <p className={styles.directoryHint}>按照拼音首字母排序</p>}
           </div>
 
           {peopleStatus === 'loading' && <p className={styles.empty}>正在加载人物档案...</p>}
@@ -270,12 +318,15 @@ const PeopleCenter = () => {
                     ? String(person.student_no).padStart(2, '0')
                     : null;
                 const roleLabel = person.role === 'teacher' ? '教师' : '学生';
-                const statusText = hasValue(person.status) ? person.status : '未设置';
+                const statusText = toStatusDisplay(person.status);
                 const isExpanded = !!expandedMap[person.id];
                 const canEdit = isSuperuser || person.owner_user_id === currentUserId;
                 const canDelete = isSuperuser;
 
-                const topMeta = [roleLabel, statusText].join(' · ');
+                const topMeta =
+                  person.role === 'teacher'
+                    ? [roleLabel, hasValue(person.subject) ? person.subject : '未设置状态', statusText].join(' · ')
+                    : [roleLabel, statusText].join(' · ');
 
                 return (
                   <article key={person.id} className={styles.card}>

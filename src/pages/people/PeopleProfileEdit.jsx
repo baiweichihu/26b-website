@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import { supabase } from '../../lib/supabase';
@@ -26,6 +26,21 @@ const SOCIAL_PLATFORM_OPTIONS = [
 ];
 
 const KNOWN_SOCIAL_KEYS = ['wechat', 'qq', 'bilibili', 'github'];
+
+const DEFAULT_PROFILE_AVATAR_DATA_URI =
+  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="%23d9dee8"/><circle cx="64" cy="46" r="22" fill="%23939fb3"/><path d="M24 106c6-18 22-30 40-30s34 12 40 30" fill="%23939fb3"/></svg>';
+
+const identityTypeLabels = {
+  classmate: '本班同学',
+  alumni: '校友',
+  guest: '游客',
+};
+
+const accountRoleLabels = {
+  user: '普通用户',
+  admin: '管理员',
+  superuser: '超级管理员',
+};
 
 const buildPhoneText = (phone) => {
   if (!phone) return '';
@@ -110,7 +125,7 @@ const genderLabels = {
 };
 
 const statusOptionsByRole = {
-  student: ['未设置', '在读', '深造', '工作', '创业', '待业', '其他'],
+  student: ['在读', '深造', '工作', '创业', '待业', '其他'],
   teacher: ['在职', '调任', '转行', '退休', '其他'],
 };
 
@@ -124,6 +139,10 @@ const PeopleProfileEdit = () => {
   const [hasProfile, setHasProfile] = useState(false);
   const [socialRows, setSocialRows] = useState([]);
   const [isSuperuser, setIsSuperuser] = useState(false);
+  const [ownerCandidates, setOwnerCandidates] = useState([]);
+  const [ownerCandidatesLoading, setOwnerCandidatesLoading] = useState(false);
+  const [ownerPickerOpen, setOwnerPickerOpen] = useState(false);
+  const ownerPickerRef = useRef(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -164,6 +183,24 @@ const PeopleProfileEdit = () => {
         setIsSuperuser(isCurrentSuperuser);
       } else {
         setIsSuperuser(false);
+      }
+
+      if (isCurrentSuperuser) {
+        setOwnerCandidatesLoading(true);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, nickname, email, avatar_url, identity_type, role')
+          .order('created_at', { ascending: false })
+          .limit(300);
+
+        if (profilesError) {
+          setOwnerCandidates([]);
+        } else {
+          setOwnerCandidates(profilesData || []);
+        }
+        setOwnerCandidatesLoading(false);
+      } else {
+        setOwnerCandidates([]);
       }
 
       const { data, error } = profileId
@@ -213,6 +250,7 @@ const PeopleProfileEdit = () => {
     } catch (error) {
       setHasProfile(false);
       setSocialRows([]);
+      setOwnerCandidates([]);
       setNotice({ type: 'error', message: error.message || '加载资料失败' });
     } finally {
       setLoading(false);
@@ -227,9 +265,29 @@ const PeopleProfileEdit = () => {
     void load();
   }, [profileId]);
 
+  useEffect(() => {
+    if (!ownerPickerOpen) return undefined;
+
+    const handleClickOutside = (event) => {
+      if (ownerPickerRef.current && !ownerPickerRef.current.contains(event.target)) {
+        setOwnerPickerOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [ownerPickerOpen]);
+
   const canSubmit = useMemo(() => {
     return !submitting && hasProfile;
   }, [hasProfile, submitting]);
+
+  const selectedOwner = useMemo(() => {
+    if (!form.owner_user_id) return null;
+    return ownerCandidates.find((item) => item.id === form.owner_user_id) || null;
+  }, [ownerCandidates, form.owner_user_id]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -340,7 +398,7 @@ const PeopleProfileEdit = () => {
             人物照片（JPEG/PNG/WEBP，≤2MB）
             <input
               type="file"
-              className="form-control"
+              className={`form-control ${styles.fileInput}`}
               accept="image/jpeg,image/png,image/webp"
               onChange={handleAvatarChange}
             />
@@ -361,8 +419,59 @@ const PeopleProfileEdit = () => {
             </label>
             {isSuperuser && profileId && (
               <label className={styles.field}>
-                用户归属 owner_user_id
-                <input className="form-control" name="owner_user_id" value={form.owner_user_id} onChange={handleChange} />
+                用户归属
+                <div className={styles.ownerSelectWrap} ref={ownerPickerRef}>
+                  <button
+                    type="button"
+                    className={`form-control ${styles.ownerTrigger}`}
+                    onClick={() => setOwnerPickerOpen((prev) => !prev)}
+                  >
+                    {selectedOwner
+                      ? `${selectedOwner.nickname || '未设置昵称'} · ${selectedOwner.email || selectedOwner.id}`
+                      : '请选择归属用户'}
+                  </button>
+
+                  {ownerPickerOpen && (
+                    <div className={styles.ownerPicker} role="listbox" aria-label="用户归属选择">
+                      {ownerCandidatesLoading && <p className={styles.ownerEmpty}>正在加载用户列表...</p>}
+                      {!ownerCandidatesLoading && ownerCandidates.length === 0 && (
+                        <p className={styles.ownerEmpty}>暂无可选用户</p>
+                      )}
+                      {!ownerCandidatesLoading &&
+                        ownerCandidates.map((candidate) => {
+                          const isSelected = candidate.id === form.owner_user_id;
+                          return (
+                            <button
+                              key={candidate.id}
+                              type="button"
+                              className={`${styles.ownerOption} ${isSelected ? styles.ownerOptionActive : ''}`}
+                              onClick={() => {
+                                setForm((prev) => ({ ...prev, owner_user_id: candidate.id }));
+                                setOwnerPickerOpen(false);
+                              }}
+                            >
+                              <img
+                                className={styles.ownerAvatar}
+                                src={candidate.avatar_url || DEFAULT_PROFILE_AVATAR_DATA_URI}
+                                alt={(candidate.nickname || candidate.email || candidate.id || '用户') + '头像'}
+                              />
+                              <div className={styles.ownerMeta}>
+                                <p className={styles.ownerPrimary}>{candidate.nickname || '未设置昵称'}</p>
+                                <p className={styles.ownerSecondary}>ID：{candidate.id}</p>
+                                <p className={styles.ownerSecondary}>Email：{candidate.email || '无'}</p>
+                                <p className={styles.ownerSecondary}>
+                                  身份：{identityTypeLabels[candidate.identity_type] || candidate.identity_type || '未知'}
+                                </p>
+                                <p className={styles.ownerSecondary}>
+                                  角色：{accountRoleLabels[candidate.role] || candidate.role || '未知'}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
               </label>
             )}
             {form.role === 'student' && (
@@ -384,8 +493,9 @@ const PeopleProfileEdit = () => {
                 <label className={styles.field}>
                   状态
                   <select className="form-select" name="status" value={form.status} onChange={handleChange}>
+                    <option value="">--请选择状态--</option>
                     {statusOptionsByRole.student.map((item) => (
-                      <option key={item} value={item === '未设置' ? '' : item}>
+                      <option key={item} value={item}>
                         {item}
                       </option>
                     ))}
@@ -424,23 +534,23 @@ const PeopleProfileEdit = () => {
             {form.role === 'teacher' && (
               <>
                 <label className={styles.field}>
+                  学科（创建后不可修改）
+                  <input className="form-control" name="subject" value={form.subject} disabled readOnly />
+                </label>
+                <label className={styles.field}>
                   昵称
                   <input className="form-control" name="nickname" value={form.nickname} onChange={handleChange} />
                 </label>
                 <label className={styles.field}>
                   状态
                   <select className="form-select" name="status" value={form.status} onChange={handleChange}>
-                    <option value="">未设置</option>
+                    <option value="">--请选择状态--</option>
                     {statusOptionsByRole.teacher.map((item) => (
                       <option key={item} value={item}>
                         {item}
                       </option>
                     ))}
                   </select>
-                </label>
-                <label className={styles.field}>
-                  学科
-                  <input className="form-control" name="subject" value={form.subject} onChange={handleChange} />
                 </label>
                 <label className={styles.field}>
                   职位

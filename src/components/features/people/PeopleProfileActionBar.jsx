@@ -4,7 +4,25 @@ import { supabase } from '../../../lib/supabase';
 import { createMyPeopleProfile } from '../../../services/peopleService';
 import styles from './PeopleProfileActionBar.module.css';
 
-const PeopleProfileActionBar = ({ onChanged }) => {
+const SUBJECT_OPTIONS = [
+  '语文',
+  '数学',
+  '英语',
+  '物理',
+  '化学',
+  '生物',
+  '历史',
+  '地理',
+  '政治',
+  '体育',
+  '心理',
+  '信息',
+  '音乐',
+  '美术',
+  '其他',
+];
+
+const PeopleProfileActionBar = ({ onChanged, showInfoNotice = true }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isSuperuser, setIsSuperuser] = useState(false);
   const [notice, setNotice] = useState(null);
@@ -13,6 +31,7 @@ const PeopleProfileActionBar = ({ onChanged }) => {
     gender: '',
     role: '',
     studentNo: '',
+    subject: '',
   });
 
   const refreshMyProfileState = async () => {
@@ -45,7 +64,10 @@ const PeopleProfileActionBar = ({ onChanged }) => {
   const handleCreateFieldChange = (event) => {
     const { name, value } = event.target;
     setCreateForm((prev) => {
-      if (name === 'role' && value !== 'student') {
+      if (name === 'role' && value === 'student') {
+        return { ...prev, role: value, subject: '' };
+      }
+      if (name === 'role' && value === 'teacher') {
         return { ...prev, role: value, studentNo: '' };
       }
       return { ...prev, [name]: value };
@@ -57,6 +79,11 @@ const PeopleProfileActionBar = ({ onChanged }) => {
 
     if (!createForm.name.trim() || !createForm.gender || !createForm.role) {
       setNotice({ type: 'error', message: '创建人物必须填写：name、gender、role' });
+      return;
+    }
+
+    if (createForm.role === 'teacher' && !createForm.subject) {
+      setNotice({ type: 'error', message: '教师身份需要选择学科' });
       return;
     }
 
@@ -75,13 +102,14 @@ const PeopleProfileActionBar = ({ onChanged }) => {
         gender: createForm.gender,
         role: createForm.role,
         student_no: createForm.role === 'student' ? studentNoNumber : null,
+        subject: createForm.role === 'teacher' ? createForm.subject : null,
         status: '未设置',
         sort_order: createForm.role === 'student' ? studentNoNumber : 999,
       });
 
       if (error) throw error;
       setNotice({ type: 'success', message: '创建人物资料成功' });
-      setCreateForm({ name: '', gender: '', role: '', studentNo: '' });
+      setCreateForm({ name: '', gender: '', role: '', studentNo: '', subject: '' });
       setShowCreateForm(false);
       await refreshMyProfileState();
       await onChanged?.();
@@ -95,7 +123,7 @@ const PeopleProfileActionBar = ({ onChanged }) => {
       {isSuperuser && (
         <div className={styles.row}>
           <button type="button" className="scene-button primary" onClick={() => setShowCreateForm((prev) => !prev)}>
-            测试创建人物
+            创建人物
           </button>
         </div>
       )}
@@ -133,13 +161,30 @@ const PeopleProfileActionBar = ({ onChanged }) => {
             {createForm.role === 'student' && (
               <label className={styles.createField}>
                 学号 *
-                <input
-                  className="form-control"
-                  name="studentNo"
-                  value={createForm.studentNo}
-                  onChange={handleCreateFieldChange}
-                  placeholder="例如 19"
-                />
+                <select className="form-select" name="studentNo" value={createForm.studentNo} onChange={handleCreateFieldChange}>
+                  <option value="">--请选择学号--</option>
+                  {Array.from({ length: 30 }, (_, index) => {
+                    const value = String(index + 1).padStart(2, '0');
+                    return (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    );
+                  })}
+                </select>
+              </label>
+            )}
+            {createForm.role === 'teacher' && (
+              <label className={styles.createField}>
+                学科 *
+                <select className="form-select" name="subject" value={createForm.subject} onChange={handleCreateFieldChange}>
+                  <option value="">--请选择学科--</option>
+                  {SUBJECT_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
               </label>
             )}
           </div>
@@ -152,7 +197,8 @@ const PeopleProfileActionBar = ({ onChanged }) => {
                 !createForm.name.trim() ||
                 !createForm.gender ||
                 !createForm.role ||
-                (createForm.role === 'student' && !createForm.studentNo.trim())
+                (createForm.role === 'student' && !createForm.studentNo.trim()) ||
+                (createForm.role === 'teacher' && !createForm.subject)
               }
             >
               提交创建
@@ -161,7 +207,7 @@ const PeopleProfileActionBar = ({ onChanged }) => {
         </div>
       )}
 
-      {!isSuperuser && (
+      {!isSuperuser && showInfoNotice && (
         <div className={styles.notice}>
           <NoticeBox type="info" message="仅 superuser 可创建/删除人物；普通用户仅可修改归属到自己的资料。" />
         </div>

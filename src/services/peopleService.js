@@ -46,7 +46,6 @@ const normalizeUpdatePayload = (payload = {}) => ({
   major: payload.major || null,
   skills: toArrayOrNull(payload.skills),
   website: payload.website || null,
-  subject: payload.subject || null,
   current_position: payload.current_position || null,
 });
 
@@ -113,6 +112,11 @@ const uploadAvatar = async (ownerUserId, file) => {
   }
 
   return path;
+};
+
+const removeAvatarIfExists = async (avatarPath) => {
+  if (!avatarPath) return;
+  await supabase.storage.from(AVATAR_BUCKET).remove([avatarPath]);
 };
 
 const withAvatarUrl = async (profile) => {
@@ -208,6 +212,10 @@ export async function createMyPeopleProfile(payload = {}) {
     return { data: null, error: new Error('创建人物资料必须填写 name、gender、role') };
   }
 
+  if (payload.role === 'teacher' && !String(payload.subject || '').trim()) {
+    return { data: null, error: new Error('教师人物创建时必须填写学科') };
+  }
+
   if (!['male', 'female'].includes(payload.gender)) {
     return { data: null, error: new Error('gender 仅支持 male 或 female') };
   }
@@ -256,10 +264,19 @@ export async function deletePeopleProfileById(profileId) {
 export async function updateMyPeopleProfile(payload = {}, avatarFile = null) {
   const ownerUserId = await requireUserId();
   const patch = normalizeUpdatePayload(payload);
+  let oldAvatarPath = null;
+  let newAvatarPath = null;
 
   if (avatarFile) {
-    const avatarPath = await uploadAvatar(ownerUserId, avatarFile);
-    patch.avatar_path = avatarPath;
+    const { data: currentRow } = await supabase
+      .from('people_profiles')
+      .select('avatar_path')
+      .eq('owner_user_id', ownerUserId)
+      .maybeSingle();
+
+    oldAvatarPath = currentRow?.avatar_path || null;
+    newAvatarPath = await uploadAvatar(ownerUserId, avatarFile);
+    patch.avatar_path = newAvatarPath;
   }
 
   const { data, error } = await supabase
@@ -271,6 +288,10 @@ export async function updateMyPeopleProfile(payload = {}, avatarFile = null) {
 
   if (error) {
     return { data: null, error };
+  }
+
+  if (newAvatarPath && oldAvatarPath && oldAvatarPath !== newAvatarPath) {
+    await removeAvatarIfExists(oldAvatarPath);
   }
 
   return { data, error: null };
@@ -305,6 +326,8 @@ export async function updatePeopleProfileById(profileId, payload = {}, avatarFil
   }
 
   const patch = normalizeUpdatePayload(payload);
+  let oldAvatarPath = null;
+  let newAvatarPath = null;
 
   if (roleInfo.isSuperuser && Object.prototype.hasOwnProperty.call(payload, 'owner_user_id')) {
     const ownerUserId = String(payload.owner_user_id || '').trim();
@@ -315,9 +338,16 @@ export async function updatePeopleProfileById(profileId, payload = {}, avatarFil
   }
 
   if (avatarFile) {
+    const { data: currentRow } = await supabase
+      .from('people_profiles')
+      .select('avatar_path')
+      .eq('id', profileId)
+      .maybeSingle();
+
+    oldAvatarPath = currentRow?.avatar_path || null;
     const userId = await requireUserId();
-    const avatarPath = await uploadAvatar(userId, avatarFile);
-    patch.avatar_path = avatarPath;
+    newAvatarPath = await uploadAvatar(userId, avatarFile);
+    patch.avatar_path = newAvatarPath;
   }
 
   const { data, error } = await supabase
@@ -329,6 +359,10 @@ export async function updatePeopleProfileById(profileId, payload = {}, avatarFil
 
   if (error) {
     return { data: null, error };
+  }
+
+  if (newAvatarPath && oldAvatarPath && oldAvatarPath !== newAvatarPath) {
+    await removeAvatarIfExists(oldAvatarPath);
   }
 
   return { data, error: null };
