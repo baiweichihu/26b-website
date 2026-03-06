@@ -12,6 +12,9 @@ package-lock.json
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!.env.example
 
 # Python
 .venv

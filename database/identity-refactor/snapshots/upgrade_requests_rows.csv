@@ -1,0 +1,3 @@
+id,requester_id,evidence,status,handled_by,created_at,handled_at
+49d552e6-0f24-46eb-9742-75aede636819,b273c014-14c0-48b8-8c40-bdf945f4810d,"{""message"":""aaaaaa"",""nickname"":""测试用户""}",approved,37004c2c-5d77-4d72-82b0-50b6c2a2d71b,2026-02-18 04:37:55.658+00,2026-02-18 08:47:33.853+00
+98b4265c-926b-40f6-824c-d28317132c5c,de61af31-3aba-4402-b28f-bd39e594ef32,"{""message"":""111"",""requested_permissions"":[""can_manage_journal""]}",approved,de61af31-3aba-4402-b28f-bd39e594ef32,2026-02-19 08:08:12.088+00,2026-02-19 08:08:51.734+00

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { createPost } from '../../services/postService';
@@ -11,7 +11,6 @@ const CreatePost = () => {
   const [title, setTitle] = useState('');
   const [mediaUrls, setMediaUrls] = useState('');
   const [mediaFiles, setMediaFiles] = useState([]);
-  const [visibility, setVisibility] = useState('public');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [notice, setNotice] = useState(null);
   const [submitted, setSubmitted] = useState(false);
@@ -209,7 +208,6 @@ const CreatePost = () => {
         title: title.trim(),
         content: content.trim(),
         media_urls: finalMediaUrls,
-        visibility,
         is_anonymous: isAnonymous,
       });
 
@@ -342,19 +340,6 @@ const CreatePost = () => {
               </div>
             </div>
           )}
-          <div className="mb-3">
-            <label className="form-label">可见范围</label>
-            <select
-              value={visibility}
-              onChange={(event) => setVisibility(event.target.value)}
-              className="form-select"
-            >
-              <option value="public">所有人可见</option>
-              <option value="alumni_only">校友可见</option>
-              <option value="classmate_only">本班同学可见</option>
-              <option value="private">仅自己可见</option>
-            </select>
-          </div>
           <div className="form-check mb-3">
             <input
               className="form-check-input"

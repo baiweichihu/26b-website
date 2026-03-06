@@ -4,13 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import PostMetrics from './PostMetrics';
 import styles from './PostCard.module.css';
 
-const visibilityConfig = {
-  public: { label: '所有人可见', icon: 'fa-globe' },
-  alumni_only: { label: '仅校友可见', icon: 'fa-user-graduate' },
-  classmate_only: { label: '仅本班同学可见', icon: 'fa-user-friends' },
-  private: { label: '仅自己可见', icon: 'fa-lock' },
-};
-
 const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading, onReport }) => {
   const navigate = useNavigate();
   const date = new Date(post.created_at);
@@ -32,7 +25,6 @@ const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading, onReport }) =
   const hasMedia = Boolean(post.media_urls && post.media_urls.length > 0);
   const isTitleLikelyTwoLines = Boolean(post.title && post.title.length > 12);
   const displayContent = useMemo(() => content, [content]);
-  const visibilityMeta = visibilityConfig[post.visibility] || visibilityConfig.public;
 
   const isVideoUrl = (url = '') => {
     const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase();
@@ -142,10 +134,6 @@ const PostCard = ({ post, onDeletePost, onToggleLike, likeLoading, onReport }) =
           likeLoading={likeLoading}
         />
         <div className={styles.postActions}>
-          <span className={styles.visibilityBadge}>
-            <i className={`fas ${visibilityMeta.icon}`} aria-hidden="true"></i>
-            {visibilityMeta.label}
-          </span>
           {post.is_owner ? (
             <button
               type="button"

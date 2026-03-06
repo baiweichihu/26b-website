@@ -13,8 +13,6 @@ import tableStyles from './UserPermissions.module.css';
 function BanUsers() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const [identityFilter, setIdentityFilter] = useState('all'); // all, classmate, alumni, guest
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [processingId, setProcessingId] = useState(null);
@@ -52,7 +50,6 @@ function BanUsers() {
           }
         }
         setUserId(user.id);
-        setUserRole(profile.role);
       } catch (err) {
         console.error('检查权限失败:', err);
         navigate('/');
@@ -66,9 +63,7 @@ function BanUsers() {
       if (!userId) return;
       setLoading(true);
       setError(null);
-      const { data, error } = await getUsersByIdentity(
-        identityFilter === 'all' ? null : identityFilter
-      );
+      const { data, error } = await getUsersByIdentity(null);
       if (error) {
         setError(error.message || '加载用户失败');
       } else {
@@ -78,7 +73,7 @@ function BanUsers() {
       setLoading(false);
     };
     loadUsers();
-  }, [userId, identityFilter]);
+  }, [userId]);
 
   const handleBan = async (targetUserId) => {
     setProcessingId(targetUserId);
@@ -122,27 +117,6 @@ function BanUsers() {
       </div>
 
       <div className={styles.contentBox}>
-        <div className={tableStyles.filterBar}>
-          <label>身份过滤：</label>
-          {['all', 'classmate', 'alumni', 'guest'].map((identity) => (
-            <button
-              key={identity}
-              className={`${tableStyles.filterBtn} ${
-                identityFilter === identity ? tableStyles.active : ''
-              }`}
-              onClick={() => setIdentityFilter(identity)}
-            >
-              {identity === 'all'
-                ? '全部'
-                : identity === 'classmate'
-                ? '本班同学'
-                : identity === 'alumni'
-                ? '校友'
-                : '游客'}
-            </button>
-          ))}
-        </div>
-
         {loading ? (
           <div className={styles.contentBox}>加载中...</div>
         ) : users.length === 0 ? (
@@ -167,13 +141,7 @@ function BanUsers() {
                   </div>
                 </div>
                 <div className={tableStyles.col2}>
-                  <span className={tableStyles.badge}>
-                    {user.identity_type === 'classmate'
-                      ? '本班同学'
-                      : user.identity_type === 'alumni'
-                      ? '校友'
-                      : '游客'}
-                  </span>
+                  <span className={tableStyles.badge}>内部成员</span>
                 </div>
                 <div className={tableStyles.col3}>
                   {user.is_banned ? (

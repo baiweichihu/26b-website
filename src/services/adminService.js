@@ -1,10 +1,48 @@
-import { supabase } from '../lib/supabase.js';
+import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../lib/supabase.js';
 import {
   createAuditResultNotification,
   createReportFeedbackNotification,
   createSystemAnnouncementNotification,
   createSystemNotification,
 } from './inboxService.js';
+
+async function callRegisterEmailFunction(payload) {
+  let {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  let accessToken = session?.access_token;
+  if (!accessToken) {
+    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) {
+      return { error: `登录态已过期，无法发送邮件：${refreshError.message}` };
+    }
+    accessToken = refreshed?.session?.access_token;
+  }
+
+  if (!accessToken) {
+    return { error: '登录态无效，无法发送邮件，请重新登录后重试' };
+  }
+
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/send-register-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    return {
+      error: `Edge Function 调用失败（${response.status}）：${detail}`,
+    };
+  }
+
+  return { error: null };
+}
 
 /**
  * =====================
@@ -63,30 +101,6 @@ export async function updateAdminPermissions(adminId, permissions, grantedBy) {
  * 用户权限管理相关函数
  * =====================
  */
-
-/**
- * 获取游客升级校友的申请列表
- * @param {string} status - 申请状态 (pending/approved/rejected)，为空时获取所有
- * @returns {Promise<Object>}
- */
-export async function getUpgradeRequests(status = null) {
-  let query = supabase.from('upgrade_requests').select(
-    `
-      *,
-      requester:requester_id(id, nickname, email, avatar_url)
-    `
-  );
-
-  if (status) {
-    query = query.eq('status', status);
-  }
-
-  const { data, error } = await query.order('created_at', {
-    ascending: false,
-  });
-
-  return { data, error };
-}
 
 /**
  * 获取单条举报详情
@@ -156,143 +170,178 @@ export async function getReportsByUser(userId) {
 }
 
 /**
- * 批准游客升级为校友
- * @param {string} requestId - 升级申请ID
- * @param {string} handledBy - 处理者ID（管理员）
- * @returns {Promise<Object>}
+ * =====================
+ * 注册申请审批（superuser）
+ * =====================
  */
-export async function approveUpgradeRequest(requestId, handledBy) {
+
+/**
+ * 获取注册申请列表
+ * @param {string|null} status - pending/approved/rejected
+ */
+export async function getRegisterRequests(status = null) {
+  let query = supabase.from('register_requests').select('*');
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+  return { data, error };
+}
+
+/**
+ * superuser 批准注册申请
+ */
+export async function approveRegisterRequest(requestId, handledBy) {
   if (!requestId || !handledBy) {
-    return {
-      data: null,
-      error: '缺少必要参数：requestId, handledBy',
-    };
+    return { data: null, error: '缺少必要参数：requestId, handledBy' };
   }
 
   try {
-    // 1. 获取申请信息
-    const { data: request, error: fetchError } = await supabase
-      .from('upgrade_requests')
-      .select('requester_id')
+    const { data: request, error: requestError } = await supabase
+      .from('register_requests')
+      .select('id, auth_user_id, email, nickname, status')
       .eq('id', requestId)
       .single();
 
-    if (fetchError) {
-      return { data: null, error: fetchError.message };
+    if (requestError || !request) {
+      return { data: null, error: requestError?.message || '申请不存在' };
     }
 
-    // 2. 更新申请状态
-    const { data: updatedRequest, error: updateError } = await supabase
-      .from('upgrade_requests')
+    if (request.status !== 'pending') {
+      return { data: null, error: '该申请已处理' };
+    }
+
+    const { error: mailError } = await callRegisterEmailFunction({
+      status: 'approved',
+      toEmail: request.email,
+      applicantName: request.nickname || '申请人',
+      authUserId: request.auth_user_id,
+    });
+
+    if (mailError) {
+      return { data: null, error: mailError, warning: null };
+    }
+
+    const { error: profileUpsertError } = await supabase.from('profiles').upsert(
+      {
+        id: request.auth_user_id,
+        email: request.email,
+        nickname: request.nickname,
+        role: 'user',
+      },
+      { onConflict: 'id' }
+    );
+
+    if (profileUpsertError) {
+      return { data: null, error: profileUpsertError.message };
+    }
+
+    const { data: updated, error: updateError } = await supabase
+      .from('register_requests')
       .update({
         status: 'approved',
         handled_by: handledBy,
         handled_at: new Date().toISOString(),
+        reject_reason: null,
       })
       .eq('id', requestId)
-      .select();
+      .select('*')
+      .single();
 
     if (updateError) {
-      return { data: null, error: updateError.message };
+      return { data: null, error: updateError.message || '批准注册申请失败（邮件已发送）' };
     }
 
-    // 3. 更新用户身份为校友
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ identity_type: 'alumni' })
-      .eq('id', request.requester_id);
+    await createSystemNotification(
+      request.auth_user_id,
+      '注册申请已通过',
+      '你的注册申请已通过，请查收邮件中的初始密码并登录。'
+    );
 
-    if (profileError) {
-      return { data: null, error: profileError.message };
-    }
-
-    // 4. 发送审核通过通知
-    await createAuditResultNotification(request.requester_id, 'approved', '升级为校友', requestId);
-
-    return { data: updatedRequest, error: null };
+    return { data: updated, error: null, warning: null };
   } catch (error) {
-    return { data: null, error: error.message || '批准申请失败' };
+    return { data: null, error: error.message || '批准注册申请失败' };
   }
 }
 
 /**
- * 驳回游客升级申请
- * @param {string} requestId - 升级申请ID
- * @param {string} handledBy - 处理者ID（管理员）
- * @returns {Promise<Object>}
+ * superuser 驳回注册申请
  */
-export async function rejectUpgradeRequest(requestId, handledBy) {
+export async function rejectRegisterRequest(requestId, handledBy, rejectReason = '') {
   if (!requestId || !handledBy) {
-    return {
-      data: null,
-      error: '缺少必要参数：requestId, handledBy',
-    };
+    return { data: null, error: '缺少必要参数：requestId, handledBy' };
   }
 
   try {
-    // 1. 获取申请信息
-    const { data: request, error: fetchError } = await supabase
-      .from('upgrade_requests')
-      .select('requester_id')
+    const { data: request, error: requestError } = await supabase
+      .from('register_requests')
+      .select('id, auth_user_id, email, nickname, status')
       .eq('id', requestId)
       .single();
 
-    if (fetchError) {
-      return { data: null, error: fetchError.message };
+    if (requestError || !request) {
+      return { data: null, error: requestError?.message || '申请不存在' };
     }
 
-    // 2. 更新申请状态为被驳回
-    const { data: updatedRequest, error: updateError } = await supabase
-      .from('upgrade_requests')
+    if (request.status !== 'pending') {
+      return { data: null, error: '该申请已处理' };
+    }
+
+    const { error: mailError } = await callRegisterEmailFunction({
+      status: 'rejected',
+      toEmail: request.email,
+      applicantName: request.nickname || '申请人',
+      rejectReason: rejectReason?.trim() || '',
+      authUserId: request.auth_user_id,
+    });
+
+    if (mailError) {
+      return { data: null, error: mailError, warning: null };
+    }
+
+    const { data: updated, error: updateError } = await supabase
+      .from('register_requests')
       .update({
         status: 'rejected',
         handled_by: handledBy,
         handled_at: new Date().toISOString(),
+        reject_reason: rejectReason?.trim() || null,
       })
       .eq('id', requestId)
-      .select();
+      .select('*')
+      .single();
 
     if (updateError) {
-      return { data: null, error: updateError.message };
+      return { data: null, error: updateError.message || '驳回注册申请失败（邮件已发送）' };
     }
 
-    // 3. 发送审核驳回通知
-    await createAuditResultNotification(request.requester_id, 'rejected', '升级为校友', requestId);
-
-    return { data: updatedRequest, error: null };
+    return { data: updated, error: null, warning: null };
   } catch (error) {
-    return { data: null, error: error.message || '驳回申请失败' };
+    return { data: null, error: error.message || '驳回注册申请失败' };
   }
 }
 
 /**
- * 获取特定身份的所有用户（用于 Superuser 查看）
- * @param {string} identityType - 身份类型 (classmate/alumni/guest)
- * @returns {Promise<Object>}
- */
-/**
  * 根据身份获取用户列表
- * @param {string|null} identityType - 身份类型（classmate/alumni/guest，null 表示获取所有）
+ * @param {string|null} identityType - 已废弃参数（保留仅为兼容旧调用）
  * @returns {Promise<Object>}
  */
-export async function getUsersByIdentity(identityType) {
+export async function getUsersByIdentity() {
   let query = supabase.from('profiles').select(
     `
       id,
       nickname,
       email,
       avatar_url,
-      identity_type,
       role,
       is_banned,
       created_at
     `
   );
 
-  // 如果指定了 identityType，则过滤；否则获取所有用户
-  if (identityType) {
-    query = query.eq('identity_type', identityType);
-  }
+  // identityType 已废弃，统一按全部内部人员查询
 
   const { data, error } = await query.order('created_at', { ascending: false });
 
@@ -510,8 +559,8 @@ export async function deletePost(postId, deletedBy) {
   }
 
   try {
-    // 1. 获取帖子信息（用于后续可能的日志记录）
-        const { data: post, error: fetchError } = await supabase
+    // 1. 检查帖子是否存在
+    const { error: fetchError } = await supabase
       .from('posts')
       .select('author_id')
       .eq('id', postId)
@@ -556,134 +605,6 @@ export async function deleteComment(commentId, deletedBy) {
     return { data: { deletedCommentId: commentId }, error: null };
   } catch (error) {
     return { data: null, error: error.message || '删除评论失败' };
-  }
-}
-
-/**
- * =====================
- * 班日志审核相关函数
- * =====================
- */
-
-/**
- * 获取班日志查档申请列表
- * @param {string} status - 申请状态 (pending/approved/rejected)，为空时获取所有
- * @returns {Promise<Object>}
- */
-export async function getJournalAccessRequests(status = null) {
-  let query = supabase.from('access_requests').select(
-    `
-      *,
-      requester:requester_id(id, nickname, email, avatar_url)
-    `
-  );
-
-  if (status) {
-    query = query.eq('status', status);
-  }
-
-  const { data, error } = await query.order('created_at', {
-    ascending: false,
-  });
-
-  return { data, error };
-}
-
-/**
- * 批准班日志查档申请
- * @param {string} requestId - 查档申请ID
- * @param {string} handledBy - 处理者ID（管理员）
- * @returns {Promise<Object>}
- */
-export async function approveJournalAccess(requestId, handledBy) {
-  if (!requestId || !handledBy) {
-    return {
-      data: null,
-      error: '缺少必要参数：requestId, handledBy',
-    };
-  }
-
-  try {
-    const { data: request, error: fetchError } = await supabase
-      .from('access_requests')
-      .select('requester_id')
-      .eq('id', requestId)
-      .single();
-
-    if (fetchError) {
-      return { data: null, error: fetchError.message };
-    }
-
-    const { data: updatedRequest, error: updateError } = await supabase
-      .from('access_requests')
-      .update({
-        status: 'approved',
-        handled_by: handledBy,
-        handled_at: new Date().toISOString(),
-      })
-      .eq('id', requestId)
-      .select();
-
-    if (updateError) {
-      return { data: null, error: updateError.message };
-    }
-
-    // 4. 发送审核通过通知
-    await createAuditResultNotification(request.requester_id, 'approved', '班日志查档', requestId);
-
-    return { data: updatedRequest, error: null };
-  } catch (error) {
-    return { data: null, error: error.message || '批准查档申请失败' };
-  }
-}
-
-/**
- * 驳回班日志查档申请
- * @param {string} requestId - 查档申请ID
- * @param {string} handledBy - 处理者ID（管理员）
- * @returns {Promise<Object>}
- */
-export async function rejectJournalAccess(requestId, handledBy) {
-  if (!requestId || !handledBy) {
-    return {
-      data: null,
-      error: '缺少必要参数：requestId, handledBy',
-    };
-  }
-
-  try {
-    // 1. 获取申请信息
-    const { data: request, error: fetchError } = await supabase
-      .from('access_requests')
-      .select('requester_id')
-      .eq('id', requestId)
-      .single();
-
-    if (fetchError) {
-      return { data: null, error: fetchError.message };
-    }
-
-    // 2. 更新申请状态为驳回
-    const { data: updatedRequest, error: updateError } = await supabase
-      .from('access_requests')
-      .update({
-        status: 'rejected',
-        handled_by: handledBy,
-        handled_at: new Date().toISOString(),
-      })
-      .eq('id', requestId)
-      .select();
-
-    if (updateError) {
-      return { data: null, error: updateError.message };
-    }
-
-    // 3. 发送审核驳回通知
-    await createAuditResultNotification(request.requester_id, 'rejected', '班日志查档', requestId);
-
-    return { data: updatedRequest, error: null };
-  } catch (error) {
-    return { data: null, error: error.message || '驳回查档申请失败' };
   }
 }
 
@@ -892,22 +813,15 @@ export async function appointAdmin(userId, permissions, grantedBy) {
   }
 
   try {
-    // 1. 检查用户是否为本班同学
-    const { data: user, error: userError } = await supabase
+    // 1. 检查用户是否存在
+    const { error: userError } = await supabase
       .from('profiles')
-      .select('identity_type, role')
+      .select('role')
       .eq('id', userId)
       .single();
 
     if (userError) {
       return { data: null, error: userError.message };
-    }
-
-    if (user.identity_type !== 'classmate') {
-      return {
-        data: null,
-        error: '只有本班同学可以成为管理员',
-      };
     }
 
     // 2. 更新用户角色为 admin
@@ -1008,7 +922,6 @@ export async function getAllAdmins() {
           nickname,
           email,
           avatar_url,
-          identity_type,
           created_at
         )
       `

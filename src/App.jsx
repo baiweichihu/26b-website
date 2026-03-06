@@ -22,7 +22,6 @@ import PeopleProfileEdit from './pages/people/PeopleProfileEdit';
 import PeopleOwnershipLogs from './pages/people/PeopleOwnershipLogs';
 import Activities from './pages/static/Activities';
 import Journal from './pages/static/Journal';
-import ArchiveAccessRequest from './pages/static/ArchiveAccessRequest';
 import Wall from './pages/post/Wall';
 import Album from './pages/album/Album';
 import Contact from './pages/static/Contact';
@@ -30,21 +29,19 @@ import CreatePost from './pages/post/CreatePost';
 import PostDetail from './pages/post/PostDetail';
 import Login from './pages/user/Login';
 import Register from './pages/user/Register';
-import GuestUpdateIdentity from './pages/user/GuestUpdateIdentity';
 import UserManagement from './pages/user/UserManagement';
 import ResetPassword from './pages/user/ResetPassword';
 import EditProfile from './pages/user/EditProfile';
 import Notifications from './pages/notifications/Notifications';
 import ReportDetail from './pages/report/ReportDetail';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import UpgradeApprovals from './pages/admin/UpgradeApprovals';
 import BanUsers from './pages/admin/BanUsers';
 import ContentReports from './pages/admin/ContentReports';
-import JournalApproval from './pages/admin/JournalApproval';
 import PermissionRequest from './pages/admin/PermissionRequest';
 import PermissionApprovals from './pages/admin/PermissionApprovals';
 import SuperuserPanel from './pages/admin/SuperuserPanel';
 import Announcement from './pages/admin/Announcement';
+import RegisterApprovals from './pages/admin/RegisterApprovals';
 import MusicPlayer from './components/features/media/MusicPlayer';
 import EasterEgg from './components/features/media/EasterEgg';
 
@@ -71,8 +68,6 @@ const AppLayout = () => {
           <Route path="/activities" element={<Activities />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/handbook" element={<Handbook />} />
-          <Route path="/archive/access-request" element={<ArchiveAccessRequest />} />
-          <Route path="/journal/access-request" element={<Navigate to="/archive/access-request" replace />} />
           <Route path="/wall" element={<Wall />} />
           <Route path="/album" element={<Album />} />
           <Route path="/album/:folderId" element={<Album />} />
@@ -83,15 +78,13 @@ const AppLayout = () => {
           <Route path="/reports/:reportId" element={<ReportDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/guest-update-identity" element={<GuestUpdateIdentity />} />
           <Route path="/user/reset-password" element={<ResetPassword />} />
           <Route path="/user/manage" element={<UserManagement />} />
           <Route path="/user/edit-profile" element={<EditProfile />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/upgrade-approvals" element={<UpgradeApprovals />} />
           <Route path="/admin/ban-users" element={<BanUsers />} />
           <Route path="/admin/content-reports" element={<ContentReports />} />
-          <Route path="/admin/journal-approval" element={<JournalApproval />} />
+          <Route path="/admin/register-approvals" element={<RegisterApprovals />} />
           <Route path="/admin/permission-request" element={<PermissionRequest />} />
           <Route path="/admin/permission-approvals" element={<PermissionApprovals />} />
           <Route path="/admin/superuser-panel" element={<SuperuserPanel />} />

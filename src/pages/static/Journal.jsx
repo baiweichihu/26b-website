@@ -6,7 +6,6 @@ import TableOfContents from '../../components/features/journal/TableOfContents';
 import JournalLayout from '../../components/features/journal/JournalLayout';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
-import { hasValidArchiveAccess } from '../../utils/archiveAccess';
 import styles from './Journal.module.css';
 
 const Journal = () => {
@@ -63,47 +62,12 @@ const Journal = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('identity_type, role')
+        .select('role')
         .eq('id', user.id)
         .single();
 
       if (profileError || !profile) {
         setAuthStatus('anonymous');
-        return;
-      }
-
-      if (profile.role === 'admin' || profile.role === 'superuser') {
-        setAuthStatus('member');
-        return;
-      }
-
-      if (profile.identity_type === 'guest') {
-        setAuthStatus('guest');
-        return;
-      }
-
-      if (profile.identity_type === 'classmate') {
-        setAuthStatus('member');
-        return;
-      }
-
-      // 校友需要检查是否有有效的查档申请
-      if (profile.identity_type === 'alumni') {
-        const { data: accessRequests, error: requestError } = await supabase
-          .from('access_requests')
-          .select('status, archive_category, request_access_start_time, request_access_end_time, reason')
-          .eq('requester_id', user.id)
-          .eq('status', 'approved')
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (!requestError && hasValidArchiveAccess(accessRequests, 'journal')) {
-          // 有有效的查档申请
-          setAuthStatus('member');
-        } else {
-          // 没有有效的查档申请 - 设置为 guest 状态以阻止加载
-          setAuthStatus('guest');
-        }
         return;
       }
 
@@ -324,7 +288,7 @@ const Journal = () => {
   const clampedMdIndex = Math.min(Math.max(mdSectionIndex, 0), totalMdSectionsSafe - 1);
   const mdDisplayIndex = totalMdSectionsSafe === 0 ? 0 : clampedMdIndex + 1;
 
-  const isLocked = authStatus === 'loading' || authStatus === 'anonymous' || authStatus === 'guest';
+  const isLocked = authStatus === 'loading' || authStatus === 'anonymous';
   const gateCopy = useMemo(() => {
     if (authStatus === 'loading') {
       return {
@@ -332,22 +296,9 @@ const Journal = () => {
         message: '正在验证您的身份和权限...',
       };
     }
-    if (authStatus === 'guest') {
-      return {
-        title: '需要申请查档权限',
-        message: '校友需要向管理员申请班日志查档时间，批准后方可在约定的时间内浏览',
-        isApplyRequired: true,
-      };
-    }
-    if (authStatus === 'alumni') {
-      return {
-        title: '抱歉，游客不能浏览此页面',
-        message: '请验证校友身份，并进行班级日志查档申请',
-      };
-    }
     return {
       title: '请登录',
-      message: '校友登录方可浏览班级日志',
+      message: '登录后方可浏览班级日志',
     };
   }, [authStatus]);
 
@@ -969,7 +920,7 @@ const Journal = () => {
           </main>
         </div>
         {isLocked && (
-          <AuthGateOverlay mode={authStatus} title={gateCopy.title} message={gateCopy.message} isApplyRequired={gateCopy.isApplyRequired} />
+          <AuthGateOverlay mode="anonymous" title={gateCopy.title} message={gateCopy.message} />
         )}
       </div>
     </div>

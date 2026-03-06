@@ -6,8 +6,6 @@ import styles from './AdminSimplePage.module.css';
 import permStyles from './PermissionRequest.module.css';
 
 const PERMISSION_LABELS = {
-  can_manage_journal: '班日志查档审批',
-  can_manage_user_permissions: '用户权限管理',
   can_manage_content: '内容管理',
   can_ban_users: '禁言用户',
   can_manage_album: '相册管理',
@@ -28,8 +26,6 @@ function PermissionRequest() {
 
   // 权限字段列表
   const permissionFields = [
-    'can_manage_journal',
-    'can_manage_user_permissions',
     'can_manage_content',
     'can_ban_users',
     'can_manage_album',

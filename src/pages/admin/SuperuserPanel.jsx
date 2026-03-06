@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import {
-  getUsersByIdentity,
-  getAllAdmins,
   removeAdmin,
   updateAdminPermissions,
   banUser,
@@ -14,16 +12,12 @@ import styles from './AdminSimplePage.module.css';
 import superuserStyles from './SuperuserPanel.module.css';
 
 const PERMISSION_LABELS = {
-  can_manage_journal: '班日志查档审批',
-  can_manage_user_permissions: '用户权限管理',
   can_manage_content: '内容管理',
   can_ban_users: '禁言用户',
   can_manage_album: '相册管理',
 };
 
 const permissionFields = [
-  'can_manage_journal',
-  'can_manage_user_permissions',
   'can_manage_content',
   'can_ban_users',
   'can_manage_album',
@@ -35,7 +29,6 @@ function SuperuserPanel() {
   const [loading, setLoading] = useState(true);
   const [allUsers, setAllUsers] = useState([]); // All users including admins
   const [roleFilter, setRoleFilter] = useState('all'); // all, user, admin, superuser
-  const [identityFilter, setIdentityFilter] = useState('all'); // all, classmate, alumni, guest
   const [statusFilter, setStatusFilter] = useState('all'); // all, active, banned
   const [processingId, setProcessingId] = useState(null);
   const [editingUserId, setEditingUserId] = useState(null);
@@ -99,11 +92,6 @@ function SuperuserPanel() {
           query = query.eq('role', roleFilter);
         }
 
-        // Apply identity filter
-        if (identityFilter !== 'all') {
-          query = query.eq('identity_type', identityFilter);
-        }
-
         // Apply status filter
         if (statusFilter === 'active') {
           query = query.eq('is_banned', false);
@@ -126,7 +114,7 @@ function SuperuserPanel() {
                 // Fetch admin permissions from database
                 const { data: perms, error: permError } = await supabase
                   .from('admin_permissions')
-                  .select('can_manage_journal, can_manage_user_permissions, can_manage_content, can_ban_users, can_manage_album')
+                  .select('can_manage_content, can_ban_users, can_manage_album')
                   .eq('admin_id', user.id)
                   .maybeSingle();
 
@@ -136,8 +124,6 @@ function SuperuserPanel() {
                 // If no permissions found, return user with all false
                 return {
                   ...user,
-                  can_manage_journal: false,
-                  can_manage_user_permissions: false,
                   can_manage_content: false,
                   can_ban_users: false,
                   can_manage_album: false,
@@ -146,8 +132,6 @@ function SuperuserPanel() {
                 // Superuser has all permissions by default
                 return {
                   ...user,
-                  can_manage_journal: true,
-                  can_manage_user_permissions: true,
                   can_manage_content: true,
                   can_ban_users: true,
                   can_manage_album: true,
@@ -167,7 +151,7 @@ function SuperuserPanel() {
     };
 
     loadData();
-  }, [userId, roleFilter, identityFilter, statusFilter]);
+  }, [userId, roleFilter, statusFilter]);
 
   const handleBanUser = async (userId) => {
     setProcessingId(userId);
@@ -292,8 +276,6 @@ function SuperuserPanel() {
               ? {
                   ...u,
                   role: 'user',
-                  can_manage_journal: false,
-                  can_manage_user_permissions: false,
                   can_manage_content: false,
                   can_ban_users: false,
                   can_manage_album: false,
@@ -318,8 +300,6 @@ function SuperuserPanel() {
     try {
       // Appoint with no permissions initially (all false)
       const initialPermissions = {
-        can_manage_journal: false,
-        can_manage_user_permissions: false,
         can_manage_content: false,
         can_ban_users: false,
         can_manage_album: false,
@@ -340,8 +320,6 @@ function SuperuserPanel() {
               ? {
                   ...u,
                   role: 'admin',
-                  can_manage_journal: false,
-                  can_manage_user_permissions: false,
                   can_manage_content: false,
                   can_ban_users: false,
                   can_manage_album: false,
@@ -418,28 +396,6 @@ function SuperuserPanel() {
           ))}
         </div>
 
-        {/* 身份筛选 */}
-        <div className={superuserStyles.filterBar}>
-          <label>身份：</label>
-          {['all', 'classmate', 'alumni', 'guest'].map(identity => (
-            <button
-              key={identity}
-              className={`${superuserStyles.filterBtn} ${
-                identityFilter === identity ? superuserStyles.active : ''
-              }`}
-              onClick={() => setIdentityFilter(identity)}
-            >
-              {identity === 'all'
-                ? '全部'
-                : identity === 'classmate'
-                ? '本班同学'
-                : identity === 'alumni'
-                ? '校友'
-                : '游客'}
-            </button>
-          ))}
-        </div>
-
         {/* 状态筛选 */}
         <div className={superuserStyles.filterBar}>
           <label>状态：</label>
@@ -508,21 +464,7 @@ function SuperuserPanel() {
                   </span>
                 </div>
                 <div>
-                  <span
-                    className={`${superuserStyles.identityBadge} ${
-                      u.identity_type === 'classmate'
-                        ? superuserStyles.classmate
-                        : u.identity_type === 'alumni'
-                        ? superuserStyles.alumni
-                        : superuserStyles.guest
-                    }`}
-                  >
-                    {u.identity_type === 'classmate'
-                      ? '本班同学'
-                      : u.identity_type === 'alumni'
-                      ? '校友'
-                      : '游客'}
-                  </span>
+                  <span className={superuserStyles.identityBadge}>内部成员</span>
                 </div>
                 <div>
                   {u.is_banned ? (

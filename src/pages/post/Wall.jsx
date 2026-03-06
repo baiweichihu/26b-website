@@ -60,7 +60,7 @@ const Wall = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('identity_type, role')
+        .select('role')
         .eq('id', user.id)
         .single();
 
@@ -71,16 +71,6 @@ const Wall = () => {
       }
 
       setCurrentUserId(user.id);
-
-      if (profile.role === 'admin' || profile.role === 'superuser') {
-        setAuthStatus('member');
-        return;
-      }
-
-      if (profile.identity_type === 'guest') {
-        setAuthStatus('guest');
-        return;
-      }
 
       setAuthStatus('member');
     } catch (error) {
@@ -126,7 +116,7 @@ const Wall = () => {
   }, [loadAuthStatus]);
 
   useEffect(() => {
-    if (authStatus === 'member' || authStatus === 'guest') {
+    if (authStatus === 'member') {
       refreshPosts();
       return;
     }
@@ -370,7 +360,7 @@ const Wall = () => {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('identity_type, role, is_banned')
+      .select('role, is_banned')
       .eq('id', user.id)
       .single();
 
@@ -379,11 +369,7 @@ const Wall = () => {
       return;
     }
 
-    const canCreatePost =
-      profile?.identity_type === 'classmate' ||
-      profile?.identity_type === 'alumni' ||
-      profile?.role === 'admin' ||
-      profile?.role === 'superuser';
+    const canCreatePost = Boolean(profile);
 
     if (!canCreatePost) {
       window.alert('你还未登录，登录后可发布帖子并查看完整内容。');
@@ -448,16 +434,10 @@ const Wall = () => {
   // };
 
   const isLocked = authStatus === 'anonymous';
-  const gateCopy =
-    authStatus === 'guest'
-      ? {
-          title: '抱歉，游客不能浏览该页面',
-          message: '请验证校友身份，浏览班级墙',
-        }
-      : {
-          title: '请登录',
-          message: '登录即可浏览班级墙',
-        };
+  const gateCopy = {
+    title: '请登录',
+    message: '登录即可浏览班级墙',
+  };
 
   return (
     <div className={`page-content scene-page ${styles.pageContent}`}>

@@ -13,7 +13,7 @@ const getAuthenticatedUser = async () => {
   return user;
 };
 
-const getUserAndProfile = async (profileFields = 'identity_type, role') => {
+const getUserAndProfile = async (profileFields = 'role') => {
   const user = await getAuthenticatedUser();
 
   const { data: profile, error: profileError } = await supabase
@@ -29,7 +29,7 @@ const getUserAndProfile = async (profileFields = 'identity_type, role') => {
   return { user, profile };
 };
 
-const getOptionalUserAndProfile = async (profileFields = 'identity_type, role, nickname') => {
+const getOptionalUserAndProfile = async (profileFields = 'role, nickname') => {
   const {
     data: { user },
     error: authError,

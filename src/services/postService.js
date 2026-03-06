@@ -13,7 +13,7 @@ const getAuthenticatedUser = async () => {
   return user;
 };
 
-const getUserAndProfile = async (profileFields = 'identity_type, role') => {
+const getUserAndProfile = async (profileFields = 'role') => {
   const user = await getAuthenticatedUser();
 
   const { data: profile, error: profileError } = await supabase
@@ -29,7 +29,7 @@ const getUserAndProfile = async (profileFields = 'identity_type, role') => {
   return { user, profile };
 };
 
-const getOptionalUserAndProfile = async (profileFields = 'identity_type, role, nickname') => {
+const getOptionalUserAndProfile = async (profileFields = 'role, nickname') => {
   const {
     data: { user },
     error: authError,
@@ -53,25 +53,6 @@ const getOptionalUserAndProfile = async (profileFields = 'identity_type, role, n
   }
 
   return { user, profile };
-};
-
-const buildVisibilityCondition = (profile) => {
-  if (!profile) {
-    return null;
-  }
-  if (profile.role === 'admin' || profile.role === 'superuser') {
-    return '';
-  }
-
-  switch (profile.identity_type) {
-    case 'classmate':
-      return 'visibility.in.(public,alumni_only,classmate_only)';
-    case 'alumni':
-      return 'visibility.in.(public,alumni_only)';
-    case 'guest':
-    default:
-      return 'visibility.eq.public';
-  }
 };
 
 const buildListAuthor = (post, role) => {
@@ -109,7 +90,6 @@ const buildProcessedPost = (post, role, userId, liked = false) => ({
   title: post.title,
   content: post.content,
   media_urls: post.media_urls || [],
-  visibility: post.visibility,
   is_anonymous: post.is_anonymous,
   view_count: post.view_count || 0,
   created_at: post.created_at,
@@ -153,24 +133,7 @@ const canViewPost = (post, user, profile) => {
   if (!profile || !user) {
     return false;
   }
-  if (profile.role === 'admin' || profile.role === 'superuser') {
-    return true;
-  }
-
-  const userId = user?.id;
-
-  switch (post.visibility) {
-    case 'public':
-      return true;
-    case 'alumni_only':
-      return profile.identity_type === 'alumni' || profile.identity_type === 'classmate';
-    case 'classmate_only':
-      return profile.identity_type === 'classmate';
-    case 'private':
-      return Boolean(userId) && post.author_id === userId;
-    default:
-      return false;
-  }
+  return true;
 };
 
 /**
@@ -179,7 +142,6 @@ const canViewPost = (post, user, profile) => {
  * @param {string} postData.title - 帖子标题（必须）
  * @param {string} postData.content - 帖子内容（必须）
  * @param {string[]} postData.media_urls - 图片/视频链接数组（可选）
- * @param {string} postData.visibility - 可见范围: 'private'|'classmate_only'|'alumni_only'|'public'（默认：'public'）
  * @param {boolean} postData.is_anonymous - 是否匿名发布（默认：false）
  * @param {string[]} postData.selectedAlbumPhotos - 从相册选择的图片ID数组（可选）
  * @returns {Promise<Object>} 创建的帖子或错误信息
@@ -187,22 +149,11 @@ const canViewPost = (post, user, profile) => {
 export const createPost = async (postData) => {
   try {
     // 1. 获取当前登录用户与身份信息
-    const { user, profile } = await getUserAndProfile('identity_type, role, is_banned');
+    const { user, profile } = await getUserAndProfile('role, is_banned');
 
     // 禁言用户禁止发布
     if (profile.is_banned) {
       throw new Error('你已被禁言，无法发布帖子');
-    }
-
-    // 3. 检查发布权限（仅本班同学和校友可以发布）
-    const canCreatePost =
-      profile.identity_type === 'classmate' ||
-      profile.identity_type === 'alumni' ||
-      profile.role === 'admin' ||
-      profile.role === 'superuser';
-
-    if (!canCreatePost) {
-      throw new Error('游客不能发布帖子，请联系管理员升级为校友');
     }
 
     // 4. 验证必填字段
@@ -243,7 +194,6 @@ export const createPost = async (postData) => {
       author_id: user.id,
       title: postData.title.trim(),
       content: postData.content.trim(),
-      visibility: postData.visibility || 'public',
       is_anonymous: postData.is_anonymous || false,
       created_at: new Date().toISOString(),
       view_count: 0,
@@ -292,7 +242,7 @@ export const createPost = async (postData) => {
     let postWithAuthor = { ...createdPost };
     const { data: author } = await supabase
       .from('profiles')
-      .select('nickname, avatar_url, identity_type')
+      .select('nickname, avatar_url')
       .eq('id', user.id)
       .single();
     postWithAuthor.author = author;
@@ -335,17 +285,16 @@ export const getPosts = async () => {
   try {
     // 1. 获取当前登录用户与身份信息
     const { user, profile } = await getOptionalUserAndProfile(
-      'identity_type, role, nickname, avatar_url'
+      'role, nickname, avatar_url'
     );
 
     if (!user || !profile) {
       throw new Error('用户未登录或认证失败');
     }
 
-    // 2. 根据用户身份确定可见范围条件
-    const visibilityCondition = buildVisibilityCondition(profile);
+    // 2. 读取当前用户角色
     const userRole = profile.role;
-    const userIdentity = profile.identity_type;
+    const userIdentity = 'internal';
 
     // 4. 构建查询：获取帖子列表 + 统计信息 + 作者信息
     let query = supabase
@@ -356,15 +305,13 @@ export const getPosts = async () => {
         title,
         content,
         media_urls,
-        visibility,
         is_anonymous,
         view_count,
         created_at,
         author_id,
         author:profiles!posts_author_id_fkey(
           nickname,
-          avatar_url,
-          identity_type
+          avatar_url
         ),
         post_likes:post_likes(count),
         comments:comments(count)
@@ -372,12 +319,7 @@ export const getPosts = async () => {
       )
       .order('created_at', { ascending: false });
 
-    // 5. 应用可见性筛选条件（如果不是管理员）
-    if (visibilityCondition) {
-      query = query.or(`${visibilityCondition},author_id.eq.${user.id}`);
-    }
-
-    // 6. 执行查询
+    // 5. 执行查询
     const { data: posts, error: postsError } = await query;
 
     if (postsError) {
@@ -398,7 +340,7 @@ export const getPosts = async () => {
         if (!likedError && likedRows) {
           likedPostIds = new Set((likedRows || []).map((row) => row.post_id));
         }
-      } catch (e) {
+      } catch {
         likedPostIds = new Set();
       }
     }
@@ -414,7 +356,7 @@ export const getPosts = async () => {
       data: processedPosts,
       message: `成功获取 ${processedPosts.length} 条帖子`,
       user_info: {
-        identity_type: userIdentity,
+        identity: userIdentity,
         role: userRole,
         nickname: profile.nickname,
       },
@@ -445,7 +387,7 @@ export const getPostById = async (postId, options = {}) => {
 
     // 1. 获取当前登录用户与身份信息
     console.log('[getPostById] 获取用户信息...');
-    const { user, profile } = await getOptionalUserAndProfile('identity_type, role');
+    const { user, profile } = await getOptionalUserAndProfile('role');
     if (!user || !profile) {
       throw new Error('用户未登录或认证失败');
     }
@@ -453,7 +395,7 @@ export const getPostById = async (postId, options = {}) => {
 
     console.log('[getPostById] 用户角色和身份:', {
       role: profile.role,
-      identity: profile.identity_type,
+      identity: 'internal',
     });
 
     // 3. 获取帖子详情
@@ -466,7 +408,6 @@ export const getPostById = async (postId, options = {}) => {
         author:profiles!posts_author_id_fkey(
           nickname,
           avatar_url,
-          identity_type,
           bio
         ),
         post_likes:post_likes(count),
@@ -515,7 +456,7 @@ export const getPostById = async (postId, options = {}) => {
         if (existingLike) {
           liked = true;
         }
-      } catch (e) {
+      } catch {
         liked = false;
       }
     }
@@ -634,14 +575,14 @@ export const getComments = async (postId) => {
       throw new Error('帖子ID不能为空');
     }
 
-    const { user, profile } = await getOptionalUserAndProfile('identity_type, role');
+    const { user, profile } = await getOptionalUserAndProfile('role');
     if (!user || !profile) {
       throw new Error('用户未登录或认证失败');
     }
 
     const { data: post, error: postError } = await supabase
       .from('posts')
-      .select('id, visibility, author_id')
+      .select('id, author_id')
       .eq('id', postId)
       .single();
 
@@ -666,8 +607,7 @@ export const getComments = async (postId) => {
         created_at,
         author:profiles!comments_author_id_fkey(
           nickname,
-          avatar_url,
-          identity_type
+          avatar_url
         ),
         comment_likes:comment_likes(count)
       `
@@ -708,7 +648,6 @@ export const getComments = async (postId) => {
         id: comment.author_id,
         nickname: comment.author?.nickname || '未知用户',
         avatar_url: comment.author?.avatar_url,
-        identity_type: comment.author?.identity_type,
       },
       like_count: comment.comment_likes?.[0]?.count || 0,
       liked: likedCommentIds.has(comment.id),
@@ -784,8 +723,7 @@ export const addComment = async (postId, content, parentId = null, replyToUserId
         created_at,
         author:profiles!comments_author_id_fkey(
           nickname,
-          avatar_url,
-          identity_type
+          avatar_url
         )
       `
       )
@@ -803,7 +741,6 @@ export const addComment = async (postId, content, parentId = null, replyToUserId
           id: createdComment.author_id,
           nickname: createdComment.author?.nickname || '未知用户',
           avatar_url: createdComment.author?.avatar_url,
-          identity_type: createdComment.author?.identity_type,
         },
       },
       message: '评论发表成功',
@@ -894,7 +831,7 @@ export const toggleCommentLike = async (commentId) => {
  */
 export const searchPosts = async (options = {}) => {
   try {
-    const { user, profile } = await getOptionalUserAndProfile('identity_type, role');
+    const { user, profile } = await getOptionalUserAndProfile('role');
     if (!user || !profile) {
       throw new Error('用户未登录或认证失败');
     }
@@ -902,17 +839,14 @@ export const searchPosts = async (options = {}) => {
     const keyword = options.keyword ? options.keyword.trim() : '';
     const sortBy = options.sortBy === 'likes' ? 'likes' : 'time';
 
-    // 1. 可见性条件
-    const visibilityCondition = buildVisibilityCondition(profile);
-
-    // 2. 搜索条件
+    // 1. 搜索条件
     const orConditions = [];
     if (keyword) {
       orConditions.push(`title.ilike.%${keyword}%`);
       orConditions.push(`content.ilike.%${keyword}%`);
     }
 
-    // 3. 构建查询
+    // 2. 构建查询
     let query = supabase
       .from('posts')
       .select(
@@ -921,29 +855,19 @@ export const searchPosts = async (options = {}) => {
         title,
         content,
         media_urls,
-        visibility,
         is_anonymous,
         view_count,
         created_at,
         author_id,
         author:profiles!posts_author_id_fkey(
           nickname,
-          avatar_url,
-          identity_type
+          avatar_url
         ),
         post_likes:post_likes(count),
         comments:comments(count)
       `
       )
       .order('created_at', { ascending: false });
-
-    if (visibilityCondition) {
-      if (user?.id) {
-        query = query.or(`${visibilityCondition},author_id.eq.${user.id}`);
-      } else {
-        query = query.or(visibilityCondition);
-      }
-    }
 
     if (orConditions.length > 0) {
       query = query.or(orConditions.join(','));
