@@ -331,10 +331,7 @@ export async function updatePeopleProfileById(profileId, payload = {}, avatarFil
 
   if (roleInfo.isSuperuser && Object.prototype.hasOwnProperty.call(payload, 'owner_user_id')) {
     const ownerUserId = String(payload.owner_user_id || '').trim();
-    if (!ownerUserId) {
-      return { data: null, error: new Error('owner_user_id 不能为空') };
-    }
-    patch.owner_user_id = ownerUserId;
+    patch.owner_user_id = ownerUserId || null;
   }
 
   if (avatarFile) {
@@ -366,4 +363,67 @@ export async function updatePeopleProfileById(profileId, payload = {}, avatarFil
   }
 
   return { data, error: null };
+}
+
+export async function getPeopleProfileOwnerChangeLogs(limit = 200) {
+  let roleInfo;
+  try {
+    roleInfo = await getCurrentUserRoleInfo();
+  } catch (error) {
+    return { data: [], error };
+  }
+
+  if (!roleInfo.isSuperuser) {
+    return { data: [], error: new Error('仅 superuser 可查看归属变更记录') };
+  }
+
+  const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 500) : 200;
+  const { data: logs, error: logsError } = await supabase
+    .from('people_profile_owner_change_logs')
+    .select('id, people_profile_id, old_owner_user_id, new_owner_user_id, changed_by_user_id, changed_at')
+    .order('changed_at', { ascending: false })
+    .limit(safeLimit);
+
+  if (logsError) {
+    return { data: [], error: logsError };
+  }
+
+  const profileIds = Array.from(new Set((logs || []).map((item) => item.people_profile_id).filter(Boolean)));
+  const userIds = Array.from(
+    new Set(
+      (logs || [])
+        .flatMap((item) => [item.old_owner_user_id, item.new_owner_user_id, item.changed_by_user_id])
+        .filter(Boolean)
+    )
+  );
+
+  const [peopleResult, usersResult] = await Promise.all([
+    profileIds.length
+      ? supabase.from('people_profiles').select('id, name, role').in('id', profileIds)
+      : Promise.resolve({ data: [], error: null }),
+    userIds.length
+      ? supabase.from('profiles').select('id, nickname, email').in('id', userIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  if (peopleResult.error) {
+    return { data: [], error: peopleResult.error };
+  }
+
+  if (usersResult.error) {
+    return { data: [], error: usersResult.error };
+  }
+
+  const peopleMap = new Map((peopleResult.data || []).map((item) => [item.id, item]));
+  const userMap = new Map((usersResult.data || []).map((item) => [item.id, item]));
+
+  const rows = (logs || []).map((item) => ({
+    ...item,
+    people_profile: peopleMap.get(item.people_profile_id) || null,
+    old_owner: item.old_owner_user_id ? userMap.get(item.old_owner_user_id) || null : null,
+    new_owner: item.new_owner_user_id ? userMap.get(item.new_owner_user_id) || null : null,
+    changed_by: item.changed_by_user_id ? userMap.get(item.changed_by_user_id) || null : null,
+  }));
+
+  return { data: rows, error: null };
 }

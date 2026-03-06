@@ -1,0 +1,66 @@
+.panel {
+  padding: clamp(1.8rem, 4vw, 3rem);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--panel-bg);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 880px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.72rem 0.8rem;
+  border-bottom: 1px solid var(--panel-border);
+  color: var(--text-color);
+  vertical-align: top;
+  font-size: 0.9rem;
+}
+
+.table th {
+  color: var(--muted-color);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--panel-bg) 88%, transparent);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.personName {
+  font-weight: 600;
+}
+
+.personMeta {
+  margin-top: 0.2rem;
+  color: var(--muted-color);
+  font-size: 0.8rem;
+}
+
+.empty {
+  margin: 0.9rem 0 0;
+  color: var(--muted-color);
+}
+
+@media (max-width: 760px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

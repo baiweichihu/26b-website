@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import NoticeBox from '../../components/widgets/NoticeBox';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { supabase } from '../../lib/supabase';
 import {
   getMyPeopleProfile,
@@ -29,6 +30,8 @@ const KNOWN_SOCIAL_KEYS = ['wechat', 'qq', 'bilibili', 'github'];
 
 const DEFAULT_PROFILE_AVATAR_DATA_URI =
   'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><rect width="128" height="128" rx="64" fill="%23d9dee8"/><circle cx="64" cy="46" r="22" fill="%23939fb3"/><path d="M24 106c6-18 22-30 40-30s34 12 40 30" fill="%23939fb3"/></svg>';
+
+const normalizeOwnerUserId = (value) => String(value || '').trim();
 
 const identityTypeLabels = {
   classmate: '本班同学',
@@ -142,6 +145,8 @@ const PeopleProfileEdit = () => {
   const [ownerCandidates, setOwnerCandidates] = useState([]);
   const [ownerCandidatesLoading, setOwnerCandidatesLoading] = useState(false);
   const [ownerPickerOpen, setOwnerPickerOpen] = useState(false);
+  const [initialOwnerUserId, setInitialOwnerUserId] = useState('');
+  const [ownershipConfirmOpen, setOwnershipConfirmOpen] = useState(false);
   const ownerPickerRef = useRef(null);
 
   const [form, setForm] = useState({
@@ -234,11 +239,12 @@ const PeopleProfileEdit = () => {
           hobbiesText: Array.isArray(data.hobbies) ? data.hobbies.join(' ') : '',
           skillsText: Array.isArray(data.skills) ? data.skills.join(' ') : '',
         });
+        setInitialOwnerUserId(data.owner_user_id || '');
 
         if (profileId && userId && data.owner_user_id !== userId && !isCurrentSuperuser) {
-            setHasProfile(false);
-            setNotice({ type: 'error', message: '你无权修改该人物资料' });
-            return;
+          setHasProfile(false);
+          setNotice({ type: 'error', message: '你无权修改该人物资料' });
+          return;
         }
 
         setSocialRows(parseSocialRows(data.social));
@@ -289,6 +295,25 @@ const PeopleProfileEdit = () => {
     return ownerCandidates.find((item) => item.id === form.owner_user_id) || null;
   }, [ownerCandidates, form.owner_user_id]);
 
+  const initialOwner = useMemo(() => {
+    if (!initialOwnerUserId) return null;
+    return ownerCandidates.find((item) => item.id === initialOwnerUserId) || null;
+  }, [initialOwnerUserId, ownerCandidates]);
+
+  const ownerLabel = (owner, ownerId) => {
+    const normalizedOwnerId = normalizeOwnerUserId(ownerId);
+    if (!normalizedOwnerId) return '未归属';
+    if (owner) {
+      return `${owner.nickname || '未设置昵称'} · ${owner.email || owner.id}`;
+    }
+    return `用户 ${normalizedOwnerId}`;
+  };
+
+  const ownerChanged =
+    isSuperuser &&
+    !!profileId &&
+    normalizeOwnerUserId(form.owner_user_id) !== normalizeOwnerUserId(initialOwnerUserId);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -323,9 +348,13 @@ const PeopleProfileEdit = () => {
     );
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const submitProfile = async ({ skipOwnershipConfirm = false } = {}) => {
     setNotice(null);
+
+    if (ownerChanged && !skipOwnershipConfirm) {
+      setOwnershipConfirmOpen(true);
+      return;
+    }
 
     if (avatarFile && avatarFile.size > 2 * 1024 * 1024) {
       setNotice({ type: 'error', message: '头像文件大小不能超过 2MB' });
@@ -352,11 +381,7 @@ const PeopleProfileEdit = () => {
       };
 
       if (isSuperuser && profileId) {
-        const ownerUserId = form.owner_user_id.trim();
-        if (!ownerUserId) {
-          throw new Error('用户归属 owner_user_id 不能为空');
-        }
-        payload.owner_user_id = ownerUserId;
+        payload.owner_user_id = form.owner_user_id.trim() || null;
       }
 
       const { error } = profileId
@@ -366,11 +391,19 @@ const PeopleProfileEdit = () => {
 
       setNotice({ type: 'success', message: '资料更新成功' });
       setAvatarFile(null);
+      if (isSuperuser && profileId) {
+        setInitialOwnerUserId(payload.owner_user_id || '');
+      }
     } catch (error) {
       setNotice({ type: 'error', message: error.message || '更新失败' });
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    await submitProfile();
   };
 
   if (loading) {
@@ -426,13 +459,29 @@ const PeopleProfileEdit = () => {
                     className={`form-control ${styles.ownerTrigger}`}
                     onClick={() => setOwnerPickerOpen((prev) => !prev)}
                   >
-                    {selectedOwner
+                    {form.owner_user_id
+                      ? selectedOwner
                       ? `${selectedOwner.nickname || '未设置昵称'} · ${selectedOwner.email || selectedOwner.id}`
-                      : '请选择归属用户'}
+                      : '已选用户（信息加载中）'
+                      : '未归属'}
                   </button>
 
                   {ownerPickerOpen && (
                     <div className={styles.ownerPicker} role="listbox" aria-label="用户归属选择">
+                      <button
+                        type="button"
+                        className={`${styles.ownerOption} ${!form.owner_user_id ? styles.ownerOptionActive : ''}`}
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, owner_user_id: '' }));
+                          setOwnerPickerOpen(false);
+                        }}
+                      >
+                        <div className={styles.ownerMeta}>
+                          <p className={styles.ownerPrimary}>未归属</p>
+                          <p className={styles.ownerSecondary}>该人物暂不绑定任何用户账号</p>
+                        </div>
+                      </button>
+
                       {ownerCandidatesLoading && <p className={styles.ownerEmpty}>正在加载用户列表...</p>}
                       {!ownerCandidatesLoading && ownerCandidates.length === 0 && (
                         <p className={styles.ownerEmpty}>暂无可选用户</p>
@@ -655,6 +704,20 @@ const PeopleProfileEdit = () => {
             </button>
           </div>
         </form>
+
+        <ConfirmDialog
+          open={ownershipConfirmOpen}
+          title="确认变更归属"
+          message={`你将把该人物归属从「${ownerLabel(initialOwner, initialOwnerUserId)}」改为「${ownerLabel(selectedOwner, form.owner_user_id)}」，确定继续吗？`}
+          confirmText="确认变更"
+          cancelText="取消"
+          confirmDisabled={submitting}
+          onCancel={() => setOwnershipConfirmOpen(false)}
+          onConfirm={async () => {
+            setOwnershipConfirmOpen(false);
+            await submitProfile({ skipOwnershipConfirm: true });
+          }}
+        />
       </section>
     </div>
   );

@@ -85,6 +85,43 @@
   align-items: center;
 }
 
+.ownershipTag {
+  position: absolute;
+  right: 2.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  min-width: 7.2rem;
+  text-align: center;
+}
+
+.assigned {
+  background: rgba(58, 156, 89, 0.16);
+  color: #2e8f53;
+}
+
+.unassigned {
+  background: rgba(204, 60, 60, 0.16);
+  color: #c43c3c;
+}
+
+[data-theme='dark'] .assigned {
+  background: rgba(65, 186, 109, 0.2);
+  color: #9ce4b4;
+}
+
+[data-theme='dark'] .unassigned {
+  background: rgba(220, 80, 80, 0.22);
+  color: #ffb1b1;
+}
+
 .foldIndicator {
   position: absolute;
   right: 0.95rem;

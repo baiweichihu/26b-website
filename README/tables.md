@@ -210,7 +210,27 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 
 > 当前前端路由：
 > - 人物目录：`/introduction/students`、`/introduction/teachers`
+> - 归属记录：`/introduction/ownership-logs`（仅 superuser）
 > - 人物编辑：`/people/edit/:profileId`
+
+#### **`people_profile_owner_change_logs`**
+
+用于记录人物 `owner_user_id` 的变更审计日志，便于追溯 superuser 的归属调整操作。
+
+- **主键 (PK):** `id` (bigint identity)
+- **外键 (FK):**
+  - `people_profile_id` (关联 `people_profiles.id`)
+  - `old_owner_user_id` (关联 `profiles.id`，可为空)
+  - `new_owner_user_id` (关联 `profiles.id`，可为空)
+  - `changed_by_user_id` (关联 `profiles.id`，记录操作者)
+- **重要字段:**
+  - `changed_at`: 变更时间（UTC）
+
+> 建议策略：
+> - 通过 `people_profiles` 的 `after update of owner_user_id` 触发器自动写入日志；
+> - 开启 RLS，仅 `superuser` 允许 `select/insert`。
+>
+> 已提供 SQL：`README/docs/people_owner_change_logs.sql`（含建表、触发器、索引、RLS 与 policy）。
 
 #### **Storage Bucket：`people-avatars`**
 
