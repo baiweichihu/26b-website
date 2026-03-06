@@ -9,6 +9,7 @@
 - `jest.md`: 包含了如何编写和运行测试的说明。
 - `funcs.md`: 包含了各个服务模块的功能说明。
 - `tables.md`: 数据库建表协议。
+- `docs/people_owner_change_logs.sql`: 人物归属变更审计表与 RLS/触发器 SQL。
 
 ## 运行
 
@@ -54,6 +55,7 @@ src/
 │   ├── albumService.js        # 相册服务
 │   ├── inboxService.js        # 通知服务
 │   ├── journalService.js      # 日志服务
+│   ├── peopleService.js       # 人物志服务
 │   ├── postService.js         # 帖子服务
 │   └── userService.js         # 用户服务
 ├── components/                # 可复用 UI 组件
@@ -68,6 +70,8 @@ src/
 │   │   │   ├── MusicPlayer.module.css
 │   │   │   ├── EasterEgg.jsx
 │   │   │   └── EasterEgg.module.css
+│   │   ├── people/
+│   │   │   └── PeopleProfileActionBar.jsx
 │   │   ├── post/
 │   │   │   ├── PostCard.jsx
 │   │   │   ├── PostCard.module.css
@@ -108,6 +112,8 @@ src/
 │   │   ├── IrisTransition.module.css
 │   │   ├── AuthGateOverlay.jsx
 │   │   ├── AuthGateOverlay.module.css
+│   │   ├── ConfirmDialog.jsx
+│   │   ├── ConfirmDialog.module.css
 │   │   ├── ReportGateOverlay.jsx
 │   │   └── ReportGateOverlay.module.css
 │   └── widgets/
@@ -150,12 +156,20 @@ src/
     ├── report/                # 报告页面
     │   ├── ReportDetail.jsx
     │   └── ReportDetail.module.css
+    ├── people/                # 人物志页面
+    │   ├── PeopleCenter.jsx
+    │   ├── PeopleCenter.module.css
+    │   ├── PeopleProfileEdit.jsx
+    │   ├── PeopleProfileEdit.module.css
+    │   ├── PeopleOwnershipLogs.jsx
+    │   └── PeopleOwnershipLogs.module.css
     ├── static/                # 静态页面
     │   ├── Activities.jsx
     │   ├── Contact.jsx
     │   ├── Contact.module.css
     │   ├── Home.jsx
-    │   ├── Introduction.jsx
+    │   ├── Handbook.jsx
+    │   ├── ArchiveAccessRequest.jsx
     │   └── Lobby.jsx
     └── user/                  # 用户相关页面
         ├── Auth.module.css

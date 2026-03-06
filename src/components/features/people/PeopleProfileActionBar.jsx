@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NoticeBox from '../../widgets/NoticeBox';
 import { supabase } from '../../../lib/supabase';
 import { createMyPeopleProfile } from '../../../services/peopleService';
@@ -23,6 +24,7 @@ const SUBJECT_OPTIONS = [
 ];
 
 const PeopleProfileActionBar = ({ onChanged, showInfoNotice = true }) => {
+  const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isSuperuser, setIsSuperuser] = useState(false);
   const [notice, setNotice] = useState(null);
@@ -124,6 +126,13 @@ const PeopleProfileActionBar = ({ onChanged, showInfoNotice = true }) => {
         <div className={styles.row}>
           <button type="button" className="scene-button primary" onClick={() => setShowCreateForm((prev) => !prev)}>
             创建人物
+          </button>
+          <button
+            type="button"
+            className={`scene-button ghost ${styles.logButton}`}
+            onClick={() => navigate('/introduction/ownership-logs')}
+          >
+            查看归属记录
           </button>
         </div>
       )}

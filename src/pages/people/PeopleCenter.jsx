@@ -322,11 +322,12 @@ const PeopleCenter = () => {
                 const isExpanded = !!expandedMap[person.id];
                 const canEdit = isSuperuser || person.owner_user_id === currentUserId;
                 const canDelete = isSuperuser;
+                const isAssigned = hasValue(person.owner_user_id);
 
                 const topMeta =
                   person.role === 'teacher'
-                    ? [roleLabel, hasValue(person.subject) ? person.subject : '未设置状态', statusText].join(' · ')
-                    : [roleLabel, statusText].join(' · ');
+                    ? [roleLabel, hasValue(person.subject) ? person.subject : '未设置状态', ...(isAssigned ? [statusText] : [])].join(' · ')
+                    : [roleLabel, ...(isAssigned ? [statusText] : [])].join(' · ');
 
                 return (
                   <article key={person.id} className={styles.card}>
@@ -356,6 +357,12 @@ const PeopleCenter = () => {
                           {hasValue(person.bio) && <p className={styles.meta}>介绍：{person.bio}</p>}
                         </div>
                       </div>
+
+                      {isSuperuser && (
+                        <span className={`${styles.ownershipTag} ${isAssigned ? styles.assigned : styles.unassigned}`}>
+                          {isAssigned ? '已归属' : '未归属'}
+                        </span>
+                      )}
 
                       <span
                         className={`${styles.foldIndicator} ${isExpanded ? styles.expanded : ''}`}
@@ -397,7 +404,6 @@ const PeopleCenter = () => {
                             {hasValue(person.english_name) && <p className={styles.detailItem}>英文名：{person.english_name}</p>}
                             {hasValue(person.university) && <p className={styles.detailItem}>院校：{person.university}</p>}
                             {hasValue(person.major) && <p className={styles.detailItem}>专业：{person.major}</p>}
-                            {hasValue(person.subject) && <p className={styles.detailItem}>学科：{person.subject}</p>}
                             {hasValue(person.current_position) && <p className={styles.detailItem}>职位：{person.current_position}</p>}
                             {person.role !== 'teacher' && hasValue(person.website) && <p className={styles.detailItem}>个人网站：{person.website}</p>}
                             {hasValue(phone) && <p className={styles.detailItem}>电话：{phone}</p>}

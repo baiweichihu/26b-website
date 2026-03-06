@@ -19,6 +19,7 @@ import Home from './pages/static/Home';
 import Handbook from './pages/static/Handbook';
 import PeopleCenter from './pages/people/PeopleCenter';
 import PeopleProfileEdit from './pages/people/PeopleProfileEdit';
+import PeopleOwnershipLogs from './pages/people/PeopleOwnershipLogs';
 import Activities from './pages/static/Activities';
 import Journal from './pages/static/Journal';
 import ArchiveAccessRequest from './pages/static/ArchiveAccessRequest';
@@ -64,6 +65,7 @@ const AppLayout = () => {
           <Route path="/introduction" element={<Navigate to="/introduction/students" replace />} />
           <Route path="/introduction/students" element={<PeopleCenter />} />
           <Route path="/introduction/teachers" element={<PeopleCenter />} />
+          <Route path="/introduction/ownership-logs" element={<PeopleOwnershipLogs />} />
           <Route path="/people/edit" element={<PeopleProfileEdit />} />
           <Route path="/people/edit/:profileId" element={<PeopleProfileEdit />} />
           <Route path="/activities" element={<Activities />} />
