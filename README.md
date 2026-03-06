@@ -9,7 +9,6 @@
 - `jest.md`: 包含了如何编写和运行测试的说明。
 - `funcs.md`: 包含了各个服务模块的功能说明。
 - `tables.md`: 数据库建表协议。
-- `docs/people_owner_change_logs.sql`: 人物归属变更审计表与 RLS/触发器 SQL。
 
 ## 运行
 
