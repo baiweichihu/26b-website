@@ -7,13 +7,22 @@ const formatCount = (value) => {
   return safeValue.toLocaleString('zh-CN');
 };
 
-const PostWallHero = ({ onCreatePost, actionLoading, stats }) => {
+const PostWallHero = ({
+  onCreatePost,
+  actionLoading,
+  stats,
+  statsMode = 'all',
+  onToggleStatsMode,
+  canToggleOwnStats = false,
+}) => {
   const safeStats = {
     totalPosts: stats?.totalPosts || 0,
     totalLikes: stats?.totalLikes || 0,
     totalComments: stats?.totalComments || 0,
     totalViews: stats?.totalViews || 0,
   };
+
+  const modeText = statsMode === 'mine' ? '我的帖子' : '所有帖子';
 
   return (
     <div className={styles.hero}>
@@ -40,40 +49,62 @@ const PostWallHero = ({ onCreatePost, actionLoading, stats }) => {
         </div>
       </div>
       <div className={styles.heroStats} data-animate="hero">
-        <div className={styles.statCard} data-animate="hero">
-          <div className={styles.statIcon}>
-            <i className="fas fa-pen" aria-hidden="true"></i>
-          </div>
-          <div>
-            <span className={styles.statLabel}>累计帖子</span>
-            <span className={styles.statValue}>{formatCount(safeStats.totalPosts)}</span>
-          </div>
+        <div className={styles.statsSwitchRail}>
+          <button
+            type="button"
+            className={styles.statsToggle}
+            onClick={onToggleStatsMode}
+            disabled={!canToggleOwnStats}
+            aria-pressed={statsMode === 'mine'}
+            aria-label={statsMode === 'mine' ? '切换到全站统计' : '切换到我的帖子统计'}
+            title={canToggleOwnStats ? '切换统计范围' : '登录后可切换'}
+          >
+            <i className="fas fa-repeat" aria-hidden="true"></i>
+          </button>
         </div>
-        <div className={styles.statCard} data-animate="hero">
-          <div className={styles.statIcon}>
-            <i className="fas fa-heart" aria-hidden="true"></i>
+
+        <div className={styles.statsPanel}>
+          <span className={styles.modeText}>{modeText}</span>
+          <div className={styles.statsGrid}>
+          <div className={styles.statCard} data-animate="hero">
+            <div className={styles.statIcon}>
+              <i className="fas fa-pen" aria-hidden="true"></i>
+            </div>
+            <div>
+              <span className={styles.statLabel}>帖子数</span>
+              <span className={styles.statValue}>{formatCount(safeStats.totalPosts)}</span>
+            </div>
           </div>
-          <div>
-            <span className={styles.statLabel}>点赞数</span>
-            <span className={styles.statValue}>{formatCount(safeStats.totalLikes)}</span>
+
+          <div className={styles.statCard} data-animate="hero">
+            <div className={styles.statIcon}>
+              <i className="fas fa-heart" aria-hidden="true"></i>
+            </div>
+            <div>
+              <span className={styles.statLabel}>点赞数</span>
+              <span className={styles.statValue}>{formatCount(safeStats.totalLikes)}</span>
+            </div>
           </div>
-        </div>
-        <div className={styles.statCard} data-animate="hero">
-          <div className={styles.statIcon}>
-            <i className="fas fa-comment-dots" aria-hidden="true"></i>
+
+          <div className={styles.statCard} data-animate="hero">
+            <div className={styles.statIcon}>
+              <i className="fas fa-comment-dots" aria-hidden="true"></i>
+            </div>
+            <div>
+              <span className={styles.statLabel}>评论数</span>
+              <span className={styles.statValue}>{formatCount(safeStats.totalComments)}</span>
+            </div>
           </div>
-          <div>
-            <span className={styles.statLabel}>评论数</span>
-            <span className={styles.statValue}>{formatCount(safeStats.totalComments)}</span>
+
+          <div className={styles.statCard} data-animate="hero">
+            <div className={styles.statIcon}>
+              <i className="fas fa-eye" aria-hidden="true"></i>
+            </div>
+            <div>
+              <span className={styles.statLabel}>浏览数</span>
+              <span className={styles.statValue}>{formatCount(safeStats.totalViews)}</span>
+            </div>
           </div>
-        </div>
-        <div className={styles.statCard} data-animate="hero">
-          <div className={styles.statIcon}>
-            <i className="fas fa-eye" aria-hidden="true"></i>
-          </div>
-          <div>
-            <span className={styles.statLabel}>浏览数</span>
-            <span className={styles.statValue}>{formatCount(safeStats.totalViews)}</span>
           </div>
         </div>
       </div>
