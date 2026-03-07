@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { getContentReportById } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './ReportDetail.module.css';
 
 const ReportDetail = () => {
@@ -24,7 +25,7 @@ const ReportDetail = () => {
       setLoading(true);
       const { data, error } = await getContentReportById(reportId);
       if (error) {
-        console.error('加载举报失败', error);
+        logger.error('加载举报失败', error);
         setLoading(false);
         return;
       }

@@ -8,6 +8,7 @@ import {
   subscribeToNotifications,
   unsubscribeFromNotifications,
 } from '../../services/inboxService';
+import { logger } from '../../utils/logger';
 import styles from './Notifications.module.css';
 
 /**
@@ -39,7 +40,7 @@ function Notifications() {
 
         setUserId(user.id);
       } catch (error) {
-        console.error('检查认证失败:', error);
+        logger.error('检查认证失败:', error);
         navigate('/login');
       }
     };
@@ -88,7 +89,7 @@ function Notifications() {
       });
 
       if (error) {
-        console.error('订阅通知失败:', error);
+        logger.error('订阅通知失败:', error);
       }
     };
 

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import { logger } from '../../../utils/logger';
 import styles from '../../../pages/static/Journal.module.css';
 
 // Vite 需要显式设置 worker
@@ -135,7 +136,7 @@ const PDFViewer = ({
   }, []);
 
   const handlePageRenderError = React.useCallback((error) => {
-    console.error('PDF页面渲染失败:', error);
+    logger.error('PDF页面渲染失败:', error);
     setIsLoading(false);
     setLoadError(true);
   }, []);
@@ -159,7 +160,7 @@ const PDFViewer = ({
             cMapPacked={true}
             onLoadSuccess={handleLoadSuccess(index)}
             onLoadError={(error) => {
-              console.error('PDF加载失败:', error);
+              logger.error('PDF加载失败:', error);
               setIsLoading(false);
               if (!document.hidden) {
                 setLoadError(true);

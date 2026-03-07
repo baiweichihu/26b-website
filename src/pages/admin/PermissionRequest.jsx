@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { getAdminPermissions, submitPermissionChangeRequest, getPermissionChangeRequests } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './AdminSimplePage.module.css';
 import permStyles from './PermissionRequest.module.css';
 
@@ -75,7 +76,7 @@ function PermissionRequest() {
           setHistoryRequests((requests || []).filter(req => req.requester_id === authUser.id));
         }
       } catch (err) {
-        console.error('页面初始化失败:', err);
+        logger.error('页面初始化失败:', err);
         navigate('/');
       } finally {
         setLoading(false);

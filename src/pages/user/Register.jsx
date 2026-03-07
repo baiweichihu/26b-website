@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { sendRegisterOtp, submitRegisterRequest } from '../../services/userService';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import { useIrisTransition } from '../../components/ui/useIrisTransition';
+import { logger } from '../../utils/logger';
 import styles from './Auth.module.css';
 import RegisterHero from '../../components/features/user/RegisterHero';
 import RegisterForm from '../../components/features/user/RegisterForm';
@@ -38,7 +39,7 @@ const Register = () => {
           navigate('/', { replace: true });
         }
       } catch (err) {
-        console.error('检查登录状态失败:', err);
+        logger.error('检查登录状态失败:', err);
       }
     };
     checkUserStatus();

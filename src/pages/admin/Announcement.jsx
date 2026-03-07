@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { publishSystemAnnouncement } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './AdminSimplePage.module.css';
 import announcementStyles from './Announcement.module.css';
 
@@ -75,7 +76,7 @@ function Announcement() {
           setRecentAnnouncements(uniqueAnnouncements.slice(0, 10));
         }
       } catch (err) {
-        console.error('页面初始化失败:', err);
+        logger.error('页面初始化失败:', err);
         navigate('/');
       } finally {
         setLoading(false);

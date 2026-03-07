@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 // Security note: This plugin allows arbitrary HTML rendering. Only use with trusted markdown sources.
 // All markdown files in this project are stored in the repository and are trusted content.
 import rehypeRaw from 'rehype-raw';
+import { logger } from '../../../utils/logger';
 import styles from '../../../pages/static/Journal.module.css';
 
 const MDViewer = React.forwardRef(
@@ -79,7 +80,7 @@ const MDViewer = React.forwardRef(
             const resolvedUrl = new URL(src, basePathUrl);
             normalizedPath = resolvedUrl.pathname;
           } catch (error) {
-            console.warn('Failed to resolve relative image path:', src, error);
+            logger.warn('Failed to resolve relative image path:', src, error);
             normalizedPath = sourceDirectory + src;
           }
         } else {
@@ -273,7 +274,7 @@ const MDViewer = React.forwardRef(
           }
           setError(null);
         } catch (err) {
-          console.error('加载Markdown失败:', err);
+          logger.error('加载Markdown失败:', err);
           setError(`无法加载文件：${fileList.join(', ')}`);
           const fallbackContent = '# 加载失败\n\n请检查文件路径是否正确。';
           setFullContent(fallbackContent);

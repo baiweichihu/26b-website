@@ -6,6 +6,7 @@ import {
   approvePermissionChangeRequest,
   rejectPermissionChangeRequest,
 } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './AdminSimplePage.module.css';
 import permApprovalStyles from './PermissionApprovals.module.css';
 
@@ -60,7 +61,7 @@ function PermissionApprovals() {
           setAllRequests(requests);
         }
       } catch (err) {
-        console.error('页面初始化失败:', err);
+        logger.error('页面初始化失败:', err);
         navigate('/');
       } finally {
         setLoading(false);

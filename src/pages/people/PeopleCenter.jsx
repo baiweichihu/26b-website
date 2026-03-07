@@ -6,6 +6,7 @@ import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
 import { deletePeopleProfileById, getPeopleProfiles } from '../../services/peopleService';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import PeopleProfileActionBar from '../../components/features/people/PeopleProfileActionBar';
+import { logger } from '../../utils/logger';
 import styles from './PeopleCenter.module.css';
 
 const DEFAULT_AVATAR_DATA_URI =
@@ -79,7 +80,7 @@ const PeopleCenter = () => {
     setPeopleStatus('loading');
     const { data, error } = await getPeopleProfiles();
     if (error) {
-      console.error('加载人物档案失败:', error);
+      logger.error('加载人物档案失败:', error);
       setPeople([]);
       setPeopleStatus('error');
       return;
@@ -122,7 +123,7 @@ const PeopleCenter = () => {
 
       setAuthStatus('member');
     } catch (error) {
-      console.error('PeopleCenter auth check failed:', error);
+      logger.error('PeopleCenter auth check failed:', error);
       setAuthStatus('anonymous');
     }
   }, []);
@@ -165,7 +166,7 @@ const PeopleCenter = () => {
       setDeleteTarget(null);
       await loadPeople();
     } catch (error) {
-      console.error('删除人物失败:', error);
+      logger.error('删除人物失败:', error);
     } finally {
       setDeleting(false);
     }

@@ -4,6 +4,7 @@ import PDFViewer from '../../components/features/journal/PDFViewer';
 import TableOfContents from '../../components/features/journal/TableOfContents';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
+import { logger } from '../../utils/logger';
 import styles from './Journal.module.css';
 import handbookStyles from './Handbook.module.css';
 
@@ -71,7 +72,7 @@ const Handbook = () => {
 
       setAuthStatus('member');
     } catch (error) {
-      console.error('Handbook auth check failed:', error);
+      logger.error('Handbook auth check failed:', error);
       setAuthStatus('anonymous');
     }
   }, []);
@@ -118,7 +119,7 @@ const Handbook = () => {
     try {
       await pdfFullscreenRef.current.requestFullscreen();
     } catch (err) {
-      console.error('无法进入全屏模式:', err);
+      logger.error('无法进入全屏模式:', err);
     }
   };
 
@@ -128,7 +129,7 @@ const Handbook = () => {
     try {
       await document.exitFullscreen();
     } catch (err) {
-      console.error('无法退出全屏模式:', err);
+      logger.error('无法退出全屏模式:', err);
     }
   };
 

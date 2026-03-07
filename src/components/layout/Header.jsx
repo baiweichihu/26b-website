@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from './Header.module.css';
 import { useIrisTransition } from '../ui/useIrisTransition';
 import { supabase } from '../../lib/supabase';
+import { logger } from '../../utils/logger';
 import UserDock from './UserDock';
 
 const Header = () => {
@@ -61,7 +62,7 @@ const Header = () => {
         setUserId(user.id);
         await fetchUnreadCount(user.id);
       } catch (error) {
-        console.error('检查登录状态或通知失败:', error);
+        logger.error('检查登录状态或通知失败:', error);
       }
     };
 

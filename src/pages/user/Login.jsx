@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { sendLoginOtp, signIn } from '../../services/userService';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import { useIrisTransition } from '../../components/ui/useIrisTransition';
+import { logger } from '../../utils/logger';
 import styles from './Auth.module.css';
 import LoginHero from '../../components/features/user/LoginHero';
 
@@ -33,7 +34,7 @@ const Login = () => {
           navigate('/', { replace: true });
         }
       } catch (err) {
-        console.error('检查登录状态失败:', err);
+        logger.error('检查登录状态失败:', err);
       }
     };
     checkUserStatus();

@@ -8,6 +8,7 @@ import {
   deletePost,
   deleteComment,
 } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './ContentReports.module.css';
 
 /**
@@ -56,7 +57,7 @@ function ContentReports() {
         setUserId(user.id);
         setUserRole(profile.role);
       } catch (error) {
-        console.error('检查权限失败:', error);
+        logger.error('检查权限失败:', error);
         navigate('/');
       }
     };

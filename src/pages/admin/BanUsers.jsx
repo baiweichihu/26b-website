@@ -7,6 +7,7 @@ import {
   banUser,
   unbanUser,
 } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './AdminSimplePage.module.css';
 import tableStyles from './UserPermissions.module.css';
 
@@ -51,7 +52,7 @@ function BanUsers() {
         }
         setUserId(user.id);
       } catch (err) {
-        console.error('检查权限失败:', err);
+        logger.error('检查权限失败:', err);
         navigate('/');
       }
     };
