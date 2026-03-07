@@ -1,48 +1,15 @@
-import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../lib/supabase.js';
+import { supabase } from '../lib/supabase.js';
 import {
-  createAuditResultNotification,
-  createReportFeedbackNotification,
   createSystemAnnouncementNotification,
-  createSystemNotification,
 } from './inboxService.js';
-
-async function callRegisterEmailFunction(payload) {
-  let {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  let accessToken = session?.access_token;
-  if (!accessToken) {
-    const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
-    if (refreshError) {
-      return { error: `登录态已过期，无法发送邮件：${refreshError.message}` };
-    }
-    accessToken = refreshed?.session?.access_token;
-  }
-
-  if (!accessToken) {
-    return { error: '登录态无效，无法发送邮件，请重新登录后重试' };
-  }
-
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/send-register-email`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const detail = await response.text();
-    return {
-      error: `Edge Function 调用失败（${response.status}）：${detail}`,
-    };
-  }
-
-  return { error: null };
-}
+import {
+  notifyRegisterApproved,
+  notifyBanStatusChanged,
+  notifyReportHandled,
+  notifyPermissionRequestHandled,
+  notifyAdminRoleChanged,
+} from './adminService.notifications.js';
+import { callRegisterEmailFunction } from './adminService.registerEmail.js';
 
 /**
  * =====================
@@ -137,39 +104,6 @@ export async function getContentReportById(reportId) {
 }
 
 /**
- * 获取某用户的举报历史
- * @param {string} userId - 用户ID
- * @returns {Promise<Object>}
- */
-export async function getReportsByUser(userId) {
-  if (!userId) return { data: [], error: '缺少 userId' };
-
-  const { data, error } = await supabase
-    .from('content_reports')
-    .select(
-      `
-      id,
-      reporter_id,
-      target_type,
-      target_id,
-      target_content,
-      target_author_id,
-      target_author_nickname,
-      reason,
-      suggestion,
-      status,
-      admin_note,
-      created_at,
-      updated_at
-    `
-    )
-    .eq('reporter_id', userId)
-    .order('created_at', { ascending: false });
-
-  return { data, error };
-}
-
-/**
  * =====================
  * 注册申请审批（superuser）
  * =====================
@@ -254,11 +188,7 @@ export async function approveRegisterRequest(requestId, handledBy) {
       return { data: null, error: updateError.message || '批准注册申请失败（邮件已发送）' };
     }
 
-    await createSystemNotification(
-      request.auth_user_id,
-      '注册申请已通过',
-      '你的注册申请已通过，请查收邮件中的初始密码并登录。'
-    );
+    await notifyRegisterApproved(request.auth_user_id);
 
     return { data: updated, error: null, warning: null };
   } catch (error) {
@@ -341,8 +271,6 @@ export async function getUsersByIdentity() {
     `
   );
 
-  // identityType 已废弃，统一按全部内部人员查询
-
   const { data, error } = await query.order('created_at', { ascending: false });
 
   return { data, error };
@@ -366,7 +294,7 @@ export async function banUser(userId, reason = '') {
     .select();
 
   if (!error) {
-    await createSystemNotification(userId, '账号状态变更', `你已被禁言。原因：${reason || '违反社区规定'}`);
+    await notifyBanStatusChanged(userId, { banned: true, reason });
   }
 
   return { data, error };
@@ -389,7 +317,7 @@ export async function unbanUser(userId) {
     .select();
 
   if (!error) {
-    await createSystemNotification(userId, '账号状态变更', '你的账号已被解除禁言。');
+    await notifyBanStatusChanged(userId, { banned: false });
   }
     
   return { data, error };
@@ -479,12 +407,7 @@ export async function resolveReport(reportId, adminNote, handledBy) {
     }
 
     // 3. 发送举报处理通知给举报人
-    await createReportFeedbackNotification(
-      report.reporter_id,
-      'approved',
-      report.target_type,
-      reportId
-    );
+    await notifyReportHandled(report.reporter_id, 'approved', report.target_type, reportId);
 
     return { data: updatedReport, error: null };
   } catch (error) {
@@ -534,12 +457,7 @@ export async function dismissReport(reportId, adminNote, handledBy) {
     }
 
     // 3. 发送举报驳回通知给举报人
-    await createReportFeedbackNotification(
-      report.reporter_id,
-      'rejected',
-      report.target_type,
-      reportId
-    );
+    await notifyReportHandled(report.reporter_id, 'rejected', report.target_type, reportId);
 
     return { data: updatedReport, error: null };
   } catch (error) {
@@ -726,7 +644,7 @@ export async function approvePermissionChangeRequest(requestId, handledBy, admin
     }
 
     // 4. 发送通知
-    await createAuditResultNotification(request.requester_id, 'approved', '权限变更', requestId);
+    await notifyPermissionRequestHandled(request.requester_id, 'approved', requestId);
 
     return { data: updatedRequest, error: null };
   } catch (error) {
@@ -780,7 +698,7 @@ export async function rejectPermissionChangeRequest(requestId, handledBy, adminN
     }
 
     // 3. 发送通知
-    await createAuditResultNotification(request.requester_id, 'rejected', '权限变更', requestId);
+    await notifyPermissionRequestHandled(request.requester_id, 'rejected', requestId);
 
     return { data: updatedRequest, error: null };
   } catch (error) {
@@ -851,7 +769,7 @@ export async function appointAdmin(userId, permissions, grantedBy) {
       return { data: null, error: permError.message };
     }
 
-    await createSystemNotification(userId, '权限变更', '你已被任命为管理员。');
+    await notifyAdminRoleChanged(userId, { appointed: true });
 
     return { data: adminPermData, error: null };
   } catch (error) {
@@ -897,7 +815,7 @@ export async function removeAdmin(adminId, removedBy) {
       return { data: null, error: permError.message };
     }
 
-    await createSystemNotification(adminId, '权限变更', '你的管理员身份已被撤销。');
+    await notifyAdminRoleChanged(adminId, { appointed: false });
 
     return { data: { removedAdminId: adminId }, error: null };
   } catch (error) {

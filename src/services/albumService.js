@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase.js';
+import { logger } from '../utils/logger.js';
 
 const getAuthenticatedUser = async () => {
   const {
@@ -506,7 +507,7 @@ export const albumService = {
       .eq('id', folderId);
 
     if (error) {
-      console.error('更新文件夹统计失败:', error);
+      logger.error('更新文件夹统计失败:', error);
     }
 
     return {

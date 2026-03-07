@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { useIrisTransition } from '../ui/IrisTransition';
+import { useIrisTransition } from '../ui/useIrisTransition';
 import styles from './UserDock.module.css';
 
 const roleLabels = {

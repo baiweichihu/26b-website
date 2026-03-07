@@ -1,182 +1,126 @@
 # 26b-website
 
-## 开发者须知
+北京八中少26B班站点（React + Vite + Supabase）。
 
-在开发前，**请务必认真阅读README文件夹中的所有内容**：
+## 开发前必读
 
-- `GITHUB_DEVELOP.md`：包含了如何使用GitHub进行代码管理的详细步骤。
-- `CODE_OF_CONDUCT.md`：包含了代码准则和PR审查准则。
-- `jest.md`: 包含了如何编写和运行测试的说明。
-- `funcs.md`: 包含了各个服务模块的功能说明。
-- `tables.md`: 数据库建表协议。
+请先阅读 `README/` 目录下文档（均为当前仓库实际存在的文件）：
 
-## 运行
+- `README/GITHUB_DEVELOP.md`：分支、提交、PR 协作流程
+- `README/funcs.md`：业务功能说明（按模块）
+- `README/tables.md`：数据库表与服务层设计说明
+- `README/docs/styles.md`：样式规范
+- `README/docs/userService.md`：用户服务说明
 
-运行（开发测试）方式如下：
+## 本地运行
 
 ```bash
 npm install
 npm run dev
 ```
 
-如果要部署到白尾赤狐的github网页，请使用
+## 常用命令
 
 ```bash
-npm run build
-npm run deploy
+npm run build      # 生产构建
+npm run preview    # 预览构建产物
+npm run lint       # ESLint 检查
+npm run test       # Jest 测试
+npm run deploy     # 部署到 gh-pages
 ```
 
 ## 技术栈
 
-- **前端框架**: React 19.2.0 + React Router DOM 7.12.0
-- **构建工具**: Vite 7.2.4
-- **样式框架**: Bootstrap 5.3.8 + React Bootstrap 2.10.10
-- **数据库**: Supabase (PostgreSQL)
-- **Markdown支持**: React Markdown + 语法高亮
-- **PDF支持**: React PDF
-- **代码质量**: ESLint + Prettier + Husky
-- **测试框架**: Jest
-- **部署**: GitHub Pages
+- 前端：React 19 + React Router DOM 7
+- 构建：Vite 7
+- 样式：CSS Modules + Bootstrap 5
+- 后端服务：Supabase (Auth + PostgreSQL + Storage + Edge Functions)
+- 测试：Jest
+- 代码质量：ESLint + Prettier + Husky
 
-## 文件结构
+## 当前项目结构（与仓库同步）
 
+```text
+.
+├─ src/
+│  ├─ App.jsx
+│  ├─ main.jsx
+│  ├─ index.css
+│  ├─ lib/
+│  │  └─ supabase.js
+│  ├─ services/
+│  │  ├─ adminService.js
+│  │  ├─ adminService.notifications.js
+│  │  ├─ albumService.js
+│  │  ├─ inboxService.js
+│  │  ├─ journalService.js
+│  │  ├─ peopleService.js
+│  │  ├─ postService.js
+│  │  ├─ postService.helpers.js
+│  │  └─ userService.js
+│  ├─ components/
+│  │  ├─ features/
+│  │  │  ├─ album/
+│  │  │  ├─ journal/
+│  │  │  ├─ media/
+│  │  │  ├─ people/
+│  │  │  ├─ post/
+│  │  │  └─ user/
+│  │  ├─ landing/
+│  │  ├─ layout/
+│  │  ├─ ui/
+│  │  └─ widgets/
+│  ├─ pages/
+│  │  ├─ admin/
+│  │  ├─ album/
+│  │  ├─ notifications/
+│  │  ├─ people/
+│  │  ├─ post/
+│  │  ├─ report/
+│  │  ├─ static/
+│  │  │  └─ journal-styles/
+│  │  └─ user/
+│  └─ utils/
+│     └─ avatarUtils.js
+├─ public/
+├─ supabase/
+│  ├─ config.toml
+│  └─ functions/
+├─ database/
+│  └─ identity-refactor/
+├─ README/
+│  ├─ docs/
+│  ├─ funcs.md
+│  ├─ GITHUB_DEVELOP.md
+│  └─ tables.md
+├─ scripts/
+│  └─ journal/
+│     └─ csv_to_json.py
+├─ package.json
+└─ vite.config.js
 ```
-src/
-├── App.jsx                    # 应用主组件和路由配置
-├── main.jsx                   # 应用入口
-├── index.css                  # 全局样式
-├── lib/
-│   └── supabase.js            # Supabase 客户端初始化
-├── utils/
-│   └── avatarUtils.js         # 头像工具
-├── services/                  # API 服务层
-│   ├── adminService.js        # 管理服务
-│   ├── albumService.js        # 相册服务
-│   ├── inboxService.js        # 通知服务
-│   ├── journalService.js      # 日志服务
-│   ├── peopleService.js       # 人物志服务
-│   ├── postService.js         # 帖子服务
-│   └── userService.js         # 用户服务
-├── components/                # 可复用 UI 组件
-│   ├── features/              # 业务功能组件
-│   │   ├── journal/
-│   │   │   ├── JournalLayout.jsx
-│   │   │   ├── MDViewer.jsx
-│   │   │   ├── PDFViewer.jsx
-│   │   │   └── TableOfContents.jsx
-│   │   ├── media/
-│   │   │   ├── MusicPlayer.jsx
-│   │   │   ├── MusicPlayer.module.css
-│   │   │   ├── EasterEgg.jsx
-│   │   │   └── EasterEgg.module.css
-│   │   ├── people/
-│   │   │   └── PeopleProfileActionBar.jsx
-│   │   ├── post/
-│   │   │   ├── PostCard.jsx
-│   │   │   ├── PostCard.module.css
-│   │   │   ├── PostCommentComposer.jsx
-│   │   │   ├── PostCommentComposer.module.css
-│   │   │   ├── PostCommentList.jsx
-│   │   │   ├── PostCommentList.module.css
-│   │   │   ├── PostMetrics.jsx
-│   │   │   ├── PostMetrics.module.css
-│   │   │   ├── PostWallControls.jsx
-│   │   │   ├── PostWallControls.module.css
-│   │   │   ├── PostWallEmptyState.jsx
-│   │   │   ├── PostWallEmptyState.module.css
-│   │   │   ├── PostWallHero.jsx
-│   │   │   └── PostWallHero.module.css
-│   │   └── user/
-│   │       ├── LoginHero.jsx
-│   │       ├── RegisterHero.jsx
-│   │       └── RegisterForm.jsx
-│   ├── landing/
-│   │   ├── IntroScreen.jsx
-│   │   └── IntroScreen.module.css
-│   ├── layout/
-│   │   ├── BackgroundParticles.jsx
-│   │   ├── Header.jsx
-│   │   ├── Header.module.css
-│   │   ├── Navbar.jsx
-│   │   ├── Navbar.module.css
-│   │   ├── Footer.jsx
-│   │   ├── Footer.module.css
-│   │   ├── CornerNav.jsx
-│   │   ├── CornerNav.module.css
-│   │   ├── UserDock.jsx
-│   │   └── UserDock.module.css
-│   ├── ui/
-│   │   ├── ThemeToggle.jsx
-│   │   ├── IrisTransition.jsx
-│   │   ├── IrisTransition.module.css
-│   │   ├── AuthGateOverlay.jsx
-│   │   ├── AuthGateOverlay.module.css
-│   │   ├── ConfirmDialog.jsx
-│   │   ├── ConfirmDialog.module.css
-│   │   ├── ReportGateOverlay.jsx
-│   │   └── ReportGateOverlay.module.css
-│   └── widgets/
-│       ├── NoticeBox.jsx
-│       └── NoticeBox.module.css
-└── pages/                     # 路由页面组件
-    ├── admin/                 # 管理后台页面
-    │   ├── AdminDashboard.jsx
-    │   ├── AdminDashboard.module.css
-    │   ├── Announcement.jsx
-    │   ├── Announcement.module.css
-    │   ├── BanUsers.jsx
-    │   ├── ContentReports.jsx
-    │   ├── ContentReports.module.css
-    │   ├── JournalApproval.jsx
-    │   ├── JournalApproval.module.css
-    │   ├── PermissionApprovals.jsx
-    │   ├── PermissionApprovals.module.css
-    │   ├── PermissionRequest.jsx
-    │   ├── PermissionRequest.module.css
-    │   ├── SuperuserPanel.jsx
-    │   ├── SuperuserPanel.module.css
-    │   ├── UpgradeApprovals.jsx
-    │   └── UserPermissions.jsx
-    ├── album/                 # 相册页面
-    │   └── .gitkeep
-    ├── journal/               # 日志相关页面
-    │   ├── AlumniJournalAccess.jsx
-    │   ├── Journal.jsx
-    │   └── Journal.module.css
-    ├── notifications/         # 通知页面
-    │   ├── Notifications.jsx
-    │   └── Notifications.module.css
-    ├── post/                  # 帖子相关页面
-    │   ├── CreatePost.jsx
-    │   ├── PostDetail.jsx
-    │   ├── PostDetail.module.css
-    │   ├── Wall.jsx
-    │   └── Wall.module.css
-    ├── report/                # 报告页面
-    │   ├── ReportDetail.jsx
-    │   └── ReportDetail.module.css
-    ├── people/                # 人物志页面
-    │   ├── PeopleCenter.jsx
-    │   ├── PeopleCenter.module.css
-    │   ├── PeopleProfileEdit.jsx
-    │   ├── PeopleProfileEdit.module.css
-    │   ├── PeopleOwnershipLogs.jsx
-    │   └── PeopleOwnershipLogs.module.css
-    ├── static/                # 静态页面
-    │   ├── Activities.jsx
-    │   ├── Contact.jsx
-    │   ├── Contact.module.css
-    │   ├── Home.jsx
-    │   ├── Handbook.jsx
-    │   ├── ArchiveAccessRequest.jsx
-    │   └── Lobby.jsx
-    └── user/                  # 用户相关页面
-        ├── Auth.module.css
-        ├── EditProfile.jsx
-        ├── GuestUpdateIdentity.jsx
-        ├── Login.jsx
-        ├── Register.jsx
-        ├── ResetPassword.jsx
-        ├── UserManagement.jsx
-        └── UserManagement.module.css
-```
+
+## 路由说明（以 `src/App.jsx` 为准）
+
+- 静态页：`/`、`/lobby`、`/activities`、`/journal`、`/handbook`、`/contact`
+- 帖子：`/wall`、`/posts/new`、`/posts/:postId`
+- 人物志：`/introduction/students`、`/introduction/teachers`、`/introduction/ownership-logs`
+- 相册：`/album`、`/album/:folderId`
+- 用户：`/login`、`/register`、`/user/reset-password`、`/user/manage`、`/user/edit-profile`
+- 管理后台：`/admin/dashboard`、`/admin/ban-users`、`/admin/content-reports`、`/admin/register-approvals`、`/admin/permission-request`、`/admin/permission-approvals`、`/admin/superuser-panel`、`/admin/announcement`
+
+## 说明
+
+- 如果 README 与代码不一致，请以 `src/App.jsx`、`src/services/`、`README/` 实际内容为准。
+- 若新增模块或页面，请同步更新本 README 与对应 `README/` 文档。
+
+## 近期结构调整（2026-03）
+
+- `src/services/postService.js` 的通用 helper 已抽离到 `src/services/postService.helpers.js`。
+- `src/services/adminService.js` 的通知发送语义已抽离到 `src/services/adminService.notifications.js`。
+- `src/pages/static/Journal.module.css` 已改为入口样式文件，拆分并引入：
+	- `src/pages/static/journal-styles/Journal.layout-and-viewer.css`
+	- `src/pages/static/journal-styles/Journal.responsive-and-theme.css`
+- 人物编辑与帖子详情页面已做中粒度组件拆分：
+	- 人物编辑：`src/components/features/people/PeopleProfileOwnerPicker.jsx`、`PeopleProfileRoleFields.jsx`、`PeopleProfileSocialSection.jsx`
+	- 帖子详情：`src/components/features/post/PostDetailHeader.jsx`、`PostDetailArticle.jsx`、`PostDetailComments.jsx`

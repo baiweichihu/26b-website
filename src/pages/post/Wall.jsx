@@ -415,49 +415,6 @@ const Wall = () => {
     setStatsMode((prevMode) => (prevMode === 'all' ? 'mine' : 'all'));
   };
 
-  // const handleTestLogin = async () => {
-  //   try {
-  //     setActionLoading(true);
-  //     setNotice(null);
-
-  //     const { error: signInError } = await supabase.auth.signInWithPassword({
-  //       email: 'test@26b.dev',
-  //       password: 'shao26b',
-  //     });
-
-  //     if (signInError) {
-  //       throw new Error(signInError.message || '登录失败');
-  //     }
-
-  //     setNotice({ type: 'success', message: '测试账号登录成功。' });
-  //     await loadAuthStatus();
-  //   } catch (err) {
-  //     setNotice({ type: 'error', message: `登录失败: ${err.message}` });
-  //   } finally {
-  //     setActionLoading(false);
-  //   }
-  // };
-
-  // const handleTestLogout = async () => {
-  //   try {
-  //     setActionLoading(true);
-  //     setNotice(null);
-
-  //     const { error: signOutError } = await supabase.auth.signOut();
-  //     if (signOutError) {
-  //       throw new Error(signOutError.message || '退出失败');
-  //     }
-
-  //     setPosts([]);
-  //     setNotice({ type: 'success', message: '已退出登录。' });
-  //     await loadAuthStatus();
-  //   } catch (err) {
-  //     setNotice({ type: 'error', message: `退出失败: ${err.message}` });
-  //   } finally {
-  //     setActionLoading(false);
-  //   }
-  // };
-
   const isLocked = authStatus === 'anonymous';
   const gateCopy = {
     title: '请登录',

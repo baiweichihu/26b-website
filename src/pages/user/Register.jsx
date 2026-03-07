@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { sendRegisterOtp, submitRegisterRequest } from '../../services/userService';
 import NoticeBox from '../../components/widgets/NoticeBox';
-import { useIrisTransition } from '../../components/ui/IrisTransition';
+import { useIrisTransition } from '../../components/ui/useIrisTransition';
 import styles from './Auth.module.css';
 import RegisterHero from '../../components/features/user/RegisterHero';
 import RegisterForm from '../../components/features/user/RegisterForm';

@@ -1,0 +1,797 @@
+
+.mdContent pre {
+  background: #2c3e50;
+  border-radius: 8px;
+  padding: 15px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.mdImageContainer {
+  display: block;
+  margin: 1.5em 0;
+  text-align: center;
+}
+
+.mdImage {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.imageCaption {
+  display: block;
+  font-size: 0.9em;
+  color: #7f8c8d;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.mdStats {
+  padding: 10px 20px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--panel-border);
+  font-size: 0.9rem;
+  color: var(--muted-color);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ===== 目录样式 ===== */
+.tocContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tocTitle {
+  margin: 0;
+  padding: 20px;
+  background: linear-gradient(120deg, var(--scene-accent-2), var(--scene-accent));
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.tocContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 15px;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tocList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tocItem {
+  margin: 0;
+  padding: 0;
+}
+
+.tocLink {
+  width: 100%;
+  text-align: left;
+  padding: 10px 15px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.tocLink:hover {
+  background: rgba(124, 197, 255, 0.15);
+  color: var(--scene-accent-2);
+  transform: translateX(5px);
+}
+
+.tocItemActive .tocLink {
+  background: rgba(124, 197, 255, 0.2);
+  color: var(--scene-accent-2);
+  font-weight: 600;
+  border-left: 3px solid var(--scene-accent-2);
+}
+
+.tocText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tocEmpty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted-color);
+}
+
+.tocFooter {
+  padding: 15px;
+  border-top: 1px solid var(--panel-border);
+  background: rgba(245, 250, 255, 0.7);
+}
+
+.tocStats {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--scene-accent-2);
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ===== 加载和错误状�?===== */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e0e6ed;
+  border-top: 3px solid #4a6fa5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.pdfLoading,
+.tocEmpty p {
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.errorMessage {
+  padding: 20px;
+  background: #ffeaea;
+  border-radius: 8px;
+  border-left: 4px solid #e74c3c;
+  margin: 20px;
+}
+
+.errorMessage p {
+  margin: 5px 0;
+  color: #c0392b;
+}
+
+.pdfError {
+  padding: 0 20px 20px;
+}
+
+/* ===== 页脚 ===== */
+.journalFooter {
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.footerInfo {
+  text-align: center;
+}
+
+.footerInfo p {
+  margin: 0 0 15px;
+  color: #7f8c8d;
+  font-size: 0.95rem;
+}
+
+.downloadLinks {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.downloadButton {
+  padding: 10px 20px;
+  background: #4a6fa5;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.downloadButton:hover {
+  background: #3a5a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 111, 165, 0.3);
+}
+
+/* ===== 响应式设�?===== */
+@media (max-width: 1200px) {
+  .mainContent {
+    flex-direction: column;
+    height: auto;
+    min-height: auto;
+    max-height: none;
+  }
+
+  .sidebar {
+    flex: none;
+    width: 100%;
+    max-height: 300px;
+    position: static;
+  }
+
+  .layoutContainer {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    margin: 0;
+  }
+
+  /* 确保 PDF �?MD 区域在移动端有足够高�?*/
+  .pdfSection,
+  .mdSection {
+    min-height: 600px;
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .journalContainer {
+    padding: 10px;
+  }
+
+  .journalHeader h1 {
+    font-size: 2rem;
+  }
+
+  .controls {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+
+  .controlPanel {
+    width: 100%;
+    align-items: center;
+  }
+
+  .controlGroup {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .zoomControls,
+  .pageControls,
+  .fontControls,
+  .sectionControls {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .pdfControls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* 工具栏响应式 */
+  .pdfToolbar,
+  .mdToolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sectionHeader {
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .sectionHeader h2 {
+    flex-basis: auto;
+    width: auto;
+  }
+
+  .zoomControls,
+  .pageControls,
+  .fontControls,
+  .sectionControls {
+    flex: 0 0 auto;
+    min-width: auto;
+  }
+
+  .downloadLinks {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .downloadButton {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+
+  /* 移动设备上确�?PDF �?MD 窗口有合理高�?*/
+  .pdfSection,
+  .mdSection {
+    min-height: 600px !important;
+    max-height: 800px !important;
+  }
+
+  .pdfViewerContainer {
+    min-height: 600px !important;
+    max-height: 800px !important;
+  }
+
+  .mdViewerContainer {
+    min-height: 600px !important;
+    max-height: 800px !important;
+  }
+
+  .pdfContent {
+    min-height: 550px !important;
+    max-height: 750px !important;
+    aspect-ratio: auto !important;
+    overflow-y: auto !important;
+  }
+
+  .mdContent {
+    min-height: 550px !important;
+    max-height: 750px !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* ===== 滚动条美�?===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.tocContent::-webkit-scrollbar,
+.pdfContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* 美化滚动�?*/
+.mdContent::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mdContent::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.mdContent::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.mdContent::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* 确保PDF页面正确居中且保持比�?*/
+.react-pdf__Page {
+  display: block !important;
+  margin: 0 auto !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* 确保PDF画布正确显示 */
+.react-pdf__Page__canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* ===== 打印优化 ===== */
+@media print {
+  .journalContainer {
+    background: white;
+    padding: 0;
+  }
+
+  .controls,
+  .sidebar,
+  .journalFooter,
+  .pdfToolbar,
+  .mdToolbar,
+  .sectionHeader {
+    display: none;
+  }
+
+  .mainContent {
+    display: block;
+  }
+
+  .layoutContainer {
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .pdfSection,
+  .mdSection {
+    page-break-inside: avoid;
+  }
+}
+
+/* ===== 全屏模式样式 ===== */
+.pdfSection:fullscreen,
+.mdSection:fullscreen {
+  background: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.pdfSection:fullscreen .sectionHeader,
+.mdSection:fullscreen .sectionHeader {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 2px solid var(--panel-border);
+  padding: 20px 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* 全屏时的PDF查看器容�?*/
+.pdfSection:fullscreen .pdfViewerContainer {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  aspect-ratio: unset !important;
+  max-width: none !important;
+  margin: 0 !important;
+  width: 100% !important;
+}
+
+/* 全屏时的PDF工具�?*/
+.pdfSection:fullscreen .pdfToolbar {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 1px solid var(--panel-border);
+  z-index: 10;
+}
+
+/* 全屏时的PDF内容区域 */
+.pdfSection:fullscreen .pdfContent {
+  flex: 1 !important;
+  display: block !important;
+  overflow: auto !important;
+  padding: 20px !important;
+  aspect-ratio: unset !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  background: var(--panel-bg) !important;
+}
+
+.pdfSection:fullscreen .pdfPageWrapper {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+  width: 100% !important;
+  min-height: 100% !important;
+  height: auto !important;
+  padding: 20px 0 !important;
+}
+
+.pdfSection:fullscreen .pdfPage {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  aspect-ratio: unset !important;
+  display: block !important;
+}
+
+/* 全屏时的MD内容区域 */
+.mdSection:fullscreen .mdViewerContainer {
+  flex: 1;
+  height: 100%;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* ===== 深色模式适配 ===== */
+[data-theme='dark'] .controls {
+  background: rgba(12, 18, 32, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .controlButton {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .controlButton:hover {
+  background: rgba(55, 65, 81, 0.9);
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .controlLabel {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .fontSizeDisplay {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pdfInfo {
+  background: rgba(107, 123, 255, 0.2);
+  color: #a3c9e8;
+}
+
+[data-theme='dark'] .tocTitle {
+  background: linear-gradient(120deg, #4a5568, #2d3748);
+}
+
+[data-theme='dark'] .tocLink {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tocLink:hover {
+  background: rgba(107, 123, 255, 0.15);
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .tocItemActive .tocLink {
+  background: rgba(107, 123, 255, 0.25);
+  color: #6b7bff;
+  border-left-color: #6b7bff;
+}
+
+[data-theme='dark'] .tocFooter {
+  background: rgba(30, 41, 59, 0.7);
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .loadingOverlay {
+  background: rgba(12, 18, 32, 0.9);
+}
+
+[data-theme='dark'] .spinner {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-top-color: #6b7bff;
+}
+
+[data-theme='dark'] .pdfLoading,
+[data-theme='dark'] .tocEmpty p {
+  color: #a0aec0;
+}
+
+[data-theme='dark'] .sectionHeader {
+  background: rgba(30, 41, 59, 0.9);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .tocButton {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tocButton:hover {
+  background: #6b7bff;
+}
+
+[data-theme='dark'] .tocDropdown {
+  background: rgba(12, 18, 32, 0.95);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .tocDropdownHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .tocDropdownLink {
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .tocDropdownLink:hover {
+  color: #6b7bff;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: rgba(74, 85, 104, 0.9);
+}
+
+[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
+}
+
+[data-theme='dark'] .mdContent::-webkit-scrollbar-track,
+[data-theme='dark'] .pdfContent::-webkit-scrollbar-track,
+[data-theme='dark'] .tocContent::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+[data-theme='dark'] .mdContent::-webkit-scrollbar-thumb,
+[data-theme='dark'] .pdfContent::-webkit-scrollbar-thumb,
+[data-theme='dark'] .tocContent::-webkit-scrollbar-thumb {
+  background: rgba(74, 85, 104, 0.9);
+}
+
+[data-theme='dark'] .mdContent::-webkit-scrollbar-thumb:hover,
+[data-theme='dark'] .pdfContent::-webkit-scrollbar-thumb:hover,
+[data-theme='dark'] .tocContent::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
+}
+
+[data-theme='dark'] .pageButton {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pageButton:hover:not(:disabled) {
+  background: rgba(55, 65, 81, 0.9);
+  border-color: #6b7bff;
+  color: #6b7bff;
+}
+
+[data-theme='dark'] .mdPageInfo {
+  color: #a3c9e8;
+}
+
+[data-theme='dark'] .toolbarButton {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .toolbarButton:hover {
+  background: #6b7bff;
+  color: white;
+  border-color: #6b7bff;
+}
+
+[data-theme='dark'] .pdfToolbar,
+[data-theme='dark'] .mdToolbar {
+  background: rgba(12, 18, 32, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .zoomDisplay,
+[data-theme='dark'] .pageInputWrapper input,
+[data-theme='dark'] .pageInputLabel {
+  color: #e0e0e0;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.formSelect,
+.formControl {
+  border-radius: 10px;
+  border-color: var(--panel-border);
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--text-color);
+}
+
+.formSelect {
+  cursor: pointer;
+}
+
+.formControl:focus,
+.formSelect:focus {
+  border-color: #6b7bff;
+  box-shadow: 0 0 0 0.2rem rgba(107, 123, 255, 0.18);
+}
+
+.formTextarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.formHint {
+  color: #999;
+  display: block;
+  margin-top: 0.3rem;
+}
+
+[data-theme='dark'] .formSelect,
+[data-theme='dark'] .formControl {
+  background: rgba(16, 24, 44, 0.85);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .formSelect:focus,
+[data-theme='dark'] .formControl:focus {
+  background: rgba(16, 24, 44, 0.95);
+  border-color: #6b7bff;
+  color: #e0e0e0;
+  box-shadow: 0 0 0 0.2rem rgba(107, 123, 255, 0.25);
+}
+
+[data-theme='dark'] .pdfSection:fullscreen .sectionHeader,
+[data-theme='dark'] .mdSection:fullscreen .sectionHeader {
+  background: rgba(12, 18, 32, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  color: #e0e0e0;
+}
+
+[data-theme='dark'] .pdfSection:fullscreen .pdfToolbar {
+  background: rgba(12, 18, 32, 0.98);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pdfSection:fullscreen .pdfContent,
+[data-theme='dark'] .mdSection:fullscreen .mdViewerContainer {
+  background: rgba(12, 18, 32, 0.95) !important;
+}

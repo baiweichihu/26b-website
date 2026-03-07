@@ -273,7 +273,7 @@ function PermissionRequest() {
                     <p>
                       <strong>申请的权限:</strong>{' '}
                       {Object.entries(req.requested_permissions || {})
-                        .filter(([_, v]) => v)
+                        .filter(([, v]) => v)
                         .map(([k]) => PERMISSION_LABELS[k])
                         .join(', ') || '-'}
                     </p>

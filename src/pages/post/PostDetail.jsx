@@ -12,9 +12,9 @@ import {
   deleteComment,
 } from '../../services/postService';
 import NoticeBox from '../../components/widgets/NoticeBox';
-import PostMetrics from '../../components/features/post/PostMetrics';
-import PostCommentComposer from '../../components/features/post/PostCommentComposer';
-import PostCommentList from '../../components/features/post/PostCommentList';
+import PostDetailHeader from '../../components/features/post/PostDetailHeader';
+import PostDetailArticle from '../../components/features/post/PostDetailArticle';
+import PostDetailComments from '../../components/features/post/PostDetailComments';
 import ReportGateOverlay from '../../components/ui/ReportGateOverlay';
 import styles from './Wall.module.css';
 import postStyles from '../../components/features/post/PostCard.module.css';
@@ -468,145 +468,46 @@ const PostDetail = () => {
         className={`scene-panel ${styles.wallPanel} ${detailStyles.detailPanel}`}
         ref={panelRef}
       >
-        <header className={detailStyles.detailHeader}>
-          <div>
-            <p className="scene-kicker" data-animate="detail">
-              帖子详情
-            </p>
-            <h1 className="scene-title" data-animate="detail">
-              {post.title || '帖子'}
-            </h1>
-            <div className={detailStyles.headerMeta} data-animate="detail">
-              <span>{formattedDate}</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            className={`scene-button ghost ${detailStyles.backButton}`}
-            onClick={() => navigate(-1)}
-            data-animate="detail"
-          >
-            <i className="fas fa-arrow-left" aria-hidden="true"></i>
-            返回
-          </button>
-        </header>
+        <PostDetailHeader
+          title={post.title}
+          formattedDate={formattedDate}
+          onBack={() => navigate(-1)}
+        />
 
         {notice && <NoticeBox type={notice.type} message={notice.message} />}
 
-        <article
-          className={`${postStyles.postCard} ${postStyles.postCardDetail} ${detailStyles.detailCard}`}
-          data-animate="content"
-        >
-          <div className={postStyles.postHeader}>
-            <div className={postStyles.authorBlock}>
-              <div className={postStyles.avatarCircle}>
-                {post.author?.avatar_url ? (
-                  <img src={post.author.avatar_url} alt={authorName} />
-                ) : (
-                  <span>{authorName.charAt(0)}</span>
-                )}
-              </div>
-              <div className={postStyles.authorInfo}>
-                <span className={postStyles.postAuthorName}>{authorName}</span>
-                {post.is_anonymous && <span className={postStyles.anonymousTag}>匿名发布</span>}
-              </div>
-            </div>
-            <span className={postStyles.postDate}>{formattedDate}</span>
-          </div>
-
-          <p className={detailStyles.contentText}>{post.content}</p>
-
-          {post.media_urls && post.media_urls.length > 0 && (
-            <div className={postStyles.postMedia}>
-              <div className={`${postStyles.mediaGrid} ${postStyles.mediaGridDetail}`}>
-                {post.media_urls.map((url, idx) =>
-                  isVideoUrl(url) ? (
-                    <video
-                      key={idx}
-                      src={url}
-                      className={`${postStyles.mediaThumb} ${postStyles.mediaThumbDetail}`}
-                      onClick={() => openMedia(url)}
-                      muted
-                      preload="metadata"
-                    />
-                  ) : (
-                    <img
-                      key={idx}
-                      src={url}
-                      alt={`帖子图片 ${idx + 1}`}
-                      className={`${postStyles.mediaThumb} ${postStyles.mediaThumbDetail}`}
-                      onClick={() => openMedia(url)}
-                    />
-                  )
-                )}
-              </div>
-            </div>
-          )}
-
-          <div className={detailStyles.detailFooter}>
-            <PostMetrics
-              viewCount={viewCount}
-              likeCount={likeCount}
-              commentCount={commentCount}
-              isLiked={isLiked}
-              onToggleLike={handleToggleLike}
-              likeLoading={likeLoading}
-              size="large"
-              stopPropagation={false}
-            />
-            <div className={detailStyles.actionGroup}>
-              {post.is_owner ? (
-                <button
-                  type="button"
-                  onClick={handleDeletePost}
-                  className={`${detailStyles.actionButton} ${detailStyles.dangerButton}`}
-                  disabled={actionLoading}
-                >
-                  删除
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={`${detailStyles.actionButton} ${detailStyles.reportButton}`}
-                  onClick={handleReportPost}
-                >
-                  举报
-                </button>
-              )}
-            </div>
-          </div>
-        </article>
-
-        <div className={detailStyles.sectionHeader} data-animate="content">
-          <h2 className={detailStyles.sectionTitle}>评论</h2>
-          <span className={detailStyles.sectionHint}>{commentCount} 条评论</span>
-        </div>
-
-        {comments.length === 0 && (
-          <div className={detailStyles.sectionHint} data-animate="content">
-            还没有评论，快来抢沙发。
-          </div>
-        )}
-
-        <PostCommentList
-          comments={comments}
-          currentUserId={currentUserId}
-          onToggleLike={handleToggleCommentLike}
-          onDeleteComment={handleDeleteComment}
-          onReplySelect={handleReplySelect}
-          onReport={handleReportComment}
+        <PostDetailArticle
+          post={post}
+          authorName={authorName}
+          formattedDate={formattedDate}
+          isVideoUrl={isVideoUrl}
+          onOpenMedia={openMedia}
+          viewCount={viewCount}
+          likeCount={likeCount}
+          commentCount={commentCount}
+          isLiked={isLiked}
+          onToggleLike={handleToggleLike}
+          likeLoading={likeLoading}
           actionLoading={actionLoading}
+          onDeletePost={handleDeletePost}
+          onReportPost={handleReportPost}
         />
 
-        <PostCommentComposer
-          ref={composerRef}
+        <PostDetailComments
+          commentCount={commentCount}
+          comments={comments}
+          currentUserId={currentUserId}
+          onToggleCommentLike={handleToggleCommentLike}
+          onDeleteComment={handleDeleteComment}
+          onReplySelect={handleReplySelect}
+          onReportComment={handleReportComment}
+          actionLoading={actionLoading}
+          composerRef={composerRef}
           commentDraft={commentDraft}
           onDraftChange={setCommentDraft}
-          onSubmit={handleAddComment}
+          onAddComment={handleAddComment}
           replyTargetName={replyTargetName}
           onClearReply={() => setReplyTarget('')}
-          disabled={actionLoading}
-          maxLength={200}
         />
       </section>
 

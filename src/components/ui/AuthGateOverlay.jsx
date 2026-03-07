@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useIrisTransition } from './IrisTransition';
+import { useIrisTransition } from './useIrisTransition';
 import styles from './AuthGateOverlay.module.css';
 
 const AuthGateOverlay = ({ title, message }) => {

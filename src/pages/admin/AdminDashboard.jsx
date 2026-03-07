@@ -124,7 +124,12 @@ function AdminDashboard() {
   // 当 userId 和 userRole 加载完成后，获取数据
   useEffect(() => {
     if (!userId || !userRole) return;
-    loadData(true);
+
+    const timer = setTimeout(() => {
+      void loadData(true);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [userId, userRole, loadData]);
 
   // 使用 Supabase Realtime 监听统计数据变化
@@ -245,7 +250,7 @@ function AdminDashboard() {
     return item.permission !== false;
   });
 
-  const accessibleSuperuserItems = superuserMenuItems.filter((item) => {
+  const accessibleSuperuserItems = superuserMenuItems.filter(() => {
     return userRole === 'superuser';
   });
 

@@ -70,7 +70,7 @@ function PermissionApprovals() {
     initPage();
   }, [navigate]);
 
-  const handleApprove = async (requestId, requesterId) => {
+  const handleApprove = async (requestId) => {
     setProcessingId(requestId);
     try {
       const { error } = await approvePermissionChangeRequest(requestId, user.id, adminNotes[requestId] || '');
@@ -193,7 +193,7 @@ function PermissionApprovals() {
                     <h4>申请的权限：</h4>
                     <div className={permApprovalStyles.permissionsList}>
                       {Object.entries(request.requested_permissions)
-                        .filter(([_, value]) => value === true)
+                        .filter(([, value]) => value === true)
                         .map(([key]) => (
                           <span key={key} className={permApprovalStyles.permissionTag}>
                             {PERMISSION_LABELS[key]}

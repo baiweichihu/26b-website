@@ -1,4 +1,5 @@
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../lib/supabase.js';
+import { logger } from '../utils/logger.js';
 
 const callPublicEdgeFunction = async (functionName, payload) => {
   const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
@@ -91,7 +92,7 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
       return { success: true, data };
     }
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -173,7 +174,7 @@ export const resetPasswordConfirm = async (email, otp, newPassword) => {
 
     return { success: true, message: '密码重置成功' };
   } catch (error) {
-    console.error('Password reset error:', error);
+    logger.error('Password reset error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -204,7 +205,7 @@ export const submitRegisterRequest = async ({ email, otp, nickname, reason }) =>
 
     return { success: true, data: result.data };
   } catch (error) {
-    console.error('Register request error:', error);
+    logger.error('Register request error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -257,7 +258,7 @@ export const getProfileDetails = async () => {
 
     return { success: true, profile };
   } catch (error) {
-    console.error('Fetch profile error:', error);
+    logger.error('Fetch profile error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -289,8 +290,9 @@ export const updateProfileDetails = async ({ nickname, bio }) => {
 
     return { success: true };
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error:', error);
     return { success: false, error: error.message };
   }
 };
 // ================== END OF User Profile Management ===========================
+

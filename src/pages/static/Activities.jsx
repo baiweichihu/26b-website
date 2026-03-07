@@ -41,8 +41,14 @@ const Activities = () => {
       void loadAuthStatus();
     });
 
-    void loadAuthStatus();
-    return () => data?.subscription?.unsubscribe?.();
+    const timer = setTimeout(() => {
+      void loadAuthStatus();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      data?.subscription?.unsubscribe?.();
+    };
   }, [loadAuthStatus]);
 
   const isLocked = authStatus === 'loading' || authStatus === 'anonymous';

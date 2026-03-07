@@ -16,7 +16,7 @@ const HANDBOOK_FILE_NAMES = [
 
 const Handbook = () => {
   const [authStatus, setAuthStatus] = useState('loading');
-  const [selectedFileId, setSelectedFileId] = useState('');
+  const [selectedFileId, setSelectedFileId] = useState(HANDBOOK_FILE_NAMES[0] || '');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [pdfScale, setPdfScale] = useState(1);
@@ -37,12 +37,6 @@ const Handbook = () => {
 
   const selectedFile =
     handbookFiles.find((item) => item.id === selectedFileId) || handbookFiles[0] || null;
-
-  useEffect(() => {
-    if (!selectedFileId && handbookFiles.length > 0) {
-      setSelectedFileId(handbookFiles[0].id);
-    }
-  }, [selectedFileId, handbookFiles]);
 
   const loadAuthStatus = useCallback(async (userOverride = null) => {
     try {
@@ -87,13 +81,23 @@ const Handbook = () => {
       void loadAuthStatus(session?.user ?? null);
     });
 
-    void loadAuthStatus();
-    return () => data?.subscription?.unsubscribe?.();
+    const timer = setTimeout(() => {
+      void loadAuthStatus();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      data?.subscription?.unsubscribe?.();
+    };
   }, [loadAuthStatus]);
 
   useEffect(() => {
-    setCurrentPage(1);
-    setTotalPages(0);
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      setTotalPages(0);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [selectedFile?.id]);
 
   useEffect(() => {

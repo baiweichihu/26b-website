@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import ThemeToggle from '../ui/ThemeToggle';
-import { useIrisTransition } from '../ui/IrisTransition';
+import { useIrisTransition } from '../ui/useIrisTransition';
 import styles from './Navbar.module.css';
 
 const LOBBY_ITEMS = [

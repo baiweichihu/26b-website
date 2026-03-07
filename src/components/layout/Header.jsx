@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './Header.module.css';
-import { useIrisTransition } from '../ui/IrisTransition';
+import { useIrisTransition } from '../ui/useIrisTransition';
 import { supabase } from '../../lib/supabase';
 import UserDock from './UserDock';
 
