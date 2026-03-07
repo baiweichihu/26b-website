@@ -1,0 +1,8 @@
+[functions.send-register-email]
+verify_jwt = false
+
+[functions.register-otp]
+verify_jwt = false
+
+[functions.password-reset-otp]
+verify_jwt = false

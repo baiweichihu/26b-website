@@ -1,5 +1,39 @@
-import { supabase } from '../lib/supabase.js';
-import { generateIdenticonAvatarUrl } from '../utils/avatarUtils.js';
+import { supabase, SUPABASE_KEY, SUPABASE_URL } from '../lib/supabase.js';
+
+const callPublicEdgeFunction = async (functionName, payload) => {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/${functionName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_KEY,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  let body = null;
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+
+  if (!response.ok) {
+    return {
+      success: false,
+      error: body?.error || `请求失败（${response.status}）`,
+    };
+  }
+
+  if (body?.error) {
+    return { success: false, error: body.error };
+  }
+
+  return { success: true, data: body };
+};
+
+const callRegisterOtpFunction = async (payload) => callPublicEdgeFunction('register-otp', payload);
+const callPasswordResetOtpFunction = async (payload) =>
+  callPublicEdgeFunction('password-reset-otp', payload);
 
 // ================== User Registration / Login / Password Reset / Logout ===========================
 /**
@@ -14,14 +48,24 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
   try {
     let email = account;
 
-    const updateProfileOnSignIn = async (user) => {
-      if (!user?.id) return;
-      const { error: profileError } = await supabase
+    const ensureApprovedProfile = async (user) => {
+      if (!user?.id) {
+        throw new Error('账号异常，请重试');
+      }
+
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .update({ email: user.email })
-        .eq('id', user.id);
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
       if (profileError) {
-        console.warn('Profile update on sign-in failed:', profileError);
+        throw new Error(profileError.message || '账号校验失败');
+      }
+
+      if (!profile) {
+        await supabase.auth.signOut();
+        throw new Error('账号尚未审批通过，请等待管理员处理');
       }
     };
 
@@ -32,7 +76,7 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
         password: password,
       });
       if (error) throw error;
-      await updateProfileOnSignIn(data?.user);
+      await ensureApprovedProfile(data?.user);
       return { success: true, data };
     }
     //otp login
@@ -43,7 +87,7 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
         type: 'email',
       });
       if (error) throw error;
-      await updateProfileOnSignIn(data?.user);
+      await ensureApprovedProfile(data?.user);
       return { success: true, data };
     }
   } catch (error) {
@@ -58,25 +102,14 @@ export const signIn = async ({ account, password, otp, loginType = 'password' })
  */
 export const sendRegisterOtp = async (email) => {
   const normalizedEmail = email?.trim();
-  const { data: existingProfiles, error: existingProfileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('email', normalizedEmail)
-    .limit(1);
-  if (existingProfileError) return { success: false, error: existingProfileError.message };
-  if (existingProfiles?.length) {
-    return { success: false, error: '用户已经存在，请登录' };
-  }
-
-  const { error } = await supabase.auth.signInWithOtp({
+  const result = await callRegisterOtpFunction({
+    action: 'send',
     email: normalizedEmail,
-    options: {
-      shouldCreateUser: true,
-      data: {},
-    },
   });
-  if (error) return { success: false, error: error.message };
-  return { success: true, message: `验证码已经发送至${email}` };
+  if (!result.success) {
+    return { success: false, error: result.error || '验证码发送失败' };
+  }
+  return { success: true, message: result.data?.message || `验证码已经发送至${email}` };
 };
 
 /**
@@ -84,11 +117,27 @@ export const sendRegisterOtp = async (email) => {
  * @param {string} email
  */
 export const sendLoginOtp = async (email) => {
+  const normalizedEmail = email?.trim();
+
+  const { data: existingProfiles, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', normalizedEmail)
+    .limit(1);
+
+  if (profileError) {
+    return { success: false, error: profileError.message };
+  }
+
+  if (!existingProfiles?.length) {
+    return { success: false, error: '账号尚未审批通过，暂不可登录' };
+  }
+
   const { error } = await supabase.auth.signInWithOtp({
-    email,
+    email: normalizedEmail,
   });
   if (error) return { success: false, error: error.message };
-  return { success: true, message: `验证码已经发送至${email}` };
+  return { success: true, message: `验证码已经发送至${normalizedEmail}` };
 };
 
 /**
@@ -96,9 +145,13 @@ export const sendLoginOtp = async (email) => {
  * @param {string} email
  */
 export const sendPasswordResetOtp = async (email) => {
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
-  if (error) return { success: false, error: error.message };
-  return { success: true, message: `密码重置链接已经发送至${email}` };
+  const normalizedEmail = email?.trim();
+  const result = await callPasswordResetOtpFunction({
+    action: 'send',
+    email: normalizedEmail,
+  });
+  if (!result.success) return { success: false, error: result.error || '验证码发送失败' };
+  return { success: true, message: result.data?.message || `验证码已发送至${normalizedEmail}` };
 };
 
 /**
@@ -109,19 +162,14 @@ export const sendPasswordResetOtp = async (email) => {
  */
 export const resetPasswordConfirm = async (email, otp, newPassword) => {
   try {
-    // verify otp
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: 'recovery',
+    const result = await callPasswordResetOtpFunction({
+      action: 'verify_reset',
+      email: email?.trim(),
+      otp: otp?.trim(),
+      newPassword,
     });
-    if (verifyError) throw verifyError;
 
-    // update password
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-    if (updateError) throw updateError;
+    if (!result.success) throw new Error(result.error || '密码重置失败');
 
     return { success: true, message: '密码重置成功' };
   } catch (error) {
@@ -131,51 +179,44 @@ export const resetPasswordConfirm = async (email, otp, newPassword) => {
 };
 
 /**
- * Add register user profile
+ * Verify email OTP and submit register request
  * @param {Object} params
  * @param {string} params.email
  * @param {string} params.otp
- * @param {string} params.password
  * @param {string} params.nickname
+ * @param {string} params.reason
  */
-export const signUpVerifyAndSetInfo = async ({ email, otp, password, nickname }) => {
+export const submitRegisterRequest = async ({ email, otp, nickname, reason }) => {
   try {
-    // verify otp and set password
-    const { data: authData, error: verifyError } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: 'email',
-    });
-    if (verifyError) throw verifyError;
+    const normalizedEmail = email?.trim();
 
-    const user = authData.user;
-    if (password) {
-      const { error: pwdError } = await supabase.auth.updateUser({
-        password: password,
-      });
-      if (pwdError) throw pwdError;
+    const result = await callRegisterOtpFunction({
+      action: 'verify_submit',
+      email: normalizedEmail,
+      otp: otp?.trim(),
+      nickname: nickname?.trim(),
+      reason: reason?.trim(),
+    });
+
+    if (!result.success) {
+      throw new Error(result.error || '注册申请提交失败');
     }
 
-    const avatarUrl = generateIdenticonAvatarUrl(user.id ? user.id : email);
-
-    // update profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ nickname: nickname, avatar_url: avatarUrl })
-      .eq('id', user.id); // update the nickname of the user whose id is equal to the current user id
-
-    if (profileError) throw profileError;
-
-    return { success: true, data: authData };
+    return { success: true, data: result.data };
   } catch (error) {
-    console.error('SignUp error:', error);
+    console.error('Register request error:', error);
     return { success: false, error: error.message };
   }
 };
 
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
-  if (error) throw error;
+  if (error) {
+    const message = error.message || '';
+    if (!/auth session missing/i.test(message)) {
+      throw error;
+    }
+  }
   return { success: true };
 };
 
@@ -191,47 +232,6 @@ export const getCurrentUser = async () => {
 // ================== END OF User Registration / Login / Password Reset / Logout ===========================
 
 // ================== User Profile Management ===========================
-/**
- * Submit guest identity upgrade request
- * @param {Object} params
- * @param {string} params.evidence
- * @param {string|null} params.nickname
- */
-export const submitGuestIdentityUpgradeRequest = async ({ evidence, nickname }) => {
-  try {
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      throw new Error('You are not signed in.');
-    }
-
-    const now = new Date().toISOString();
-    const payload = {
-      requester_id: user.id,
-      evidence: JSON.stringify({
-        message: evidence?.trim() || '',
-        nickname: nickname || null,
-      }),
-      status: 'pending',
-      created_at: now,
-    };
-
-    const { error: insertError } = await supabase.from('upgrade_requests').insert(payload);
-
-    if (insertError) {
-      throw new Error(insertError.message || 'Failed to submit request.');
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error('Guest identity upgrade request error:', error);
-    return { success: false, error: error.message };
-  }
-};
-
 /**
  * Get current user's profile details
  */

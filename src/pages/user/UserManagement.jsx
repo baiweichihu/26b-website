@@ -5,12 +5,6 @@ import NoticeBox from '../../components/widgets/NoticeBox';
 import { useIrisTransition } from '../../components/ui/IrisTransition';
 import styles from './UserManagement.module.css';
 
-const identityLabels = {
-  classmate: '本班同学',
-  alumni: '校友',
-  guest: '游客',
-};
-
 const roleLabels = {
   admin: '管理员',
   superuser: '超级管理员',
@@ -41,7 +35,7 @@ const UserManagement = () => {
 
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('nickname, avatar_url, identity_type, role, email, bio, created_at')
+        .select('nickname, avatar_url, role, email, bio, created_at')
         .eq('id', user.id)
         .single();
 
@@ -52,17 +46,6 @@ const UserManagement = () => {
       }
 
       setProfile(profileData);
-
-      if (profileData.role === 'admin' || profileData.role === 'superuser') {
-        setStatus('member');
-        return;
-      }
-
-      if (profileData.identity_type === 'guest') {
-        setStatus('guest');
-        return;
-      }
-
       setStatus('member');
     } catch (error) {
       console.error('UserManagement load error:', error);
@@ -85,14 +68,16 @@ const UserManagement = () => {
     const ctx = gsap.context(() => {
       const items = panel.querySelectorAll('[data-animate="item"]');
       gsap.from(panel, { opacity: 0, y: 14, duration: 0.45, ease: 'power2.out' });
-      gsap.from(items, {
-        opacity: 0,
-        y: 12,
-        duration: 0.5,
-        ease: 'power2.out',
-        stagger: 0.08,
-        delay: 0.1,
-      });
+      if (items.length > 0) {
+        gsap.from(items, {
+          opacity: 0,
+          y: 12,
+          duration: 0.5,
+          ease: 'power2.out',
+          stagger: 0.08,
+          delay: 0.1,
+        });
+      }
     }, panel);
 
     return () => ctx.revert();
@@ -136,10 +121,7 @@ const UserManagement = () => {
   const displayRole = useMemo(() => {
     if (status === 'anonymous') return '未登录';
     if (profile?.role && roleLabels[profile.role]) return roleLabels[profile.role];
-    if (profile?.identity_type && identityLabels[profile.identity_type]) {
-      return identityLabels[profile.identity_type];
-    }
-    return '成员';
+    return '内部成员';
   }, [profile, status]);
 
   const avatarText = displayName ? displayName.charAt(0) : 'U';
@@ -230,16 +212,14 @@ const UserManagement = () => {
               </li>
               <li className={styles.metaItem}>
                 <span>身份类型</span>
-                <span>{identityLabels[profile?.identity_type] || '—'}</span>
+                <span>内部成员</span>
               </li>
               <li className={styles.metaItem}>
                 <span>角色</span>
                 <span>{roleLabels[profile?.role] || '普通用户'}</span>
               </li>
-              <li className={styles.metaItem}>
-                <span>密码</span>
-                <span className={styles.passwordAction}>
-                  <span className={styles.passwordDots}>........</span>
+              <li className={`${styles.metaItem} ${styles.passwordOnlyRow}`}>
+                <span className={styles.passwordActionSingle}>
                   <button
                     type="button"
                     className={styles.passwordButton}
@@ -255,16 +235,6 @@ const UserManagement = () => {
           <div className={styles.card} data-animate="item">
             <p className={styles.sectionTitle}>管理选项</p>
             <div className={styles.actionList}>
-              {status === 'guest' && (
-                <Link
-                  to="/guest-update-identity"
-                  className={styles.actionItem}
-                  onClick={(event) => triggerIris?.(event, '/guest-update-identity')}
-                >
-                  <span>升级身份</span>
-                  <span className={styles.actionMeta}>Upgrade</span>
-                </Link>
-              )}
               <button type="button" className={styles.actionItem} onClick={handleProfileEditNav}>
                 <span>修改资料</span>
                 <span className={styles.actionMeta}>Edit</span>
@@ -278,11 +248,6 @@ const UserManagement = () => {
                 <span className={styles.actionMeta}>Sign out</span>
               </button>
             </div>
-            {profile?.identity_type === 'alumni' && (
-              <div className={styles.alumniHint}>
-                <p>ⓘ 如果你的身份不是校友，而是少26B班级同学，请联系我们解决</p>
-              </div>
-            )}
           </div>
         </div>
       </section>

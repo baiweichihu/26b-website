@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { sendRegisterOtp, signUpVerifyAndSetInfo } from '../../services/userService';
+import { sendRegisterOtp, submitRegisterRequest } from '../../services/userService';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import { useIrisTransition } from '../../components/ui/IrisTransition';
 import styles from './Auth.module.css';
@@ -12,9 +12,8 @@ const Register = () => {
   const [formData, setFormData] = useState({
     email: '',
     otp: '',
-    password: '',
-    confirmPassword: '',
     nickname: '',
+    reason: '',
   });
   const [sendingOtp, setSendingOtp] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -111,22 +110,14 @@ const Register = () => {
     return () => ctx.revert();
   }, []);
 
-  const passwordTooShort = Boolean(formData.password) && formData.password.length < 6;
-
   const canSubmit = useMemo(() => {
     return (
       Boolean(formData.email.trim()) &&
       Boolean(formData.otp.trim()) &&
-      Boolean(formData.password) &&
-      !passwordTooShort &&
-      Boolean(formData.confirmPassword) &&
-      formData.password === formData.confirmPassword &&
-      Boolean(formData.nickname.trim())
+      Boolean(formData.nickname.trim()) &&
+      Boolean(formData.reason.trim())
     );
-  }, [formData, passwordTooShort]);
-
-  const confirmPasswordMismatch =
-    Boolean(formData.confirmPassword) && formData.password !== formData.confirmPassword;
+  }, [formData]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -152,41 +143,25 @@ const Register = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (passwordTooShort) {
-      setNotice({ type: 'error', message: '密码长度至少需要 6 个字符。' });
-      return;
-    }
-    if (confirmPasswordMismatch) {
-      setNotice({ type: 'error', message: '密码不匹配' });
-      return;
-    }
     if (!canSubmit || submitting) return;
 
     setSubmitting(true);
     setNotice(null);
-    const result = await signUpVerifyAndSetInfo({
+    const result = await submitRegisterRequest({
       email: formData.email.trim(),
       otp: formData.otp.trim(),
-      password: formData.password,
       nickname: formData.nickname.trim(),
+      reason: formData.reason.trim(),
     });
 
     if (result.success) {
-      setNotice({ type: 'success', message: '注册成功！您可以可返回首页' });
+      setNotice({ type: 'success', message: '注册申请已提交，请等待 superuser 审核' });
       setFormData({
         email: formData.email.trim(),
         otp: '',
-        password: '',
-        confirmPassword: '',
         nickname: '',
+        reason: '',
       });
-      setSubmitting(false);
-      if (triggerIris) {
-        triggerIris(null, '/');
-      } else {
-        navigate('/');
-      }
-      return;
     } else {
       setNotice({ type: 'error', message: result.error || 'Registration failed.' });
     }
@@ -220,7 +195,6 @@ const Register = () => {
               handleSubmit={handleSubmit}
               handleSendOtp={handleSendOtp}
               sendingOtp={sendingOtp}
-              confirmPasswordMismatch={confirmPasswordMismatch}
               canSubmit={canSubmit}
               submitting={submitting}
               fromPath={fromPath}

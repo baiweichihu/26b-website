@@ -33,12 +33,6 @@ const DEFAULT_PROFILE_AVATAR_DATA_URI =
 
 const normalizeOwnerUserId = (value) => String(value || '').trim();
 
-const identityTypeLabels = {
-  classmate: '本班同学',
-  alumni: '校友',
-  guest: '游客',
-};
-
 const accountRoleLabels = {
   user: '普通用户',
   admin: '管理员',
@@ -194,7 +188,7 @@ const PeopleProfileEdit = () => {
         setOwnerCandidatesLoading(true);
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, nickname, email, avatar_url, identity_type, role')
+          .select('id, nickname, email, avatar_url, role')
           .order('created_at', { ascending: false })
           .limit(300);
 
@@ -508,9 +502,7 @@ const PeopleProfileEdit = () => {
                                 <p className={styles.ownerPrimary}>{candidate.nickname || '未设置昵称'}</p>
                                 <p className={styles.ownerSecondary}>ID：{candidate.id}</p>
                                 <p className={styles.ownerSecondary}>Email：{candidate.email || '无'}</p>
-                                <p className={styles.ownerSecondary}>
-                                  身份：{identityTypeLabels[candidate.identity_type] || candidate.identity_type || '未知'}
-                                </p>
+                                <p className={styles.ownerSecondary}>身份：内部成员</p>
                                 <p className={styles.ownerSecondary}>
                                   角色：{accountRoleLabels[candidate.role] || candidate.role || '未知'}
                                 </p>

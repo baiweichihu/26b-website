@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
-import { hasValidArchiveAccess } from '../../utils/archiveAccess';
 import { deletePeopleProfileById, getPeopleProfiles } from '../../services/peopleService';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import PeopleProfileActionBar from '../../components/features/people/PeopleProfileActionBar';
@@ -109,7 +108,7 @@ const PeopleCenter = () => {
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('identity_type, role')
+        .select('role')
         .eq('id', user.id)
         .single();
 
@@ -120,33 +119,6 @@ const PeopleCenter = () => {
       }
 
       setIsSuperuser(profile.role === 'superuser');
-
-      if (profile.role === 'admin' || profile.role === 'superuser' || profile.identity_type === 'classmate') {
-        setAuthStatus('member');
-        return;
-      }
-
-      if (profile.identity_type === 'guest') {
-        setAuthStatus('guest');
-        return;
-      }
-
-      if (profile.identity_type === 'alumni') {
-        const { data: accessRequests, error: requestError } = await supabase
-          .from('access_requests')
-          .select('status, archive_category, request_access_start_time, request_access_end_time')
-          .eq('requester_id', user.id)
-          .eq('status', 'approved')
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (!requestError && hasValidArchiveAccess(accessRequests, 'introduction')) {
-          setAuthStatus('member');
-        } else {
-          setAuthStatus('guest');
-        }
-        return;
-      }
 
       setAuthStatus('member');
     } catch (error) {
@@ -173,7 +145,7 @@ const PeopleCenter = () => {
     void run();
   }, [authStatus, loadPeople]);
 
-  const isLocked = authStatus === 'loading' || authStatus === 'anonymous' || authStatus === 'guest';
+  const isLocked = authStatus === 'loading' || authStatus === 'anonymous';
   const directoryRole = useMemo(() => {
     if (location.pathname.includes('/teachers')) return 'teacher';
     return 'student';
@@ -204,14 +176,6 @@ const PeopleCenter = () => {
       return {
         title: '加载中',
         message: '正在验证您的身份和权限...',
-      };
-    }
-
-    if (authStatus === 'guest') {
-      return {
-        title: '需要申请查档权限',
-        message: '校友需要向管理员申请查档时间，批准后方可浏览人物志',
-        isApplyRequired: true,
       };
     }
 

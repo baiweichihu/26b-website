@@ -5,18 +5,11 @@ import { publishSystemAnnouncement } from '../../services/adminService';
 import styles from './AdminSimplePage.module.css';
 import announcementStyles from './Announcement.module.css';
 
-const IDENTITY_TYPES = [
-  { value: 'classmate', label: '本班同学' },
-  { value: 'alumni', label: '校友' },
-  { value: 'guest', label: '游客' },
-];
-
 function Announcement() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [targetIdentities, setTargetIdentities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -92,12 +85,6 @@ function Announcement() {
     initPage();
   }, [navigate]);
 
-  const handleIdentityToggle = (value) => {
-    setTargetIdentities(prev =>
-      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-    );
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -119,7 +106,7 @@ function Announcement() {
         title,
         content,
         user.id,
-        targetIdentities.length > 0 ? targetIdentities : []
+        []
       );
 
       if (error) {
@@ -128,7 +115,6 @@ function Announcement() {
         setSuccessMessage(`公告已发布，${insertedCount} 名用户已收到通知！`);
         setTitle('');
         setContent('');
-        setTargetIdentities([]);
         setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -205,21 +191,8 @@ function Announcement() {
             </div>
 
             <div className={announcementStyles.formSection}>
-              <label>接收对象（不选则发送给所有用户）：</label>
-              <div className={announcementStyles.identitiesGrid}>
-                {IDENTITY_TYPES.map(identity => (
-                  <div key={identity.value} className={announcementStyles.identityCheckbox}>
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={targetIdentities.includes(identity.value)}
-                        onChange={() => handleIdentityToggle(identity.value)}
-                      />
-                      <span>{identity.label}</span>
-                    </label>
-                  </div>
-                ))}
-              </div>
+              <label>接收对象：</label>
+              <p className={announcementStyles.charCount}>固定发送给全部内部人员</p>
             </div>
 
             {errorMessage && <div className={announcementStyles.errorMessage}>{errorMessage}</div>}

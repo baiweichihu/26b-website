@@ -32,7 +32,7 @@ export async function createWelcomeNotification(userId) {
  * 创建审核结果通知
  * @param {string} userId - 接收通知的用户ID
  * @param {string} status - 审核状态 (approved/rejected)
- * @param {string} requestType - 申请类型 (如: 升级校友、修改头像等)
+ * @param {string} requestType - 申请类型 (如: 注册申请、权限变更等)
  * @param {string} relatedResourceId - 相关资源ID
  * @returns {Promise<Object>}
  */
@@ -406,18 +406,17 @@ export async function deleteNotification(notificationId) {
 
 /**
  * 发布系统公告（Superuser 操作）
- * 向指定身份的用户或所有用户发送公告通知
+ * 向全部内部用户发送公告通知
  * @param {string} title - 公告标题
  * @param {string} content - 公告内容
  * @param {string} publishedBy - 发布者ID（Superuser）
- * @param {Array<string>} targetIdentities - 目标身份数组 (classmate/alumni/guest)，为空时发送给所有用户
+ * @param {Array<string>} targetIdentities - 已废弃参数，保留兼容
  * @returns {Promise<Object>} { insertedCount, error }
  */
 export async function createSystemAnnouncementNotification(
   title,
   content,
-  publishedBy,
-  targetIdentities = []
+  publishedBy
 ) {
   if (!title || !content || !publishedBy) {
     return {
@@ -427,12 +426,7 @@ export async function createSystemAnnouncementNotification(
   }
 
   try {
-    let query = supabase.from('profiles').select('id');
-
-    // 如果指定了目标身份，仅向这些身份的用户发送
-    if (targetIdentities.length > 0) {
-      query = query.in('identity_type', targetIdentities);
-    }
+    const query = supabase.from('profiles').select('id');
 
     const { data: recipients, error: fetchError } = await query;
 
@@ -459,7 +453,7 @@ export async function createSystemAnnouncementNotification(
       created_at: new Date().toISOString(),
     }));
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('notifications')
       .insert(notifications);
 

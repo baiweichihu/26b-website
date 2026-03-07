@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "deploy": "gh-pages -d dist -r git@github.com:baiweichihu/26b-website.git",
     "prepare": "husky",
-    "test": "jest"
+    "test": "jest",
+    "mail:approved": "node scripts/send-register-email.mjs --status approved",
+    "mail:rejected": "node scripts/send-register-email.mjs --status rejected"
   },
   "lint-staged": {
     "*.{js,jsx}": [
@@ -26,6 +28,7 @@
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@supabase/supabase-js": "^2.90.1",
     "bootstrap": "^5.3.8",
+    "mailtrap": "^4.4.0",
     "react": "^19.2.0",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.0",

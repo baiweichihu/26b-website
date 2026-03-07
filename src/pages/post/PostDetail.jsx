@@ -102,7 +102,6 @@ const PostDetail = () => {
     }
   }, [postId]);
 
-  const [currentUserRole, setCurrentUserRole] = useState(null);
   const [isBanned, setIsBanned] = useState(false);
 
   useEffect(() => {
@@ -115,10 +114,9 @@ const PostDetail = () => {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('role, is_banned')
+          .select('is_banned')
           .eq('id', user.id)
           .single();
-        setCurrentUserRole(profile?.role || null);
         setIsBanned(profile?.is_banned || false);
       }
     };
@@ -436,19 +434,6 @@ const PostDetail = () => {
     return target?.author?.nickname || '匿名用户';
   }, [replyTarget, comments]);
 
-  const visibilityConfig = {
-    public: { label: '所有人可见', icon: 'fa-globe' },
-    alumni_only: { label: '仅校友可见', icon: 'fa-user-graduate' },
-    classmate_only: { label: '仅本班同学可见', icon: 'fa-user-friends' },
-    private: { label: '仅自己可见', icon: 'fa-lock' },
-  };
-  const visibilityMeta = visibilityConfig[post?.visibility] || visibilityConfig.public;
-  
-  const showVisibilityBadge =
-    Boolean(post?.is_owner) ||
-    currentUserRole === 'admin' || 
-    currentUserRole === 'superuser';
-
   if (loading) {
     return (
       <div className={`page-content scene-page ${styles.pageContent}`}>
@@ -493,12 +478,6 @@ const PostDetail = () => {
             </h1>
             <div className={detailStyles.headerMeta} data-animate="detail">
               <span>{formattedDate}</span>
-              {showVisibilityBadge && (
-                <span className={detailStyles.metaBadge}>
-                  <i className={`fas ${visibilityMeta.icon}`} aria-hidden="true"></i>
-                  {visibilityMeta.label}
-                </span>
-              )}
             </div>
           </div>
           <button

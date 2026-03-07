@@ -4,12 +4,6 @@ import { supabase } from '../../lib/supabase';
 import { useIrisTransition } from '../ui/IrisTransition';
 import styles from './UserDock.module.css';
 
-const identityLabels = {
-  classmate: '本班同学',
-  alumni: '校友',
-  guest: '游客',
-};
-
 const roleLabels = {
   admin: '管理员',
   superuser: '超级管理员',
@@ -44,7 +38,7 @@ const UserDock = () => {
 
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('nickname, avatar_url, identity_type, role, email')
+        .select('nickname, avatar_url, role, email')
         .eq('id', user.id)
         .single();
 
@@ -55,17 +49,6 @@ const UserDock = () => {
       }
 
       setProfile(profileData);
-
-      if (profileData.role === 'admin' || profileData.role === 'superuser') {
-        setStatus('member');
-        return;
-      }
-
-      if (profileData.identity_type === 'guest') {
-        setStatus('guest');
-        return;
-      }
-
       setStatus('member');
     } catch (error) {
       console.error('UserDock load error:', error);
@@ -173,10 +156,7 @@ const UserDock = () => {
   const displayRole = useMemo(() => {
     if (status === 'anonymous') return '未登录';
     if (profile?.role && roleLabels[profile.role]) return roleLabels[profile.role];
-    if (profile?.identity_type && identityLabels[profile.identity_type]) {
-      return identityLabels[profile.identity_type];
-    }
-    return '成员';
+    return '内部成员';
   }, [profile, status]);
 
   const avatarText = displayName ? displayName.charAt(0) : 'U';
@@ -262,16 +242,6 @@ const UserDock = () => {
                   >
                     <span>{profile?.role === 'superuser' ? '管理面板' : '管理员面板'}</span>
                     <span className={styles.panelMeta}>Admin</span>
-                  </Link>
-                )}
-                {status === 'guest' && (
-                  <Link
-                    to="/guest-update-identity"
-                    className={`${styles.panelItem} ${styles.panelItemGhost}`}
-                    onClick={(event) => triggerIris?.(event, '/guest-update-identity')}
-                  >
-                    <span>验证校友身份</span>
-                    <span className={styles.panelMeta}>Upgrade</span>
                   </Link>
                 )}
                 <button

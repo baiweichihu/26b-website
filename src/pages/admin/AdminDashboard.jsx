@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import {
   getAdminPermissions,
-  getUpgradeRequests,
   getContentReports,
-  getJournalAccessRequests,
+  getRegisterRequests,
   getPermissionChangeRequests,
 } from '../../services/adminService';
 import styles from './AdminDashboard.module.css';
@@ -20,9 +19,8 @@ function AdminDashboard() {
   const [userRole, setUserRole] = useState(null);
   const [permissions, setPermissions] = useState(null);
   const [stats, setStats] = useState({
-    pendingUpgrades: 0,
     pendingReports: 0,
-    pendingJournalRequests: 0,
+    pendingRegisterRequests: 0,
     pendingPermissionRequests: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -90,17 +88,10 @@ function AdminDashboard() {
 
         // 获取待审核项目统计
         const statsData = {
-          pendingUpgrades: 0,
           pendingReports: 0,
-          pendingJournalRequests: 0,
+          pendingRegisterRequests: 0,
           pendingPermissionRequests: 0,
         };
-
-        // 获取待审核升级请求数
-        if (!permData || permData.can_manage_user_permissions) {
-          const { data: upgradesData } = await getUpgradeRequests('pending');
-          statsData.pendingUpgrades = upgradesData?.length || 0;
-        }
 
         // 获取待处理举报数
         if (!permData || permData.can_manage_content) {
@@ -108,14 +99,11 @@ function AdminDashboard() {
           statsData.pendingReports = reportsData?.length || 0;
         }
 
-        // 获取班日志查档申请数
-        if (!permData || permData.can_manage_journal) {
-          const { data: journalData } = await getJournalAccessRequests('pending');
-          statsData.pendingJournalRequests = journalData?.length || 0;
-        }
-
-        // 仅 superuser 可以看权限变更申请
+        // 仅 superuser 可以看注册申请与权限变更申请
         if (userRole === 'superuser') {
+          const { data: registerData } = await getRegisterRequests('pending');
+          statsData.pendingRegisterRequests = registerData?.length || 0;
+
           const { data: permReqData } = await getPermissionChangeRequests('pending');
           statsData.pendingPermissionRequests = permReqData?.length || 0;
         }
@@ -147,17 +135,12 @@ function AdminDashboard() {
       .channel(`admin-dashboard:${userId}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'upgrade_requests' },
-        () => loadData(false)
-      )
-      .on(
-        'postgres_changes',
         { event: '*', schema: 'public', table: 'content_reports' },
         () => loadData(false)
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'access_requests' },
+        { event: '*', schema: 'public', table: 'register_requests' },
         () => loadData(false)
       )
       .on(
@@ -178,15 +161,6 @@ function AdminDashboard() {
 
   const baseMenuItems = [
     {
-      title: '升级校友申请',
-      description: '审核游客升级为校友的申请',
-      icon: '👤',
-      path: '/admin/upgrade-approvals',
-      count: stats.pendingUpgrades,
-      permission: permissions?.can_manage_user_permissions,
-      requiredRole: 'admin',
-    },
-    {
       title: '禁言用户',
       description: '管理普通用户的禁言/解禁',
       icon: '🚫',
@@ -201,15 +175,6 @@ function AdminDashboard() {
       path: '/admin/content-reports',
       count: stats.pendingReports,
       permission: permissions?.can_manage_content,
-      requiredRole: 'admin',
-    },
-    {
-      title: '班日志查档审批',
-      description: '审核校友查档申请',
-      icon: '📖',
-      path: '/admin/journal-approval',
-      count: stats.pendingJournalRequests,
-      permission: permissions?.can_manage_journal,
       requiredRole: 'admin',
     },
     {
@@ -231,6 +196,15 @@ function AdminDashboard() {
   ];
 
   const superuserMenuItems = [
+    {
+      title: '注册申请审批',
+      description: '审核内部注册申请',
+      icon: '📨',
+      path: '/admin/register-approvals',
+      count: stats.pendingRegisterRequests,
+      permission: true,
+      requiredRole: 'superuser',
+    },
     {
       title: '管理员权限审批',
       description: '审核管理员权限变更申请',
@@ -305,20 +279,12 @@ function AdminDashboard() {
           {permissions && (
             <div className={styles.permissionsCard}>
               <h2>您的权限</h2>
-              {(permissions.can_manage_user_permissions ||
-                permissions.can_manage_content ||
-                permissions.can_manage_journal ||
+              {(permissions.can_manage_content ||
                 permissions.can_ban_users ||
                 permissions.can_manage_album) ? (
                 <div className={styles.permissionsList}>
-                  {permissions.can_manage_user_permissions && (
-                    <span className={styles.permissionBadge}>用户权限管理</span>
-                  )}
                   {permissions.can_manage_content && (
                     <span className={styles.permissionBadge}>内容管理</span>
-                  )}
-                  {permissions.can_manage_journal && (
-                    <span className={styles.permissionBadge}>班日志查档审批</span>
                   )}
                   {permissions.can_ban_users && (
                     <span className={styles.permissionBadge}>禁言管理</span>
@@ -335,24 +301,16 @@ function AdminDashboard() {
 
           {/* 待审核项目统计 */}
           <div className={styles.statsGrid}>
-            {stats.pendingUpgrades > 0 && (
-              <div className={styles.statCard}>
-                <div className={styles.statNumber}>{stats.pendingUpgrades}</div>
-                <div className={styles.statLabel}>升级申请</div>
-              </div>
-            )}
             {stats.pendingReports > 0 && (
               <div className={styles.statCard}>
                 <div className={styles.statNumber}>{stats.pendingReports}</div>
                 <div className={styles.statLabel}>待处理举报</div>
               </div>
             )}
-            {stats.pendingJournalRequests > 0 && (
+            {stats.pendingRegisterRequests > 0 && (
               <div className={styles.statCard}>
-                <div className={styles.statNumber}>
-                  {stats.pendingJournalRequests}
-                </div>
-                <div className={styles.statLabel}>日志查档申请</div>
+                <div className={styles.statNumber}>{stats.pendingRegisterRequests}</div>
+                <div className={styles.statLabel}>待审注册申请</div>
               </div>
             )}
             {stats.pendingPermissionRequests > 0 && (
