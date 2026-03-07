@@ -23,6 +23,7 @@ const Wall = () => {
   const [searchSortBy, setSearchSortBy] = useState('time');
   const [authStatus, setAuthStatus] = useState('loading');
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [statsMode, setStatsMode] = useState('all');
   const [likeLoadingPostId, setLikeLoadingPostId] = useState(null);
   const panelRef = useRef(null);
   const lastAnimatedCountRef = useRef(0);
@@ -44,6 +45,26 @@ const Wall = () => {
       }
     );
   }, [posts]);
+
+  const ownWallStats = useMemo(() => {
+    const ownPosts = posts.filter((post) => post.is_owner);
+    return ownPosts.reduce(
+      (acc, post) => {
+        acc.totalLikes += post.like_count || 0;
+        acc.totalComments += post.comment_count || 0;
+        acc.totalViews += post.view_count || 0;
+        return acc;
+      },
+      {
+        totalPosts: ownPosts.length,
+        totalLikes: 0,
+        totalComments: 0,
+        totalViews: 0,
+      }
+    );
+  }, [posts]);
+
+  const displayedStats = statsMode === 'mine' ? ownWallStats : wallStats;
 
   const loadAuthStatus = useCallback(async () => {
     try {
@@ -390,6 +411,10 @@ const Wall = () => {
 
   const handleCloseReport = () => setReportTarget(null);
 
+  const handleToggleStatsMode = () => {
+    setStatsMode((prevMode) => (prevMode === 'all' ? 'mine' : 'all'));
+  };
+
   // const handleTestLogin = async () => {
   //   try {
   //     setActionLoading(true);
@@ -452,7 +477,10 @@ const Wall = () => {
           <PostWallHero
             onCreatePost={handleCreatePostClick}
             actionLoading={actionLoading}
-            stats={wallStats}
+            stats={displayedStats}
+            statsMode={statsMode}
+            onToggleStatsMode={handleToggleStatsMode}
+            canToggleOwnStats={Boolean(currentUserId)}
           />
 
           {notice && (

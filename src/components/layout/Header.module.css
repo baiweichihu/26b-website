@@ -1,8 +1,8 @@
 .pageHeader {
   position: relative;
-  height: 132px;
+  height: auto;
   min-height: 132px;
-  padding: 0.85rem 0;
+  padding: calc(1.25rem + 6px) 0 1rem;
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.8), rgba(242, 248, 255, 0.6));
   border-bottom: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 18px 40px rgba(17, 29, 54, 0.12);
@@ -26,6 +26,7 @@
 .pageHeader .container {
   position: relative;
   z-index: 20;
+  padding-top: max(0px, env(safe-area-inset-top));
 }
 
 .headerSwipe {
@@ -192,9 +193,9 @@
 
 @media (max-width: 768px) {
   .pageHeader {
-    height: 118px;
+    height: auto;
     min-height: 118px;
-    padding: 0.65rem 0;
+    padding: calc(0.95rem + 10px) 0 0.75rem;
   }
 
   .headerActionGroup {

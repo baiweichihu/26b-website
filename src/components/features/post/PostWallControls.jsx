@@ -40,7 +40,7 @@ const PostWallControls = ({
           type="button"
           onClick={onSearch}
           disabled={actionLoading}
-          className={`scene-button ghost ${styles.actionButton}`}
+          className={`scene-button ${styles.actionButton} ${styles.searchButton}`}
         >
           {actionLoading ? '处理中...' : '搜索'}
         </button>

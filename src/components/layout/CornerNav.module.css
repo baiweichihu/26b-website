@@ -1,6 +1,6 @@
 .cornerNav {
   position: fixed;
-  top: calc(var(--header-offset, 0px) + 1.5rem);
+  top: max(0.65rem, calc((var(--header-offset, 132px) - 100px) / 2));
   left: 1.5rem;
   display: flex;
   align-items: flex-start;

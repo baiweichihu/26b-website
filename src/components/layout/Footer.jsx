@@ -68,7 +68,7 @@ const Footer = () => {
           <p className={styles.subtitle}>2019-2024</p>
         </div>
         <div className={styles.meta}>
-          <p>(c) 2026 北京八中少26B班 All Rights Reserved</p>
+          <p>© 2026 北京八中少26B班 All Rights Reserved</p>
           <p>维护者：白尾赤狐和TA的朋友们</p>
         </div>
       </div>
