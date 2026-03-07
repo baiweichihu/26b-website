@@ -45,18 +45,6 @@ const AlbumSidebar = ({ folders, currentFolder, onNavigateToFolder }) => {
   });
 
   useEffect(() => {
-    setExpandedIds((prev) => {
-      const next = new Set(prev);
-      (folders || []).forEach((folder) => {
-        if (!next.has(folder.id)) {
-          next.add(folder.id);
-        }
-      });
-      return next;
-    });
-  }, [folders]);
-
-  useEffect(() => {
     try {
       localStorage.setItem(EXPANDED_STORAGE_KEY, JSON.stringify(Array.from(expandedIds)));
     } catch {

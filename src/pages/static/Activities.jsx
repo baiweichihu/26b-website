@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
+import { logger } from '../../utils/logger';
 
 const Activities = () => {
   const [authStatus, setAuthStatus] = useState('loading');
@@ -31,7 +32,7 @@ const Activities = () => {
 
       setAuthStatus('member');
     } catch (error) {
-      console.error('Activities auth check failed:', error);
+      logger.error('Activities auth check failed:', error);
       setAuthStatus('anonymous');
     }
   }, []);
@@ -41,8 +42,14 @@ const Activities = () => {
       void loadAuthStatus();
     });
 
-    void loadAuthStatus();
-    return () => data?.subscription?.unsubscribe?.();
+    const timer = setTimeout(() => {
+      void loadAuthStatus();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      data?.subscription?.unsubscribe?.();
+    };
   }, [loadAuthStatus]);
 
   const isLocked = authStatus === 'loading' || authStatus === 'anonymous';

@@ -8,6 +8,7 @@ import {
   deletePost,
   deleteComment,
 } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './ContentReports.module.css';
 
 /**
@@ -26,6 +27,7 @@ function ContentReports() {
   const [processingReportId, setProcessingReportId] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
   const [adminNote, setAdminNote] = useState('');
+  const reportId = searchParams.get('report');
 
   // 检查登录状态和权限
   useEffect(() => {
@@ -55,7 +57,7 @@ function ContentReports() {
         setUserId(user.id);
         setUserRole(profile.role);
       } catch (error) {
-        console.error('检查权限失败:', error);
+        logger.error('检查权限失败:', error);
         navigate('/');
       }
     };
@@ -83,27 +85,20 @@ function ContentReports() {
           filteredReports = filteredReports.filter((r) => r.reporter_id === userId);
         }
         setReports(filteredReports);
+
+        if (reportId) {
+          const reportFromQuery = filteredReports.find((r) => r.id === reportId);
+          if (reportFromQuery) {
+            setSelectedReport((prev) => (prev?.id === reportFromQuery.id ? prev : reportFromQuery));
+          }
+        }
       }
 
       setLoading(false);
     };
 
     loadReports();
-  }, [filter, userId, userRole]);
-
-  const reportId = searchParams.get('report');
-
-  // 自动选中查询参数中的举报
-  useEffect(() => {
-    if (!reportId || reports.length === 0 || !selectedReport || selectedReport.id === reportId)
-      return;
-
-    const report = reports.find((r) => r.id === reportId);
-    if (report) {
-      setSelectedReport(report);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reportId]);
+  }, [filter, userId, userRole, reportId]);
 
   // 处理举报为已解决
   const handleResolveReport = async (reportId) => {

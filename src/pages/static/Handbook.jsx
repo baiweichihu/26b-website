@@ -4,6 +4,7 @@ import PDFViewer from '../../components/features/journal/PDFViewer';
 import TableOfContents from '../../components/features/journal/TableOfContents';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
+import { logger } from '../../utils/logger';
 import styles from './Journal.module.css';
 import handbookStyles from './Handbook.module.css';
 
@@ -16,7 +17,7 @@ const HANDBOOK_FILE_NAMES = [
 
 const Handbook = () => {
   const [authStatus, setAuthStatus] = useState('loading');
-  const [selectedFileId, setSelectedFileId] = useState('');
+  const [selectedFileId, setSelectedFileId] = useState(HANDBOOK_FILE_NAMES[0] || '');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [pdfScale, setPdfScale] = useState(1);
@@ -37,12 +38,6 @@ const Handbook = () => {
 
   const selectedFile =
     handbookFiles.find((item) => item.id === selectedFileId) || handbookFiles[0] || null;
-
-  useEffect(() => {
-    if (!selectedFileId && handbookFiles.length > 0) {
-      setSelectedFileId(handbookFiles[0].id);
-    }
-  }, [selectedFileId, handbookFiles]);
 
   const loadAuthStatus = useCallback(async (userOverride = null) => {
     try {
@@ -77,7 +72,7 @@ const Handbook = () => {
 
       setAuthStatus('member');
     } catch (error) {
-      console.error('Handbook auth check failed:', error);
+      logger.error('Handbook auth check failed:', error);
       setAuthStatus('anonymous');
     }
   }, []);
@@ -87,13 +82,23 @@ const Handbook = () => {
       void loadAuthStatus(session?.user ?? null);
     });
 
-    void loadAuthStatus();
-    return () => data?.subscription?.unsubscribe?.();
+    const timer = setTimeout(() => {
+      void loadAuthStatus();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      data?.subscription?.unsubscribe?.();
+    };
   }, [loadAuthStatus]);
 
   useEffect(() => {
-    setCurrentPage(1);
-    setTotalPages(0);
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      setTotalPages(0);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [selectedFile?.id]);
 
   useEffect(() => {
@@ -114,7 +119,7 @@ const Handbook = () => {
     try {
       await pdfFullscreenRef.current.requestFullscreen();
     } catch (err) {
-      console.error('无法进入全屏模式:', err);
+      logger.error('无法进入全屏模式:', err);
     }
   };
 
@@ -124,7 +129,7 @@ const Handbook = () => {
     try {
       await document.exitFullscreen();
     } catch (err) {
-      console.error('无法退出全屏模式:', err);
+      logger.error('无法退出全屏模式:', err);
     }
   };
 

@@ -7,6 +7,7 @@ import {
   getRegisterRequests,
   getPermissionChangeRequests,
 } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './AdminDashboard.module.css';
 
 /**
@@ -60,7 +61,7 @@ function AdminDashboard() {
         setUserId(user.id);
         setUserRole(profile.role);
       } catch (error) {
-        console.error('检查权限失败:', error);
+        logger.error('检查权限失败:', error);
         navigate('/');
       }
     };
@@ -81,7 +82,7 @@ function AdminDashboard() {
         // 获取权限信息
         const { data: permData, error: permError } = await getAdminPermissions(userId);
         if (permError) {
-          console.error('获取权限信息失败:', permError);
+          logger.error('获取权限信息失败:', permError);
         } else {
           setPermissions(permData);
         }
@@ -111,7 +112,7 @@ function AdminDashboard() {
         setStats(statsData);
       } catch (err) {
         setError(err.message || '加载数据失败');
-        console.error('加载管理员数据失败:', err);
+        logger.error('加载管理员数据失败:', err);
       }
 
       if (showLoading) {
@@ -124,7 +125,12 @@ function AdminDashboard() {
   // 当 userId 和 userRole 加载完成后，获取数据
   useEffect(() => {
     if (!userId || !userRole) return;
-    loadData(true);
+
+    const timer = setTimeout(() => {
+      void loadData(true);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [userId, userRole, loadData]);
 
   // 使用 Supabase Realtime 监听统计数据变化
@@ -245,7 +251,7 @@ function AdminDashboard() {
     return item.permission !== false;
   });
 
-  const accessibleSuperuserItems = superuserMenuItems.filter((item) => {
+  const accessibleSuperuserItems = superuserMenuItems.filter(() => {
     return userRole === 'superuser';
   });
 

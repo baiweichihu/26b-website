@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import NoticeBox from '../../components/widgets/NoticeBox';
-import { useIrisTransition } from '../../components/ui/IrisTransition';
+import { useIrisTransition } from '../../components/ui/useIrisTransition';
+import { logger } from '../../utils/logger';
 import styles from './UserManagement.module.css';
 
 const roleLabels = {
@@ -48,7 +49,7 @@ const UserManagement = () => {
       setProfile(profileData);
       setStatus('member');
     } catch (error) {
-      console.error('UserManagement load error:', error);
+      logger.error('UserManagement load error:', error);
       setStatus('anonymous');
       setProfile(null);
     }

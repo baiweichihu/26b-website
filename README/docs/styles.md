@@ -124,6 +124,14 @@
 - 主要容器自适应宽度与间距。  
   定义位置：`src/index.css`
 
+### 7.1 Journal 样式文件组织（2026-03）
+
+- `src/pages/static/Journal.module.css` 现在作为入口文件，仅负责 `@import`。
+- 大体量样式拆分为两段：
+  - `src/pages/static/journal-styles/Journal.layout-and-viewer.css`（布局与阅读器主体）
+  - `src/pages/static/journal-styles/Journal.responsive-and-theme.css`（响应式、全屏、暗色模式）
+- 约定：后续新增 Journal 样式时，优先按“布局/组件”与“响应式/主题”分配到上述两个文件，避免单文件持续膨胀。
+
 ---
 
 ## 8. 视觉元素与装饰

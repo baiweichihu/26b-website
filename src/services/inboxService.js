@@ -1,24 +1,27 @@
 import { supabase } from '../lib/supabase.js';
+import { logger } from '../utils/logger.js';
 
 // 存储活跃的频道订阅，避免重复订阅
 const activeChannels = new Map();
 
-/**
- * 为新注册用户创建欢迎通知
- * @param {string} userId - 新用户ID
- * @returns {Promise<Object>}
- */
-export async function createWelcomeNotification(userId) {
+const insertNotification = async ({
+  recipientId,
+  type,
+  title,
+  content,
+  relatedResourceType = null,
+  relatedResourceId = null,
+}) => {
   const { data, error } = await supabase
     .from('notifications')
     .insert([
       {
-        recipient_id: userId,
-        type: 'system_announcement',
-        title: '标题',
-        content: '这是一个welcomenotification',
-        related_resource_type: null,
-        related_resource_id: null,
+        recipient_id: recipientId,
+        type,
+        title,
+        content,
+        related_resource_type: relatedResourceType,
+        related_resource_id: relatedResourceId,
         is_read: false,
         created_at: new Date().toISOString(),
       },
@@ -26,13 +29,35 @@ export async function createWelcomeNotification(userId) {
     .select();
 
   return { data, error };
+};
+
+/**
+ * 为新注册用户创建欢迎通知
+ * @param {string} userId - 新用户ID
+ * @param {Object} [options]
+ * @param {string} [options.title]
+ * @param {string} [options.content]
+ * @returns {Promise<Object>}
+ */
+export async function createWelcomeNotification(userId, options = {}) {
+  const welcomeTitle = options.title || '欢迎加入26B班网站';
+  const welcomeContent =
+    options.content ||
+    '恭喜您，账号创建成功，欢迎回到26B班大家庭！现在您可以自由探索班级网站的各种功能，希望大家在这里畅所欲言、互相陪伴，共同珍藏属于26B的青春回忆。如果有任何问题或建议，请随时联系我们。愿您在26B班网站收获美好的回忆。';
+
+  return insertNotification({
+    recipientId: userId,
+    type: 'system_announcement',
+    title: welcomeTitle,
+    content: welcomeContent,
+  });
 }
 
 /**
  * 创建审核结果通知
  * @param {string} userId - 接收通知的用户ID
- * @param {string} status - 审核状态 (approved/rejected)
- * @param {string} requestType - 申请类型 (如: 注册申请、权限变更等)
+ * @param {string} status - 审核状�?(approved/rejected)
+ * @param {string} requestType - 申请类型 (�? 注册申请、权限变更等)
  * @param {string} relatedResourceId - 相关资源ID
  * @returns {Promise<Object>}
  */
@@ -43,32 +68,23 @@ export async function createAuditResultNotification(
   relatedResourceId
 ) {
   const title = status === 'approved' ? '申请已批准' : '申请已驳回';
-  const content = `你的${requestType}申请已${status === 'approved' ? '被批准' : '被驳回'}`;
+  const content = `你的${requestType}申请${status === 'approved' ? '已通过审核' : '未通过审核'}`;
 
-  const { data, error } = await supabase
-    .from('notifications')
-    .insert([
-      {
-        recipient_id: userId,
-        type: 'audit_result',
-        title: title,
-        content: content,
-        related_resource_type: 'admin_request',
-        related_resource_id: relatedResourceId,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      },
-    ])
-    .select();
-
-  return { data, error };
+  return insertNotification({
+    recipientId: userId,
+    type: 'audit_result',
+    title,
+    content,
+    relatedResourceType: 'admin_request',
+    relatedResourceId,
+  });
 }
 
 /**
  * 创建举报反馈通知
  * @param {string} userId - 举报人ID
- * @param {string} status - 处理状态 (approved/rejected)
- * @param {string} targetType - 被举报内容类型 (post/comment)
+ * @param {string} status - 处理状�?(approved/rejected)
+ * @param {string} targetType - 被举报内容类�?(post/comment)
  * @returns {Promise<Object>}
  */
 export async function createReportFeedbackNotification(
@@ -83,23 +99,14 @@ export async function createReportFeedbackNotification(
       ? `感谢你的举报，我们已对违规${targetType === 'post' ? '帖子' : '评论'}进行处理`
       : `感谢你的举报，我们审核后认为该${targetType === 'post' ? '帖子' : '评论'}无违规，已驳回举报`;
 
-  const { data, error } = await supabase
-    .from('notifications')
-    .insert([
-      {
-        recipient_id: userId,
-        type: 'report_feedback',
-        title: title,
-        content: content,
-        related_resource_type: 'content_reports',
-        related_resource_id: reportId,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      },
-    ])
-    .select();
-
-  return { data, error };
+  return insertNotification({
+    recipientId: userId,
+    type: 'report_feedback',
+    title,
+    content,
+    relatedResourceType: 'content_reports',
+    relatedResourceId: reportId,
+  });
 }
 
 /**
@@ -124,57 +131,37 @@ export async function createInteractionNotification(
   const title = `${actorName}${actionText}${targetText}`;
   const content = `${actorName}${actionText}${targetText}`;
 
-  const { data, error } = await supabase
-    .from('notifications')
-    .insert([
-      {
-        recipient_id: userId,
-        type: 'interaction',
-        title: title,
-        content: content,
-        related_resource_type: targetType,
-        related_resource_id: targetId,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      },
-    ])
-    .select();
-
-  return { data, error };
+  return insertNotification({
+    recipientId: userId,
+    type: 'interaction',
+    title,
+    content,
+    relatedResourceType: targetType,
+    relatedResourceId: targetId,
+  });
 }
 
 /**
- * 发送系统通知给指定用户
+ * 发送系统通知给指定用�?
  * @param {string} userId - 接收用户ID
  * @param {string} title - 通知标题
  * @param {string} content - 通知内容
  * @returns {Promise<Object>}
  */
 export async function createSystemNotification(userId, title, content) {
-  const { data, error } = await supabase
-    .from('notifications')
-    .insert([
-      {
-        recipient_id: userId,
-        type: 'system_announcement',
-        title: title,
-        content: content,
-        related_resource_type: null,
-        related_resource_id: null,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      },
-    ])
-    .select();
-
-  return { data, error };
+  return insertNotification({
+    recipientId: userId,
+    type: 'system_announcement',
+    title,
+    content,
+  });
 }
 
 /**
- * 订阅用户的实时通知（WebSocket）
+ * 订阅用户的实时通知（WebSocket�?
  * @param {string} userId - 用户ID
  * @param {Function} onNotification - 收到通知时的回调函数
- * @returns {Promise<Object>} 返回 channel 对象和错误信息
+ * @returns {Promise<Object>} 返回 channel 对象和错误信�?
  */
 export async function subscribeToNotifications(userId, onNotification) {
   if (!userId || !onNotification) {
@@ -207,7 +194,7 @@ export async function subscribeToNotifications(userId, onNotification) {
           filter: `recipient_id=eq.${userId}`,
         },
         (payload) => {
-          // 新通知到达时触发回调
+          // 新通知到达时触发回�?
           onNotification({
             type: 'INSERT',
             data: payload.new,
@@ -232,9 +219,9 @@ export async function subscribeToNotifications(userId, onNotification) {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`✅ 已订阅用户 ${userId} 的实时通知`);
+          logger.info(`已订阅用户 ${userId} 的实时通知`);
         } else if (status === 'CLOSED') {
-          console.log(`❌ 用户 ${userId} 的通知订阅已关闭`);
+          logger.info(`用户 ${userId} 的通知订阅已关闭`);
           activeChannels.delete(channelName);
         }
       });
@@ -287,30 +274,7 @@ export async function unsubscribeFromNotifications(userId) {
 }
 
 /**
- * 获取用户的未读通知列表
- * @param {string} userId - 用户ID
- * @returns {Promise<Object>}
- */
-export async function getUnreadNotifications(userId) {
-  if (!userId) {
-    return {
-      data: null,
-      error: '缺少必要参数：userId',
-    };
-  }
-
-  const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .eq('recipient_id', userId)
-    .eq('is_read', false)
-    .order('created_at', { ascending: false });
-
-  return { data, error };
-}
-
-/**
- * 标记通知为已读
+ * 标记通知为已�?
  * @param {string} notificationId - 通知ID
  * @returns {Promise<Object>}
  */
@@ -332,7 +296,7 @@ export async function markNotificationAsRead(notificationId) {
 }
 
 /**
- * 标记用户的所有通知为已读
+ * 标记用户的所有通知为已�?
  * @param {string} userId - 用户ID
  * @returns {Promise<Object>}
  */
@@ -355,10 +319,10 @@ export async function markAllNotificationsAsRead(userId) {
 }
 
 /**
- * 获取用户的所有通知列表（包括已读和未读）
+ * 获取用户的所有通知列表（包括已读和未读�?
  * @param {string} userId - 用户ID
- * @param {number} limit - 限制条数（默认50）
- * @param {number} offset - 分页偏移（默认0）
+ * @param {number} limit - 限制条数（默�?0�?
+ * @param {number} offset - 分页偏移（默�?�?
  * @returns {Promise<Object>}
  */
 export async function getAllNotifications(userId, limit = 50, offset = 0) {
@@ -380,37 +344,11 @@ export async function getAllNotifications(userId, limit = 50, offset = 0) {
 }
 
 /**
- * 删除单条通知
- * @param {string} notificationId - 通知ID
- * @returns {Promise<Object>}
- */
-export async function deleteNotification(notificationId) {
-  if (!notificationId) {
-    return {
-      success: false,
-      error: '缺少必要参数：notificationId',
-    };
-  }
-
-  const { error } = await supabase
-    .from('notifications')
-    .delete()
-    .eq('id', notificationId);
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  return { success: true, error: null };
-}
-
-/**
- * 发布系统公告（Superuser 操作）
+ * 发布系统公告（Superuser 操作�?
  * 向全部内部用户发送公告通知
  * @param {string} title - 公告标题
  * @param {string} content - 公告内容
- * @param {string} publishedBy - 发布者ID（Superuser）
- * @param {Array<string>} targetIdentities - 已废弃参数，保留兼容
+ * @param {string} publishedBy - 发布者ID（Superuser�?
  * @returns {Promise<Object>} { insertedCount, error }
  */
 export async function createSystemAnnouncementNotification(
@@ -475,3 +413,4 @@ export async function createSystemAnnouncementNotification(
     };
   }
 }
+

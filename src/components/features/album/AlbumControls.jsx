@@ -331,7 +331,7 @@ const AlbumControls = ({
                 <button
                   type="submit"
                   className="btn btn-success"
-                  disabled={!fileInputRef.current?.files?.[0] || actionLoading}
+                  disabled={selectedFiles.length === 0 || actionLoading}
                 >
                   {actionLoading ? '上传中...' : '上传媒体'}
                 </button>

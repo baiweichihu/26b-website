@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { useIrisTransition } from '../ui/IrisTransition';
+import { useIrisTransition } from '../ui/useIrisTransition';
+import { logger } from '../../utils/logger';
 import styles from './UserDock.module.css';
 
 const roleLabels = {
@@ -51,7 +52,7 @@ const UserDock = () => {
       setProfile(profileData);
       setStatus('member');
     } catch (error) {
-      console.error('UserDock load error:', error);
+      logger.error('UserDock load error:', error);
       setStatus('anonymous');
       setProfile(null);
     }
@@ -144,7 +145,7 @@ const UserDock = () => {
       setOpenKey(null);
       window.location.assign(`${baseUrl}`);
     } catch (error) {
-      console.error('UserDock sign out error:', error);
+      logger.error('UserDock sign out error:', error);
     }
   };
 

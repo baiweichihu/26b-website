@@ -1,7 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
+import PeopleProfileOwnerPicker from '../../components/features/people/PeopleProfileOwnerPicker';
+import PeopleProfileRoleFields from '../../components/features/people/PeopleProfileRoleFields';
+import PeopleProfileSocialSection from '../../components/features/people/PeopleProfileSocialSection';
 import { supabase } from '../../lib/supabase';
 import {
   getMyPeopleProfile,
@@ -165,7 +168,7 @@ const PeopleProfileEdit = () => {
     skillsText: '',
   });
 
-  const reloadProfile = async () => {
+  const reloadProfile = useCallback(async () => {
     setLoading(true);
     try {
       const authResult = await supabase.auth.getUser();
@@ -255,7 +258,7 @@ const PeopleProfileEdit = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profileId]);
 
   useEffect(() => {
     const load = async () => {
@@ -263,7 +266,7 @@ const PeopleProfileEdit = () => {
     };
 
     void load();
-  }, [profileId]);
+  }, [reloadProfile]);
 
   useEffect(() => {
     if (!ownerPickerOpen) return undefined;
@@ -445,222 +448,36 @@ const PeopleProfileEdit = () => {
               <input className="form-control" name="role" value={roleLabels[form.role] || ''} disabled readOnly />
             </label>
             {isSuperuser && profileId && (
-              <label className={styles.field}>
-                用户归属
-                <div className={styles.ownerSelectWrap} ref={ownerPickerRef}>
-                  <button
-                    type="button"
-                    className={`form-control ${styles.ownerTrigger}`}
-                    onClick={() => setOwnerPickerOpen((prev) => !prev)}
-                  >
-                    {form.owner_user_id
-                      ? selectedOwner
-                      ? `${selectedOwner.nickname || '未设置昵称'} · ${selectedOwner.email || selectedOwner.id}`
-                      : '已选用户（信息加载中）'
-                      : '未归属'}
-                  </button>
-
-                  {ownerPickerOpen && (
-                    <div className={styles.ownerPicker} role="listbox" aria-label="用户归属选择">
-                      <button
-                        type="button"
-                        className={`${styles.ownerOption} ${!form.owner_user_id ? styles.ownerOptionActive : ''}`}
-                        onClick={() => {
-                          setForm((prev) => ({ ...prev, owner_user_id: '' }));
-                          setOwnerPickerOpen(false);
-                        }}
-                      >
-                        <div className={styles.ownerMeta}>
-                          <p className={styles.ownerPrimary}>未归属</p>
-                          <p className={styles.ownerSecondary}>该人物暂不绑定任何用户账号</p>
-                        </div>
-                      </button>
-
-                      {ownerCandidatesLoading && <p className={styles.ownerEmpty}>正在加载用户列表...</p>}
-                      {!ownerCandidatesLoading && ownerCandidates.length === 0 && (
-                        <p className={styles.ownerEmpty}>暂无可选用户</p>
-                      )}
-                      {!ownerCandidatesLoading &&
-                        ownerCandidates.map((candidate) => {
-                          const isSelected = candidate.id === form.owner_user_id;
-                          return (
-                            <button
-                              key={candidate.id}
-                              type="button"
-                              className={`${styles.ownerOption} ${isSelected ? styles.ownerOptionActive : ''}`}
-                              onClick={() => {
-                                setForm((prev) => ({ ...prev, owner_user_id: candidate.id }));
-                                setOwnerPickerOpen(false);
-                              }}
-                            >
-                              <img
-                                className={styles.ownerAvatar}
-                                src={candidate.avatar_url || DEFAULT_PROFILE_AVATAR_DATA_URI}
-                                alt={(candidate.nickname || candidate.email || candidate.id || '用户') + '头像'}
-                              />
-                              <div className={styles.ownerMeta}>
-                                <p className={styles.ownerPrimary}>{candidate.nickname || '未设置昵称'}</p>
-                                <p className={styles.ownerSecondary}>ID：{candidate.id}</p>
-                                <p className={styles.ownerSecondary}>Email：{candidate.email || '无'}</p>
-                                <p className={styles.ownerSecondary}>身份：内部成员</p>
-                                <p className={styles.ownerSecondary}>
-                                  角色：{accountRoleLabels[candidate.role] || candidate.role || '未知'}
-                                </p>
-                              </div>
-                            </button>
-                          );
-                        })}
-                    </div>
-                  )}
-                </div>
-              </label>
+              <PeopleProfileOwnerPicker
+                styles={styles}
+                form={form}
+                setForm={setForm}
+                ownerPickerRef={ownerPickerRef}
+                ownerPickerOpen={ownerPickerOpen}
+                setOwnerPickerOpen={setOwnerPickerOpen}
+                ownerCandidatesLoading={ownerCandidatesLoading}
+                ownerCandidates={ownerCandidates}
+                selectedOwner={selectedOwner}
+                defaultAvatar={DEFAULT_PROFILE_AVATAR_DATA_URI}
+                accountRoleLabels={accountRoleLabels}
+              />
             )}
-            {form.role === 'student' && (
-              <label className={styles.field}>
-                学号 *（创建后不可修改）
-                <input className="form-control" name="student_no" value={form.student_no} disabled readOnly />
-              </label>
-            )}
-            {form.role === 'student' && (
-              <>
-                <label className={styles.field}>
-                  昵称
-                  <input className="form-control" name="nickname" value={form.nickname} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  英文名
-                  <input className="form-control" name="english_name" value={form.english_name} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  状态
-                  <select className="form-select" name="status" value={form.status} onChange={handleChange}>
-                    <option value="">--请选择状态--</option>
-                    {statusOptionsByRole.student.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className={styles.field}>
-                  院校名称
-                  <input className="form-control" name="university" value={form.university} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  专业
-                  <input className="form-control" name="major" value={form.major} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  爱好（空格分隔）
-                  <input className="form-control" name="hobbiesText" value={form.hobbiesText} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  技能（空格分隔）
-                  <input className="form-control" name="skillsText" value={form.skillsText} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  手机
-                  <input className="form-control" name="phone" value={form.phone} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  邮箱
-                  <input className="form-control" name="email" value={form.email} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  个人网站
-                  <input className="form-control" name="website" value={form.website} onChange={handleChange} />
-                </label>
-              </>
-            )}
-            {form.role === 'teacher' && (
-              <>
-                <label className={styles.field}>
-                  学科（创建后不可修改）
-                  <input className="form-control" name="subject" value={form.subject} disabled readOnly />
-                </label>
-                <label className={styles.field}>
-                  昵称
-                  <input className="form-control" name="nickname" value={form.nickname} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  状态
-                  <select className="form-select" name="status" value={form.status} onChange={handleChange}>
-                    <option value="">--请选择状态--</option>
-                    {statusOptionsByRole.teacher.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className={styles.field}>
-                  职位
-                  <input className="form-control" name="current_position" value={form.current_position} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  爱好（空格分隔）
-                  <input className="form-control" name="hobbiesText" value={form.hobbiesText} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  技能（空格分隔）
-                  <input className="form-control" name="skillsText" value={form.skillsText} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  手机
-                  <input className="form-control" name="phone" value={form.phone} onChange={handleChange} />
-                </label>
-                <label className={styles.field}>
-                  邮箱
-                  <input className="form-control" name="email" value={form.email} onChange={handleChange} />
-                </label>
-              </>
-            )}
+            <PeopleProfileRoleFields
+              styles={styles}
+              form={form}
+              handleChange={handleChange}
+              statusOptionsByRole={statusOptionsByRole}
+            />
           </div>
 
-          <div className={styles.socialSection}>
-            <div className={styles.socialHeader}>
-              <span>社交媒体</span>
-              <button type="button" className="scene-button primary" onClick={handleAddSocialRow}>
-                + 添加
-              </button>
-            </div>
-            {socialRows.length === 0 && <p className={styles.socialEmpty}>暂无社交媒体，点击 + 添加</p>}
-            {socialRows.map((row, index) => (
-              <div key={`social-${index}`} className={styles.socialRow}>
-                <select
-                  className="form-select"
-                  value={row.platform}
-                  onChange={(event) => handleSocialRowChange(index, 'platform', event.target.value)}
-                >
-                  {SOCIAL_PLATFORM_OPTIONS.map((option) => (
-                    <option key={option.value || 'none'} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-
-                {row.platform === 'other' && (
-                  <input
-                    className="form-control"
-                    value={row.customPlatform}
-                    onChange={(event) => handleSocialRowChange(index, 'customPlatform', event.target.value)}
-                    placeholder="自定义平台名"
-                  />
-                )}
-
-                <input
-                  className="form-control"
-                  value={row.account}
-                  onChange={(event) => handleSocialRowChange(index, 'account', event.target.value)}
-                  placeholder="账号"
-                />
-
-                <button type="button" className="scene-button ghost" onClick={() => handleRemoveSocialRow(index)}>
-                  - 删除
-                </button>
-              </div>
-            ))}
-          </div>
+          <PeopleProfileSocialSection
+            styles={styles}
+            socialRows={socialRows}
+            onAdd={handleAddSocialRow}
+            onRemove={handleRemoveSocialRow}
+            onChange={handleSocialRowChange}
+            platformOptions={SOCIAL_PLATFORM_OPTIONS}
+          />
 
           <label className={styles.field}>
             一句话介绍

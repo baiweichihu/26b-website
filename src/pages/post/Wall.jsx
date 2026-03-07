@@ -10,6 +10,7 @@ import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import ReportGateOverlay from '../../components/ui/ReportGateOverlay';
 import gateStyles from '../../components/ui/AuthGateOverlay.module.css';
 import { getPosts, deletePost, searchPosts, togglePostLike } from '../../services/postService';
+import { logger } from '../../utils/logger';
 import styles from './Wall.module.css';
 
 const Wall = () => {
@@ -95,7 +96,7 @@ const Wall = () => {
 
       setAuthStatus('member');
     } catch (error) {
-      console.error('Wall auth check failed:', error);
+      logger.error('Wall auth check failed:', error);
       setCurrentUserId(null);
       setAuthStatus('anonymous');
     }
@@ -116,7 +117,7 @@ const Wall = () => {
       setPosts(nextPosts);
       return true;
     } catch (err) {
-      console.error('加载帖子失败:', err);
+      logger.error('加载帖子失败:', err);
       const errorMessage = err?.message || '';
       if (errorMessage.includes('未登录') || errorMessage.includes('认证')) {
         setPosts([]);
@@ -244,7 +245,7 @@ const Wall = () => {
         setNotice({ type: 'error', message: `删除失败: ${result.error}` });
       }
     } catch (err) {
-      console.error('删除帖子失败:', err);
+      logger.error('删除帖子失败:', err);
       setNotice({ type: 'error', message: `系统错误: ${err.message || '未知错误'}` });
     } finally {
       setActionLoading(false);
@@ -274,7 +275,7 @@ const Wall = () => {
         }
       }
     } catch (err) {
-      console.error('测试错误:', err);
+      logger.error('测试错误:', err);
       const errorMessage = err?.message || '';
       if (errorMessage.includes('未登录') || errorMessage.includes('认证')) {
         setNotice({ type: 'info', message: '你还未登录，登录后可查看完整内容。' });
@@ -414,49 +415,6 @@ const Wall = () => {
   const handleToggleStatsMode = () => {
     setStatsMode((prevMode) => (prevMode === 'all' ? 'mine' : 'all'));
   };
-
-  // const handleTestLogin = async () => {
-  //   try {
-  //     setActionLoading(true);
-  //     setNotice(null);
-
-  //     const { error: signInError } = await supabase.auth.signInWithPassword({
-  //       email: 'test@26b.dev',
-  //       password: 'shao26b',
-  //     });
-
-  //     if (signInError) {
-  //       throw new Error(signInError.message || '登录失败');
-  //     }
-
-  //     setNotice({ type: 'success', message: '测试账号登录成功。' });
-  //     await loadAuthStatus();
-  //   } catch (err) {
-  //     setNotice({ type: 'error', message: `登录失败: ${err.message}` });
-  //   } finally {
-  //     setActionLoading(false);
-  //   }
-  // };
-
-  // const handleTestLogout = async () => {
-  //   try {
-  //     setActionLoading(true);
-  //     setNotice(null);
-
-  //     const { error: signOutError } = await supabase.auth.signOut();
-  //     if (signOutError) {
-  //       throw new Error(signOutError.message || '退出失败');
-  //     }
-
-  //     setPosts([]);
-  //     setNotice({ type: 'success', message: '已退出登录。' });
-  //     await loadAuthStatus();
-  //   } catch (err) {
-  //     setNotice({ type: 'error', message: `退出失败: ${err.message}` });
-  //   } finally {
-  //     setActionLoading(false);
-  //   }
-  // };
 
   const isLocked = authStatus === 'anonymous';
   const gateCopy = {

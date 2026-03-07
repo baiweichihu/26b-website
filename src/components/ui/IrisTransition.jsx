@@ -1,13 +1,7 @@
-import React, { createContext, useCallback, useContext, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { IrisTransitionContext } from './IrisTransitionContext';
 import styles from './IrisTransition.module.css';
-
-const IrisTransitionContext = createContext(null);
-
-export const useIrisTransition = () => {
-  const context = useContext(IrisTransitionContext);
-  return context || { triggerIris: null };
-};
 
 const IrisTransition = ({ children }) => {
   const overlayRef = useRef(null);

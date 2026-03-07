@@ -6,6 +6,7 @@ import {
   approvePermissionChangeRequest,
   rejectPermissionChangeRequest,
 } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './AdminSimplePage.module.css';
 import permApprovalStyles from './PermissionApprovals.module.css';
 
@@ -60,7 +61,7 @@ function PermissionApprovals() {
           setAllRequests(requests);
         }
       } catch (err) {
-        console.error('页面初始化失败:', err);
+        logger.error('页面初始化失败:', err);
         navigate('/');
       } finally {
         setLoading(false);
@@ -70,7 +71,7 @@ function PermissionApprovals() {
     initPage();
   }, [navigate]);
 
-  const handleApprove = async (requestId, requesterId) => {
+  const handleApprove = async (requestId) => {
     setProcessingId(requestId);
     try {
       const { error } = await approvePermissionChangeRequest(requestId, user.id, adminNotes[requestId] || '');
@@ -193,7 +194,7 @@ function PermissionApprovals() {
                     <h4>申请的权限：</h4>
                     <div className={permApprovalStyles.permissionsList}>
                       {Object.entries(request.requested_permissions)
-                        .filter(([_, value]) => value === true)
+                        .filter(([, value]) => value === true)
                         .map(([key]) => (
                           <span key={key} className={permApprovalStyles.permissionTag}>
                             {PERMISSION_LABELS[key]}

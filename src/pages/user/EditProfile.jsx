@@ -6,7 +6,7 @@ import {
   updateProfileDetails,
 } from '../../services/userService';
 import NoticeBox from '../../components/widgets/NoticeBox';
-import { useIrisTransition } from '../../components/ui/IrisTransition';
+import { useIrisTransition } from '../../components/ui/useIrisTransition';
 import styles from './Auth.module.css';
 
 const NAME_LIMIT = 10;

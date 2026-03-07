@@ -1,6 +1,13 @@
 当前按业务拆分的核心 service 包括：
 **UserService**、**PostService**、**AlbumService**、**AdminService**、**JournalService**、**PeopleService** 和 **InboxService**。
 
+> 2026-03 结构补充（与当前代码一致）：
+>
+> - `PostService` 的通用鉴权/作者加工/媒体校验/通知安全发送 helper 已抽离至 `src/services/postService.helpers.js`；
+> - `AdminService` 的通知语义封装（注册通过、禁言状态、举报结果、权限申请结果、管理员任免通知）已抽离至 `src/services/adminService.notifications.js`。
+>
+> `postService.js` 与 `adminService.js` 仍保留原有业务导出接口，仅调整内部组织方式。
+
 ---
 
 ### 1.UserService
@@ -230,7 +237,7 @@ Supabase 自带 `auth.users` 表处理基本的登录（手机号/密码）和 U
 > - 通过 `people_profiles` 的 `after update of owner_user_id` 触发器自动写入日志；
 > - 开启 RLS，仅 `superuser` 允许 `select/insert`。
 >
-> 已提供 SQL：`README/docs/people_owner_change_logs.sql`（含建表、触发器、索引、RLS 与 policy）。
+> 相关 SQL 请放在 `database/identity-refactor/sql/` 下统一维护（含建表、触发器、索引、RLS 与 policy）。
 
 #### **Storage Bucket：`people-avatars`**
 

@@ -8,6 +8,7 @@ import {
   unbanUser,
   appointAdmin,
 } from '../../services/adminService';
+import { logger } from '../../utils/logger';
 import styles from './AdminSimplePage.module.css';
 import superuserStyles from './SuperuserPanel.module.css';
 
@@ -66,7 +67,7 @@ function SuperuserPanel() {
 
         setUserId(user.id);
       } catch (error) {
-        console.error('检查权限失败:', error);
+        logger.error('检查权限失败:', error);
         navigate('/');
       }
     };
@@ -105,7 +106,7 @@ function SuperuserPanel() {
 
         if (error) {
           setErrorMessage('加载用户失败');
-          console.error(error);
+          logger.error(error);
         } else {
           // For each user, fetch their admin permissions if they are admin/superuser
           const usersWithPermissions = await Promise.all(
@@ -144,7 +145,7 @@ function SuperuserPanel() {
         }
       } catch (err) {
         setErrorMessage('加载数据失败');
-        console.error(err);
+        logger.error(err);
       } finally {
         setLoading(false);
       }

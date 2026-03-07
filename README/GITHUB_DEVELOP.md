@@ -7,7 +7,14 @@ git clone https://github.com/baiweichihu/26b-website.git
 ```
 
 2. 创建分支：
-   分支名称需要与目前的工作保持一致，比如后端的UserService模块开发，可以创建`backend/userservice`分支
+   分支名称需要和任务类型一致，建议使用以下前缀：
+
+- `feat/<name>`：新功能
+- `fix/<name>`：缺陷修复
+- `refactor/<name>`：重构
+- `docs/<name>`：文档更新
+
+例如：`fix/minor-bugs`、`feat/postService`
 
 ```bash
 git checkout -b <branch-name>

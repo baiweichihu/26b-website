@@ -9,6 +9,7 @@ import AlbumEmptyState from '../../components/features/album/AlbumEmptyState';
 import NoticeBox from '../../components/widgets/NoticeBox';
 import AuthGateOverlay from '../../components/ui/AuthGateOverlay';
 import { albumService } from '../../services/albumService';
+import { logger } from '../../utils/logger';
 import styles from './Album.module.css';
 
 const Album = () => {
@@ -76,7 +77,7 @@ const Album = () => {
         setAuthStatus('member');
       }
     } catch (err) {
-      console.error('认证状态加载失败:', err);
+      logger.error('认证状态加载失败:', err);
       setAuthStatus('anonymous');
       setIsSuperuser(false);
     }
@@ -91,7 +92,7 @@ const Album = () => {
       setFolders(foldersData);
       setError(null);
     } catch (err) {
-      console.error('加载文件夹失败:', err);
+      logger.error('加载文件夹失败:', err);
       setError(err.message);
       setFolders([]);
     } finally {
@@ -104,7 +105,7 @@ const Album = () => {
       const foldersData = await albumService.getAllFolders();
       setAllFolders(foldersData);
     } catch (err) {
-      console.error('加载完整目录失败:', err);
+      logger.error('加载完整目录失败:', err);
     }
   }, []);
 
@@ -117,7 +118,7 @@ const Album = () => {
       setPhotos(photosData.photos || []);
       setError(null);
     } catch (err) {
-      console.error('加载图片失败:', err);
+      logger.error('加载图片失败:', err);
       setError(err.message);
       setPhotos([]);
     } finally {
@@ -135,7 +136,7 @@ const Album = () => {
       const folderData = await albumService.getFolder(folderId);
       setCurrentFolder(folderData);
     } catch (err) {
-      console.error('加载当前文件夹失败:', err);
+      logger.error('加载当前文件夹失败:', err);
       setCurrentFolder(null);
     }
   }, [folderId]);
@@ -158,7 +159,7 @@ const Album = () => {
         }
       }
     } catch (err) {
-      console.error('搜索失败:', err);
+      logger.error('搜索失败:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -227,7 +228,7 @@ const Album = () => {
         message: result.liked ? '点赞成功' : '取消点赞成功' 
       });
     } catch (err) {
-      console.error('点赞操作失败:', err);
+      logger.error('点赞操作失败:', err);
 
       setPhotos(prevPhotos =>
         prevPhotos.map(photo => {
@@ -261,7 +262,7 @@ const Album = () => {
       setNotice({ type: 'success', message: '文件夹创建成功' });
       await Promise.all([loadFolders(), loadAllFolders()]);
     } catch (err) {
-      console.error('创建文件夹失败:', err);
+      logger.error('创建文件夹失败:', err);
       setNotice({ type: 'error', message: err.message });
     } finally {
       setActionLoading(false);
@@ -293,7 +294,7 @@ const Album = () => {
       setNotice({ type: 'success', message: `成功上传 ${files.length} 个媒体文件` });
       await loadPhotos(); // 重新加载图片列表
     } catch (err) {
-      console.error('上传媒体失败:', err);
+      logger.error('上传媒体失败:', err);
       setNotice({ type: 'error', message: err.message });
     } finally {
       setActionLoading(false);
@@ -313,7 +314,7 @@ const Album = () => {
       setNotice({ type: 'success', message: '媒体删除成功' });
       await loadPhotos(); // 重新加载图片列表
     } catch (err) {
-      console.error('删除媒体失败:', err);
+      logger.error('删除媒体失败:', err);
       setNotice({ type: 'error', message: err.message });
     } finally {
       setActionLoading(false);
@@ -333,7 +334,7 @@ const Album = () => {
       setNotice({ type: 'success', message: '媒体重命名成功' });
       await loadPhotos();
     } catch (err) {
-      console.error('重命名媒体失败:', err);
+      logger.error('重命名媒体失败:', err);
       setNotice({ type: 'error', message: err.message });
     } finally {
       setActionLoading(false);
@@ -358,7 +359,7 @@ const Album = () => {
 
       await Promise.all([loadPhotos(), loadFolders()]);
     } catch (err) {
-      console.error('移动媒体失败:', err);
+      logger.error('移动媒体失败:', err);
       setNotice({ type: 'error', message: err.message });
     } finally {
       setActionLoading(false);
@@ -389,7 +390,7 @@ const Album = () => {
       }
       await Promise.all([loadFolders(), loadAllFolders()]);
     } catch (err) {
-      console.error('删除文件夹失败:', err);
+      logger.error('删除文件夹失败:', err);
       setNotice({ type: 'error', message: err.message });
     } finally {
       setActionLoading(false);
